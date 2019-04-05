@@ -1,0 +1,16 @@
+,EVSE ID,User Id,Plug In Event Id,Firmware Ver.,Plug Connect Time,Plug Connect Time Zone,Plug Disconnect Time,Plug Disconnect Time Zone,Power Start Time,Power Start Time Zone,Power End Time,Power End Time Zone,Peak Power (AC kW),Rolling Avg. Power (AC kW),Energy Consumed (AC kWh),Port,Station Name,MAC Address,Org Name,Start Time,Start Time Zone,End Time,End Time Zone,Total Duration (hh:mm:ss),Charging Time (hh:mm:ss),Energy (kWh),GHG Savings (kg),Gasoline Savings,Port Type,Address 1,Address 2,City,State/Province,Postal Code,Country,Latitude,Longitude,Currency,Fee,Ended By,Driver Postal Code
+53444,210213,1087311,230980761,4.3.4.13 Build 83512 CT4knandflash,5/8/2018 11:34,MDT,,,5/8/2018 11:34,MDT,,,,,,1,PACKSIZE / CLEAN AIR 11,0024:B100:0002:7D84,Leaders For Clean Air,5/8/2018 11:34,MDT,5/8/2018 14:37,MDT,3:03:11,1:27:49,3.066414,0.0,0.385,Level 2,3784 Commons Ln,,Salt Lake City,Utah,84104.0,United States,40.74241257,-111.98162079999999,USD,,Plug Out at Vehicle,84119.0
+53445,210213,1087311,230980761,4.3.4.13 Build 83512 CT4knandflash,,,,,5/8/2018 11:34,MDT,5/8/2018 11:44,MDT,3.648,3.5460000000000003,0.6490670000000001,1,,,,,,,,,,,,,,,,,,,,,,,,,
+53446,210213,1087311,230980761,4.3.4.13 Build 83512 CT4knandflash,,,,,5/8/2018 11:45,MDT,5/8/2018 11:59,MDT,3.6489999999999996,3.645,0.911163,1,,,,,,,,,,,,,,,,,,,,,,,,,
+53447,210213,1087311,230980761,4.3.4.13 Build 83512 CT4knandflash,,,,,5/8/2018 12:00,MDT,5/8/2018 12:14,MDT,3.653,3.609,0.902274,1,,,,,,,,,,,,,,,,,,,,,,,,,
+53448,210213,1087311,230980761,4.3.4.13 Build 83512 CT4knandflash,,,,,5/8/2018 12:15,MDT,5/8/2018 12:29,MDT,3.2289999999999996,1.625,0.4063,1,,,,,,,,,,,,,,,,,,,,,,,,,
+53449,210213,1087311,230980761,4.3.4.13 Build 83512 CT4knandflash,,,,,5/8/2018 12:30,MDT,5/8/2018 12:44,MDT,1.242,0.49,0.122525,1,,,,,,,,,,,,,,,,,,,,,,,,,
+53450,210213,1087311,230980761,4.3.4.13 Build 83512 CT4knandflash,,,,,5/8/2018 12:45,MDT,5/8/2018 12:59,MDT,1.242,0.22699999999999998,0.056614,1,,,,,,,,,,,,,,,,,,,,,,,,,
+53451,210213,1087311,230980761,4.3.4.13 Build 83512 CT4knandflash,,,,,5/8/2018 13:00,MDT,5/8/2018 13:14,MDT,0.7070000000000001,0.07400000000000001,0.018471,1,,,,,,,,,,,,,,,,,,,,,,,,,
+53452,210213,1087311,230980761,4.3.4.13 Build 83512 CT4knandflash,,,,,5/8/2018 13:15,MDT,5/8/2018 13:29,MDT,0.0,0.0,0.0,1,,,,,,,,,,,,,,,,,,,,,,,,,
+53453,210213,1087311,230980761,4.3.4.13 Build 83512 CT4knandflash,,,,,5/8/2018 13:30,MDT,5/8/2018 13:44,MDT,0.0,0.0,0.0,1,,,,,,,,,,,,,,,,,,,,,,,,,
+53454,210213,1087311,230980761,4.3.4.13 Build 83512 CT4knandflash,,,,,5/8/2018 13:45,MDT,5/8/2018 13:59,MDT,0.0,0.0,0.0,1,,,,,,,,,,,,,,,,,,,,,,,,,
+53455,210213,1087311,230980761,4.3.4.13 Build 83512 CT4knandflash,,,,,5/8/2018 14:00,MDT,5/8/2018 14:14,MDT,0.0,0.0,0.0,1,,,,,,,,,,,,,,,,,,,,,,,,,
+53456,210213,1087311,230980761,4.3.4.13 Build 83512 CT4knandflash,,,,,5/8/2018 14:15,MDT,5/8/2018 14:29,MDT,0.0,0.0,0.0,1,,,,,,,,,,,,,,,,,,,,,,,,,
+53457,210213,1087311,230980761,4.3.4.13 Build 83512 CT4knandflash,,,,,5/8/2018 14:30,MDT,5/8/2018 14:37,MDT,0.0,0.0,0.0,1,,,,,,,,,,,,,,,,,,,,,,,,,
+53458,210213,1087311,230980761,4.3.4.13 Build 83512 CT4knandflash,,,5/8/2018 14:37,MDT,,,,,,,,1,,,,,,,,,,,,,,,,,,,,,,,,,

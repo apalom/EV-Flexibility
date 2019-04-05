@@ -1,0 +1,9 @@
+http://data-uplan.opendata.arcgis.com/
+https://opendata.utah.gov/police-data
+https://opendata.utah.gov/browse?limitTo=datasets&page=10
+https://opendata.utah.gov/Health/All-Payer-Claims-Database-APCD-Quality-Measures/u8tb-sa6w
+https://opendata.utah.gov/Government-and-Taxes/Utah-Census-Data-2013-All-Counties-Utah/rcc6-4r27
+https://opendata.utah.gov/Government-and-Taxes/State-of-Utah-Expenditures-Transparency-/dqdf-hweu
+https://opendata.utah.gov/Business-Economy/Employers-SL-County/rvrt-7t4n
+https://opendata.utah.gov/dataset/School-Enrollment-Data-By-Tract-City-County-Utah-2/dcc3-sb6q
+https://opendata.utah.gov/browse?category=Business+%26+Economy&limitTo=datasets
