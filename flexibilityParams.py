@@ -332,9 +332,9 @@ for daySlct in range(len(daysOfWeek)):
 #            rv_Sparrow[r,:] = 0.10*n_sparrow[0];
             
             rv_Connected[r,:] = n_cnctd[0];
-            rv_Energy[r,:] = n_energy[0];
-            rv_Duration[r,:] = n_duration[0];
-            rv_Sparrow[r,:] = n_sparrow[0];
+            rv_Energy[r,:] = 6*n_energy[0];
+            rv_Duration[r,:] = 0.5*n_duration[0];
+            rv_Sparrow[r,:] = 0.1*n_sparrow[0];
             
             r += 1;   
         c += 1;
@@ -345,11 +345,19 @@ for daySlct in range(len(daysOfWeek)):
 #%% Calculate Covariance
 
 cov = {}
+cov_Dict = {}
 
 for t in range(len(rv_Duration)):
     covTemp = np.vstack((rv_Connected[t], rv_Energy[t], rv_Duration[t], rv_Sparrow[t]));
-    cov[t] = np.cov(covTemp)
     
+    # Remove NaNs
+    where_are_NaNs = np.isnan(covTemp)
+    covTemp[where_are_NaNs] = 0
+    
+    covTemp = np.cov(covTemp)
+    #cov_Dict[t] = {'Connected': covTemp[0], 'Energy': covTemp[1], 'Duration': covTemp[2], 'Sparrow': covTemp[3] }
+    cov_Dict[t] = covTemp
+
 
 #%% Output Random Variable and Calculate Covariance
 
@@ -365,24 +373,26 @@ for d in range(7):
             
     writer = pd.ExcelWriter(fileName, engine='xlsxwriter')
        
-    pd_C = pd.DataFrame(rv_Dict[d]['rv_Connected'])
-    pd_C_cov = pd.DataFrame(np.cov(rv_Dict[d]['rv_Connected']))
-    pd_D = pd.DataFrame(rv_Dict[d]['rv_Duration'])
-    pd_D_cov = pd.DataFrame(np.cov(rv_Dict[d]['rv_Duration']))
-    pd_E = pd.DataFrame(rv_Dict[d]['rv_Energy'])
-    pd_E_cov = pd.DataFrame(np.cov(rv_Dict[d]['rv_Energy']))
+    pd_C = pd.DataFrame(rv_Dict[d]['rv_Connected'])    
+    pd_D = pd.DataFrame(rv_Dict[d]['rv_Duration'])    
+    pd_E = pd.DataFrame(rv_Dict[d]['rv_Energy'])    
     pd_S = pd.DataFrame(rv_Dict[d]['rv_Sparrow'])
-    pd_S_cov = pd.DataFrame(np.cov(rv_Dict[d]['rv_Sparrow']))
     
-    pd_C.to_excel(writer, sheet_name='rv_Connected')
-    pd_C_cov.to_excel(writer, sheet_name='cov_Connected')
-    pd_D.to_excel(writer, sheet_name='rv_Duration')
-    pd_D_cov.to_excel(writer, sheet_name='cov_Duration')
-    pd_E.to_excel(writer, sheet_name='rv_Energy')
-    pd_E_cov.to_excel(writer, sheet_name='cov_Energy')
+    pd_C.to_excel(writer, sheet_name='rv_Connected')    
+    pd_D.to_excel(writer, sheet_name='rv_Duration')    
+    pd_E.to_excel(writer, sheet_name='rv_Energy')    
     pd_S.to_excel(writer, sheet_name='rv_Sparrow')
-    pd_S_cov.to_excel(writer, sheet_name='cov_Sparrow')
-
+    
+#    pd_C_cov = pd.DataFrame(np.cov(rv_Dict[d]['rv_Connected']))
+#    pd_D_cov = pd.DataFrame(np.cov(rv_Dict[d]['rv_Duration']))
+#    pd_E_cov = pd.DataFrame(np.cov(rv_Dict[d]['rv_Energy']))
+#    pd_S_cov = pd.DataFrame(np.cov(rv_Dict[d]['rv_Sparrow']))
+#    
+#    pd_C_cov.to_excel(writer, sheet_name='cov_Connected')
+#    pd_D_cov.to_excel(writer, sheet_name='cov_Duration')
+#    pd_E_cov.to_excel(writer, sheet_name='cov_Energy')
+#    pd_S_cov.to_excel(writer, sheet_name='cov_Sparrow')
+    
 writer.save()
 
 #%% Calculate Markov Chain Transition Matrix
