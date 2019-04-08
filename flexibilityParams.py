@@ -18,7 +18,7 @@ import datetime
 
 # Raw Data
 #filePath = 'PackSize-Session-Details-Meter-with-Summary-20181211.csv';
-filePath = 'data/Lifetime-Session-Details.csv';
+filePath = 'data/Session-Details-Summary-20190404.csv';
 #filePath = 'data/Lifetime-UniqueDrivers-vs-Time.csv';
 
 # Import Data
@@ -160,7 +160,10 @@ for id in evse_ID:
 
 
 #%% Compose Date
-        #https://stackoverflow.com/questions/34258892/converting-year-and-day-of-year-into-datetime-index-in-pandas/40089561
+    #https://stackoverflow.com/questions/34258892/converting-year-and-day-of-year-into-datetime-index-in-pandas/40089561
+      
+dfPack2017 = dfPacksize.loc[dfPacksize['Year'] == 2017]
+dfPack2018 = dfPacksize.loc[dfPacksize['Year'] == 2018]        
         
 def compose_date(years, months=1, days=1, weeks=None, hours=None, minutes=None,
                  seconds=None, milliseconds=None, microseconds=None, nanoseconds=None):
@@ -174,7 +177,8 @@ def compose_date(years, months=1, days=1, weeks=None, hours=None, minutes=None,
     return sum(np.asarray(v, dtype=t) for t, v in zip(types, vals)
                if v is not None)
 
-#dfPack2017['Date'] = compose_date(dfPack2017['Year'], days=dfPack2017['DayofYr'])
+dfPack2017['Date'] = compose_date(dfPack2017['Year'], days=dfPack2017['DayofYr'])
+dfPack2018['Date'] = compose_date(dfPack2018['Year'], days=dfPack2018['DayofYr'])
 
 #%% Calculate Total Days in 2017 & 2018
 
@@ -199,15 +203,14 @@ for d in range(len(daysOn_2018)-1):
         for dd in range(dayDelta-1):
             daysOn_2018.append(day0 + 1 + dd)
 
-
 daysOn = list(set(dfPacksize['Date']))
 daysUnique = len(daysOn)
 daysTot = (dfPacksize['Start Date'].iloc[len(dfPacksize)-1] - dfPacksize['Start Date'].iloc[0]).days
 
 #%% Calculate Zero Days
     
-dfPack2017 = dfPacksize.loc[dfPacksize['Year'] == 2017]
-dfPack2018 = dfPacksize.loc[dfPacksize['Year'] == 2018]
+#dfPack2017 = dfPacksize.loc[dfPacksize['Year'] == 2017]
+#dfPack2018 = dfPacksize.loc[dfPacksize['Year'] == 2018]
 
 min2017 = np.min(dfPack2017['DayofYr'])
 max2018 = np.max(dfPack2018['DayofYr'])
@@ -260,7 +263,8 @@ plt.show()
 
 #%% Random Variables (Per Hour)
 
-rv_Dict = {0: 0,'1-Tues': 0,'2-Wed': 0,'3-Thurs': 0,'4-Fri': 0,'5-Sat': 0,'6-Sun': 0}
+#rv_Dict = {0: 0,'1-Tues': 0,'2-Wed': 0,'3-Thurs': 0,'4-Fri': 0,'5-Sat': 0,'6-Sun': 0}
+rv_Dict = {};
 
 #Monday is 0 and Sunday is 6
 daysOfWeek = ['Mon','Tues','Wed','Thurs','Fri','Sat','Sun']
@@ -268,11 +272,17 @@ daysOfWeek = ['Mon','Tues','Wed','Thurs','Fri','Sat','Sun']
 c = 0; 
 bW = 0.25;
 # Need to make sure that RV bins = MC bins
+#binHr = np.arange(0,24.0,0.25);
+#binCar = np.arange(0,10,1);
+#binKWH = np.arange(0,68,4);
+#binDur = np.arange(0.25,12.50,0.25);
+#binSprw = np.arange(0.1,1.2,0.1);
 binHr = np.arange(0,24.0,0.25);
-binCar = np.arange(0,10,1);
-binKWH = np.arange(0,68,4);
-binDur = np.arange(0.25,12.50,0.25);
+binCar = np.arange(0,11,1);
+binKWH = np.arange(0,66,6);
+binDur = np.arange(0.50,6.00,0.50);
 binSprw = np.arange(0.1,1.2,0.1);
+
 dates = list(set(dfPacksize1['Date']));
 
 for daySlct in range(len(daysOfWeek)):
@@ -316,16 +326,30 @@ for daySlct in range(len(daysOfWeek)):
             n_duration = np.histogram(durationPerDay[r,:], bins=binDur, density=True);
             n_sparrow = np.histogram(sparrowPerDay[r,:], bins=binSprw, density=True);
             
+#            rv_Connected[r,:] = n_cnctd[0];
+#            rv_Energy[r,:] = 4*n_energy[0];
+#            rv_Duration[r,:] = 0.25*n_duration[0];
+#            rv_Sparrow[r,:] = 0.10*n_sparrow[0];
+            
             rv_Connected[r,:] = n_cnctd[0];
-            rv_Energy[r,:] = 4*n_energy[0];
-            rv_Duration[r,:] = 0.25*n_duration[0];
-            rv_Sparrow[r,:] = 0.10*n_sparrow[0];
+            rv_Energy[r,:] = n_energy[0];
+            rv_Duration[r,:] = n_duration[0];
+            rv_Sparrow[r,:] = n_sparrow[0];
             
             r += 1;   
         c += 1;
     
     dicts = {'rv_Connected': rv_Connected, 'rv_Energy': rv_Energy, 'rv_Duration': rv_Duration, 'rv_Sparrow': rv_Sparrow }
     rv_Dict[daySlct] = dicts
+
+#%% Calculate Covariance
+
+cov = {}
+
+for t in range(len(rv_Duration)):
+    covTemp = np.vstack((rv_Connected[t], rv_Energy[t], rv_Duration[t], rv_Sparrow[t]));
+    cov[t] = np.cov(covTemp)
+    
 
 #%% Output Random Variable and Calculate Covariance
 
