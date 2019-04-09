@@ -46,7 +46,7 @@ allColumns = list(data);
 
 colNames = ['EVSE ID', 'Port Number', 'Station Name', 'Plug In Event Id', 'Start Date', 'End Date', 
             'Total Duration (hh:mm:ss)', 'Charging Time (hh:mm:ss)', 'Energy (kWh)',
-            'Ended By', 'Port Type', 'Latitude', 'Longitude', 'User ID', 'Driver Postal Code'];
+            'Ended By', 'Port Type', 'Latitude', 'Longitude', 'User ID', 'Driver Postal Code', 'Transit Corridor'];
             
 data = pd.DataFrame(data, index=np.arange(len(dataRaw)), columns=colNames)
 
@@ -56,10 +56,8 @@ data['Total Duration (hh:mm:ss)'] = pd.to_timedelta(data['Total Duration (hh:mm:
 data['Charging Time (hh:mm:ss)'] = pd.to_timedelta(data['Charging Time (hh:mm:ss)']);
 
 dataHead = data.head(100);
-
-#%% Transit Corridor vs. Urban
-
-#%% Join Duplicate EVSEs
+              
+#%% Join Duplicate EVSEs & Calc Transit Corridor vs. Urban
 
 EVSEs = list(set(data['EVSE ID']))
 df_EVSEs = pd.DataFrame([], index = EVSEs, columns = colNames)
@@ -73,7 +71,11 @@ for chgr in list(set(data['EVSE ID'])):
     df_EVSEs.loc[chgr, 'Start Date'] = df_Chgr['End Date'].at[len(df_Chgr)-1]
     df_EVSEs.loc[chgr, 'Total Duration (hh:mm:ss)'] = df_Chgr['End Date'].at[0] - df_Chgr['End Date'].at[len(df_Chgr)-1]
     df_EVSEs.loc[chgr, 'Energy (kWh)'] = np.sum(df_Chgr['Energy (kWh)'])
-
+    
+    if 'MAVERIK' in df_EVSEs.loc[chgr, 'Station Name']:
+        df_EVSEs.loc[chgr, 'Transit Corridor'] = 'Transit'
+    else:
+        df_EVSEs.loc[chgr, 'Transit Corridor'] = 'Urban'
 
 colEVSE = ['EVSE ID', 'Station Name', 'Port Number', 'Port Type', 
                'Start Date', 'End Date', 'Latitude', 'Longitude']
@@ -83,7 +85,7 @@ df_EVSEs = df_EVSEs.drop(['Plug In Event Id', 'Charging Time (hh:mm:ss)',
 
 df_EVSEs = df_EVSEs.reset_index(drop=True)
 
-df_EVSEs.to_csv('df_EVSEs.csv')     
+df_EVSEs.to_csv('exports/df_EVSEs.csv')     
   
 #%% Filter for Packsize
 
