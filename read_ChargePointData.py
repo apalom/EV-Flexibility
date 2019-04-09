@@ -45,15 +45,41 @@ allColumns = list(data);
 #%% Data Columns for ChargePoint 'data/Lifetime-Session-Details.csv';
 
 colNames = ['EVSE ID', 'Port Number', 'Station Name', 'Plug In Event Id', 'Start Date', 'End Date', 
-            'Total Duration (hh:mm:ss)', 'Charging Time (hh:mm:ss)', 'Energy (kWh)',
-            'Ended By', 'Port Type', 'Latitude', 'Longitude', 'User ID', 'Driver Postal Code', 'Transit Corridor'];
+            'Total Duration (hh:mm:ss)', 'Charging Time (hh:mm:ss)', 'Energy (kWh)', 'AvgPwr',
+            'Ended By', 'Port Type', 'Latitude', 'Longitude', 'User ID', 'Driver Postal Code', 'Transit Corridor', 
+            'Duration (h)', 'Charging (h)', 'Sparrow', 'DayofYr', 'DayofWk', 'StartHr', 'EndHr' ];
             
 data = pd.DataFrame(data, index=np.arange(len(dataRaw)), columns=colNames)
+
+data = data.loc[data['Energy (kWh)'] > 0]
 
 data['Start Date'] = pd.to_datetime(data['Start Date']);
 data['End Date'] = pd.to_datetime(data['End Date']);
 data['Total Duration (hh:mm:ss)'] = pd.to_timedelta(data['Total Duration (hh:mm:ss)']);
 data['Charging Time (hh:mm:ss)'] = pd.to_timedelta(data['Charging Time (hh:mm:ss)']);
+data['Transit Corridor'] = data['Station Name'].apply(lambda x: 'MAVERIK' in x);
+
+data['Duration (h)'] = data['Total Duration (hh:mm:ss)'].apply(lambda x: x.days*24 +  x.seconds/3600)
+data['Duration (h)'] = data['Duration (h)'].apply(lambda x: round(x * 2) / 4) 
+data['Charging (h)'] = data['Charging Time (hh:mm:ss)'].apply(lambda x: x.seconds/3600)
+data['Charging (h)'] = data['Charging (h)'].apply(lambda x: round(x * 2) / 4) 
+data = data.loc[data['Duration (h)'] > 0]
+data = data.loc[data['Charging (h)'] > 0]
+data['Sparrow'] = data['Charging (h)']/data['Duration (h)'] 
+
+data['DayofYr'] = data['Start Date'].apply(lambda x: x.dayofyear) 
+data['DayofWk'] = data['Start Date'].apply(lambda x: x.weekday()) 
+data['StartHr'] = data['Start Date'].apply(lambda x: x.hour + x.minute/60) 
+data['StartHr'] = data['StartHr'].apply(lambda x: round(x * 4) / 4) 
+data['EndHr'] = data['End Date'].apply(lambda x: x.hour + x.minute/60) 
+
+data = data.loc[data['EndHr'].notna()]
+data['EndHr'] = data['EndHr'].apply(lambda x: round(x * 4) / 4) 
+data['AvgPwr'] = data['Energy (kWh)']/data['Duration (h)']
+
+data = data.sort_values(by=['Start Date']);
+data = data.reset_index(drop=True);
+
 
 dataHead = data.head(100);
               
@@ -99,6 +125,7 @@ data['Start Date'] = pd.to_datetime(data['Start Date']);
 data['End Date'] = pd.to_datetime(data['End Date']);
 data['Total Duration (hh:mm:ss)'] = pd.to_timedelta(data['Total Duration (hh:mm:ss)']);
 data['Charging Time (hh:mm:ss)'] = pd.to_timedelta(data['Charging Time (hh:mm:ss)']);
+data['Transit Corridor'] = data['Station Name'].apply(lambda x: 'MAVERIK' in x)
 
 anonCol = ['Start Date', 'Start Time Zone', 'End Date', 'End Time Zone', 'Total Duration (hh:mm:ss)', 'Charging Time (hh:mm:ss)', 
            'Energy (kWh)', 'GHG Savings (kg)',  'Gasoline Savings (gallons)', 'Port Type', 'Port Number', 'Plug Type', 'EVSE ID',
@@ -134,7 +161,6 @@ plt.xlabel('Energy (kWh)')
 plt.ylabel('Frequency')
 plt.title('Energy Per Session')
 #plt.grid()
-
 
 #%% Plot Session Duration Histogram
 
@@ -701,3 +727,69 @@ allDriverIDs = list(set(data['User Id']))
 for driverID in allDriverIDs:
     dfTemp = data.loc[data['User Id'] == driverID]    
     dfTemp.to_csv(str(driverID) + '.csv')    
+    
+#%% Transit Corridor vs. Urban
+    
+dfTransit = data[data['Transit Corridor'] == True]
+dfUrban = data[data['Transit Corridor'] == False]
+
+#%% Energy
+binEdges = np.arange(0, 60, 4)                  
+plt.hist(dfTransit['Energy (kWh)'], bins=binEdges, histtype='bar', density=True, rwidth=1.0, color='#607c8e', edgecolor='white', linewidth=1.0);
+plt.hist(dfUrban['Energy (kWh)'], bins=binEdges, histtype='bar', density=True, alpha=0.6, rwidth=1, color='lightblue', edgecolor='white', linewidth=1.0);
+
+plt.xlabel('kWh')
+plt.ylabel('Probability')
+plt.title('Lifetime Session Energy')
+plt.legend(['Transit Corridor', 'Urban'])
+
+#%% Average Power
+binEdges = np.arange(0, 60, 1)                  
+plt.hist(dfTransit['AvgPwr'], bins=binEdges, histtype='bar', density=True, rwidth=1.0, color='#607c8e', edgecolor='white', linewidth=1.0);
+plt.hist(dfUrban['AvgPwr'], bins=binEdges, histtype='bar', density=True, alpha=0.6, rwidth=1, color='lightblue', edgecolor='white', linewidth=1.0);
+
+plt.xlabel('kW')
+plt.ylabel('Probability')
+plt.title('Lifetime Session Average Power')
+plt.legend(['Transit Corridor', 'Urban'])
+
+#%% Start Hour
+binEdges = np.arange(0, 23, 0.25)                  
+plt.hist(dfTransit['StartHr'], bins=binEdges, histtype='bar', density=True, rwidth=1.0, color='#607c8e', edgecolor='white', linewidth=1.0);
+plt.hist(dfUrban['StartHr'], bins=binEdges, histtype='bar', density=True, alpha=0.6, rwidth=1, color='lightblue', edgecolor='white', linewidth=1.0);
+
+plt.xlabel('Hour')
+plt.xticks(np.arange(0,24,2))
+plt.ylabel('Probability')
+plt.title('Lifetime Session Start Hour')
+plt.legend(['Transit Corridor', 'Urban'])
+
+#%% Connected
+binEdges = np.arange(0, 6, 0.25)                  
+plt.hist(dfTransit['Duration (h)'], bins=binEdges, histtype='bar', density=True, rwidth=1.0, color='#607c8e', edgecolor='white', linewidth=1.0);
+plt.hist(dfUrban['Duration (h)'], bins=binEdges, histtype='bar', density=True, alpha=0.6, rwidth=1, color='lightblue', edgecolor='white', linewidth=1.0);
+
+plt.xlabel('Hour')
+plt.ylabel('Probability')
+plt.title('Lifetime Session Duration')
+plt.legend(['Transit Corridor', 'Urban'])
+
+#%% Charging
+binEdges = np.arange(0, 6, 0.25)                  
+plt.hist(dfTransit['Charging (h)'], bins=binEdges, histtype='bar', density=True, rwidth=1.0, color='#607c8e', edgecolor='white', linewidth=1.0);
+plt.hist(dfUrban['Charging (h)'], bins=binEdges, histtype='bar', density=True, alpha=0.6, rwidth=1, color='lightblue', edgecolor='white', linewidth=1.0);
+
+plt.xlabel('Hour')
+plt.ylabel('Probability')
+plt.title('Lifetime Session Charging')
+plt.legend(['Transit Corridor', 'Urban'])
+
+#%% Sparrow
+binEdges = np.arange(0, 1.1, 0.05)                  
+plt.hist(dfTransit['Sparrow'], bins=binEdges, histtype='bar', density=True, rwidth=1.0, color='#607c8e', edgecolor='white', linewidth=1.0);
+plt.hist(dfUrban['Sparrow'], bins=binEdges, histtype='bar', density=True, alpha=0.6, rwidth=1, color='lightblue', edgecolor='white', linewidth=1.0);
+
+plt.xlabel('Sparrow')
+plt.ylabel('Probability')
+plt.title('Lifetime Session Efficiency')
+plt.legend(['Transit Corridor', 'Urban'])
