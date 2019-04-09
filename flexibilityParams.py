@@ -358,7 +358,6 @@ for t in range(len(rv_Duration)):
     #cov_Dict[t] = {'Connected': covTemp[0], 'Energy': covTemp[1], 'Duration': covTemp[2], 'Sparrow': covTemp[3] }
     cov_Dict[t] = covTemp
 
-
 #%% Output Random Variable and Calculate Covariance
 
 # What does covariance give us? https://docs.scipy.org/doc/numpy/reference/generated/numpy.cov.html
