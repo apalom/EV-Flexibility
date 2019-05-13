@@ -764,7 +764,7 @@ plt.ylabel('Probability')
 plt.title('Lifetime Session Start Hour')
 plt.legend(['Transit Corridor', 'Urban'])
 
-#%% Connected
+#%% Duration
 binEdges = np.arange(0, 6, 0.25)                  
 plt.hist(dfTransit['Duration (h)'], bins=binEdges, histtype='bar', density=True, rwidth=1.0, color='#607c8e', edgecolor='white', linewidth=1.0);
 plt.hist(dfUrban['Duration (h)'], bins=binEdges, histtype='bar', density=True, alpha=0.6, rwidth=1, color='lightblue', edgecolor='white', linewidth=1.0);
@@ -781,7 +781,7 @@ plt.hist(dfUrban['Charging (h)'], bins=binEdges, histtype='bar', density=True, a
 
 plt.xlabel('Hour')
 plt.ylabel('Probability')
-plt.title('Lifetime Session Charging')
+plt.title('Lifetime Session Charging Time')
 plt.legend(['Transit Corridor', 'Urban'])
 
 #%% Sparrow
