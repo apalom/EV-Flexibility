@@ -121,9 +121,16 @@ dfPackMulti = dfPackMulti.sort_index()
 
 #%% Calculate Random Variable from Multi-Index DataFrame
 
-def calcRVmulti(df, totDays):
+def calcRVmulti(df, daysTot):
+    
+    # Create Multi-Index DF
+    idxList = ['DayofWk', 'dayCount', 'StartHr'];
+    df = df.set_index(idxList)
+    df = df.sort_index()
+    
     # Initialize Random Variable Dicitionary
     rv_Dict = {};
+    avg_Dict = {};
     
     # Define Bin for RV Histogram    
     binHr = np.arange(0,24.0,0.25);
@@ -192,152 +199,31 @@ def calcRVmulti(df, totDays):
             rv_Duration[r,:] = 0.5*n_duration[0];
             rv_Sparrow[r,:] = 0.1*n_sparrow[0];
         
+        averages = {'avg_Connected': np.mean(cnctdPerDay/np.max(cnctdPerDay), axis=1), 
+                    'avg_Energy': np.mean(energyPerDay/np.max(energyPerDay), axis=1),
+                    'avg_Duration': np.mean(durationPerDay/np.max(durationPerDay), axis=1), 
+                    'avg_Sparrow': np.mean(sparrowPerDay/np.max(sparrowPerDay), axis=1) 
+                    }
+        avg_Dict[dayOfWk] = averages;
+        
         dicts = {'rv_Connected': rv_Connected, 'rv_Energy': rv_Energy, 'rv_Duration': rv_Duration, 'rv_Sparrow': rv_Sparrow }
         rv_Dict[dayOfWk] = dicts
 
-    return rv_Dict
-
-
-flex
-
 #    rv_Dict[dayOfWk]['rv_Connected'][np.isnan(rv_Dict[dayNum]['rv_Connected'])] = 0
 #    rv_Dict[dayOfWk]['rv_Energy'][np.isnan(rv_Dict[dayNum]['rv_Energy'])] = 0
 #    rv_Dict[dayOfWk]['rv_Duration'][np.isnan(rv_Dict[dayNum]['rv_Duration'])] = 0
 #    rv_Dict[dayOfWk]['rv_Sparrow'][np.isnan(rv_Dict[dayNum]['rv_Sparrow'])] = 0
 
+    return rv_Dict, avg_Dict
 
-#%% Calculate Random Variable from Multi-Index Dictionary
+flexParams, avgParams = calcRVmulti(dfPacksize, daysTot)
 
-df = dfPackMulti;
-
-# Initialize Random Variable Dicitionary
-rv_Dict = {};
-
-# Define Bin for RV Histogram    
-binHr = np.arange(0,24.0,0.25);
-binCar = np.arange(0,11,1);
-binKWH = np.arange(0,66,6);
-binDur = np.arange(0.50,6.00,0.50);
-binSprw = np.arange(0.1,1.2,0.1);       
-
-for idx3 in df.keys():
-            
-    #daysTot = (df['Start Date'].iloc[len(df)-1] - df['Start Date'].iloc[0]).days+1    
-
-    cnctdPerDay = np.zeros((len(binHr),daysTot));
-    energyPerDay = np.zeros((len(binHr),daysTot));
-    durationPerDay = np.zeros((len(binHr),daysTot));
-    sparrowPerDay = np.zeros((len(binHr),daysTot));
-    
-    rv_Connected = np.zeros((len(binHr),len(binCar)-1));
-    rv_Energy = np.zeros((len(binHr),len(binKWH)-1));
-    rv_Duration = np.zeros((len(binHr),len(binDur)-1));
-    rv_Sparrow = np.zeros((len(binHr),len(binSprw)-1));
-
-    dayOfWk, dayNum, hr = idx3[0], idx3[1], idx3[2]
-    
-    #dfDay = df.iloc[df.index.get_level_values('DayofWk') == dayOfWk]
-    dfDay = df.loc[dayOfWk]
-    
-    for idx in dfDay.index:
-    
-        dayNum, hr = idx[0], idx[1]
-        
-        # 15 min row
-        if hr == 24:
-            r = 0;
-        else:   
-            r = int(4*hr);
-            
-        print("--- Index: ", dayOfWk, idx)
-                
-        #dfTemp = dfDay[idx]
-        #dfTemp = pd.DataFrame(dfDay.xs((idx)))
-        dfTemp = dfDay.xs((idx))
-                                    
-        cnctdPerDay[r,dayNum] = len(dfTemp);
-        energyPerDay[r,dayNum] = np.sum(dfTemp['Energy (kWh)'].values)
-        durationPerDay[r,dayNum] = np.sum(dfTemp['Duration (h)'].values)
-    
-        # Condition set to avoid division by zero
-        if np.sum(dfTemp['Duration (h)'].values) > 0.0:
-            sparrowPerDay[r,dayNum] = np.sum(dfTemp['Charging (h)'].values)/np.sum(dfTemp['Duration (h)'].values)
-    
-        # Histogram
-        n_cnctd = np.histogram(cnctdPerDay[r,:], bins=binCar, density=True);
-        n_energy = np.histogram(energyPerDay[r,:], bins=binKWH, density=True);
-        n_duration = np.histogram(durationPerDay[r,:], bins=binDur, density=True);
-        n_sparrow = np.histogram(sparrowPerDay[r,:], bins=binSprw, density=True);
-        
-        rv_Connected[r,:] = n_cnctd[0];
-        rv_Energy[r,:] = 6*n_energy[0];
-        rv_Duration[r,:] = 0.5*n_duration[0];
-        rv_Sparrow[r,:] = 0.1*n_sparrow[0];
-
-    dicts = {'rv_Connected': rv_Connected, 'rv_Energy': rv_Energy, 'rv_Duration': rv_Duration, 'rv_Sparrow': rv_Sparrow }
-    rv_Dict[dayOfWk] = dicts
+outputFlex(flexParams, "PackSize-Flexibility")
 
 #    rv_Dict[dayOfWk]['rv_Connected'][np.isnan(rv_Dict[dayNum]['rv_Connected'])] = 0
 #    rv_Dict[dayOfWk]['rv_Energy'][np.isnan(rv_Dict[dayNum]['rv_Energy'])] = 0
 #    rv_Dict[dayOfWk]['rv_Duration'][np.isnan(rv_Dict[dayNum]['rv_Duration'])] = 0
 #    rv_Dict[dayOfWk]['rv_Sparrow'][np.isnan(rv_Dict[dayNum]['rv_Sparrow'])] = 0
-
-#%% Calculate Random Variables Multi-Index (Per Hr)
-
-def calcRVmulti(df):
-        
-    for dayOfWk, dayNum, hr in df.index:
-        
-        # Initialize Random Variable Dicitionary
-        rv_Dict = {};
-                    
-        daysTot = (df['Start Date'].iloc[len(df)-1] - df['Start Date'].iloc[0]).days+1
-        
-        # Define Bin for RV Histogram    
-        binHr = np.arange(0,24.0,0.25);
-        binCar = np.arange(0,11,1);
-        binKWH = np.arange(0,66,6);
-        binDur = np.arange(0.50,6.00,0.50);
-        binSprw = np.arange(0.1,1.2,0.1);
-        
-        print(dayOfWk,dayNum,hr)
-        
-        for idx in df.keys():
-            
-            dfTemp = df[idx]
-            
-            cnctdPerDay = np.zeros((len(binHr),daysTot));
-            energyPerDay = np.zeros((len(binHr),daysTot));
-            durationPerDay = np.zeros((len(binHr),daysTot));
-            sparrowPerDay = np.zeros((len(binHr),daysTot));
-            
-            rv_Connected = np.zeros((len(binHr),len(binCar)-1));
-            rv_Energy = np.zeros((len(binHr),len(binKWH)-1));
-            rv_Duration = np.zeros((len(binHr),len(binDur)-1));
-            rv_Sparrow = np.zeros((len(binHr),len(binSprw)-1));
-                                    
-            cnctdPerDay[4*hr,dayNum] = len(dfTemp);
-            energyPerDay[4*hr,dayNum] = np.sum(dfTemp['Energy (kWh)'].values)
-            durationPerDay[4*hr,dayNum] = np.sum(dfTemp['Duration (h)'].values)
-
-            # Condition set to avoid division by zero
-            if np.sum(dfTemp['Duration (h)'].values) > 0.0:
-                    sparrowPerDay[4*hr,dayNum] = np.sum(dfTemp['Charging (h)'].values)/np.sum(dfTemp['Duration (h)'].values)
-    
-            # Histogram
-            n_cnctd = np.histogram(cnctdPerDay[4*hr,:], bins=binCar, density=True);
-            n_energy = np.histogram(energyPerDay[4*hr,:], bins=binKWH, density=True);
-            n_duration = np.histogram(durationPerDay[4*hr,:], bins=binDur, density=True);
-            n_sparrow = np.histogram(sparrowPerDay[4*hr,:], bins=binSprw, density=True);
-            
-            rv_Connected[4*hr,:] = n_cnctd[0];
-            rv_Energy[4*hr,:] = 6*n_energy[0];
-            rv_Duration[4*hr,:] = 0.5*n_duration[0];
-            rv_Sparrow[4*hr,:] = 0.1*n_sparrow[0];
-
-    return rv_Dict;
-
-rv_Result = calcRVmulti(dfPackMulti)
 
 #%% Calculate Random Variables (Per Hr)
 
@@ -421,7 +307,7 @@ def calcRV(df):
     return rv_Dict
 
 flexParams = calcRV(dfPacksize)
-
+outputFlex(flexParams, "PackSize-Flexibility-r0")
 
 #%% Output Random Variable to CSV
 
@@ -451,13 +337,13 @@ def outputFlex(flexParams, outputPath):
         
     writer.save()
         
-#outputFlex(flexParams, "PackSize-Flexibility")
+outputFlex(flexParams, "PackSize-Flexibility")
 
 
-#%% Output Covariance to CSV
+#%% Output Covariance for Each TimeStep to CSV
 # Return covariance calculations on flexibility random variable parameters
     
-def outputCov(flexParams, outputPath):
+def outputCovAvg(avgParams, outputPath):
 
     for d in range(7):
     
@@ -465,10 +351,34 @@ def outputCov(flexParams, outputPath):
                 
         writer = pd.ExcelWriter(fileName, engine='xlsxwriter')
         
+        covTemp = np.vstack((avgParams[d]['avg_Connected'], avgParams[d]['avg_Energy'], 
+                             avgParams[d]['avg_Duration'], avgParams[d]['avg_Sparrow']));
+    
         # Remove NaNs
-        where_are_NaNs = np.isnan(flexParams[d]['rv_Connected'])
+        where_are_NaNs = np.isnan(covTemp)
         covTemp[where_are_NaNs] = 0
         
+        labels = ['avg_Connected', 'avg_Energy', 'avg_Duration', 'avg_Sparrow']
+        avg_Cov = pd.DataFrame(np.cov(covTemp), index=labels, columns=labels)
+                                
+        avg_Cov.to_excel(writer, sheet_name='avg_Cov')
+ 
+    writer.save()
+
+outputCovAvg(avgParams, "PackSize-Flexibility")
+
+
+#%% Output Covariance for Each TimeStep to CSV
+# Return covariance calculations on flexibility random variable parameters
+    
+def outputCov15(flexParams, outputPath):
+
+    for d in range(7):
+    
+        fileName = 'exports\\' + outputPath + '\\' + str(d) + '-Covariance.xlsx'
+                
+        writer = pd.ExcelWriter(fileName, engine='xlsxwriter')
+                
         pd_C_cov = pd.DataFrame(np.cov(flexParams[d]['rv_Connected']))
         pd_D_cov = pd.DataFrame(np.cov(flexParams[d]['rv_Duration']))
         pd_E_cov = pd.DataFrame(np.cov(flexParams[d]['rv_Energy']))
@@ -481,7 +391,7 @@ def outputCov(flexParams, outputPath):
         
     writer.save()
 
-outputCov(flexParams, "PackSize-Flexibility")
+outputCov15(flexParams, "PackSize-Flexibility")
 
 
 #%% EVSE IDs

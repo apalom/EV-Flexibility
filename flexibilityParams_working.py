@@ -363,6 +363,24 @@ for t in range(96):
     #cov_Dict[t] = {'Connected': covTemp[0], 'Energy': covTemp[1], 'Duration': covTemp[2], 'Sparrow': covTemp[3] }
     cov_Dict[t] = covTemp
 
+#%% Calculate Covariance of Avg Values
+    
+d = 0;
+
+covTemp = np.vstack((avgParams[d]['avg_Connected'], avgParams[d]['avg_Energy'], 
+                     avgParams[d]['avg_Duration'], avgParams[d]['avg_Sparrow']));
+    
+# Remove NaNs
+where_are_NaNs = np.isnan(covTemp)
+covTemp[where_are_NaNs] = 0
+
+avg_Cov = np.cov(covTemp)
+
+labels = ['avg_Connected', 'avg_Energy', 'avg_Duration', 'avg_Sparrow']
+avg_Cov = pd.DataFrame(np.cov(covTemp), index=labels, columns=labels)
+
+
+
 #%% Output Random Variable and Calculate Covariance
 
 # What does covariance give us? https://docs.scipy.org/doc/numpy/reference/generated/numpy.cov.html
