@@ -24,8 +24,8 @@ filePath = 'data/Session-Details-Summary-20190404.csv';
 # Import Data
 data = pd.read_csv(filePath);
 
-dataHead = data.head(100);
-dataTypes = data.dtypes;
+#dataHead = data.head(100);
+#dataTypes = data.dtypes;
 
 allColumns = list(data);
 
@@ -66,34 +66,280 @@ def filterPrep(df, string):
     df['EndHr'] = df['End Date'].apply(lambda x: x.hour + x.minute/60) 
     df['EndHr'] = df['EndHr'].apply(lambda x: round(x * 4) / 4) 
     df['AvgPwr'] = df['Energy (kWh)']/df['Duration (h)']
-    df['Date'] = df['Start Date'].apply(lambda x: str(x.month) + '-' + str(x.day) + '-' + str(x.year)) 
-    
-    df = df.loc[df['Duration (h)'] > 0]
-    df = df.sort_values(by=['Start Date']);
-    df = df.reset_index(drop=True);
-    
-    return df
-
-dfPacksize = filterPrep(data, "PACKSIZE")
-
-#%% EVSE IDs
-
-def getID(df):
-
-    evse_ID = list(set(df['EVSE ID']))
-    evseDict = {}
-    
-    for id in evse_ID:
-        dfTemp = df.loc[df['EVSE ID'] == id]
-        name = dfTemp['Station Name'].iloc[0]
-        evseDict[id] = name
-    
-    return evseDict
+    df['Date'] = df['Start Date'].apply(lambda x: str(x.year) + '-' + str(x.month) + '-' + str(x.day)) 
         
-dfPacksizeIDs = getID(dfPacksize)
+    df = df.loc[df['Duration (h)'] > 0]
+    
+    # Sort Dataframe
+    df.sort_values(['Start Date'], inplace=True);
+    df = df.reset_index(drop=True);
+
+    # Assign Day Count    
+    df['dayCount'] = 0;
+    
+    days = list(df['Start Date'].apply(lambda x: str(x.year) + '-' + str(x.month) + '-' + str(x.day)))
+    daysSet = sorted(set(days), key=days.index)
+    
+    c = 0;
+    for d in daysSet:
+        
+        dateTest = [df['Date'] == d]
+        trueIdx = list(dateTest[0][dateTest[0]].index)
+        df.at[trueIdx,'dayCount'] = c
+        c += 1; 
+        
+    daysTot =  (df['Start Date'].iloc[len(df)-1] - df['Start Date'].iloc[0]).days+1
+    
+    return df, daysTot
+
+dfPacksize, daysTot = filterPrep(data, "PACKSIZE")
 
 
-#%% Calculate Random Variables (Per Hour)
+
+#%% Create Multi-Index Dictionary
+
+def dfMulti(df, idxList):
+    
+    dfMulti = df.set_index(idxList)
+    dfMulti = dfMulti.sort_index()
+
+    dfDay = {}
+    
+    for index, temp_df in dfMulti.groupby(level=[0,1,2]):
+        dfDay[index] = temp_df;
+        
+    return dfDay
+
+idxSelect = ['DayofWk', 'dayCount', 'StartHr'];
+dfPackMulti = dfMulti(dfPacksize, idxSelect)
+
+#%% Create Multi-Index DF Day 
+
+idxList = ['DayofWk', 'dayCount', 'StartHr'];
+dfPackMulti = dfPacksize.set_index(idxList)
+dfPackMulti = dfPackMulti.sort_index()
+
+#%% Calculate Random Variable from Multi-Index DataFrame
+
+def calcRVmulti(df, totDays):
+    # Initialize Random Variable Dicitionary
+    rv_Dict = {};
+    
+    # Define Bin for RV Histogram    
+    binHr = np.arange(0,24.0,0.25);
+    binCar = np.arange(0,11,1);
+    binKWH = np.arange(0,66,6);
+    binDur = np.arange(0.50,6.00,0.50);
+    binSprw = np.arange(0.1,1.2,0.1);       
+    
+    for dayOfWk in range(7):
+                
+        #daysTot = (df['Start Date'].iloc[len(df)-1] - df['Start Date'].iloc[0]).days+1
+        
+        cnctdPerDay = np.zeros((len(binHr),daysTot));
+        energyPerDay = np.zeros((len(binHr),daysTot));
+        durationPerDay = np.zeros((len(binHr),daysTot));
+        sparrowPerDay = np.zeros((len(binHr),daysTot));
+        
+        rv_Connected = np.zeros((len(binHr),len(binCar)-1));
+        rv_Energy = np.zeros((len(binHr),len(binKWH)-1));
+        rv_Duration = np.zeros((len(binHr),len(binDur)-1));
+        rv_Sparrow = np.zeros((len(binHr),len(binSprw)-1));
+        
+        # Define Bin for RV Histogram    
+        binHr = np.arange(0,24.0,0.25);
+        binCar = np.arange(0,11,1);
+        binKWH = np.arange(0,66,6);
+        binDur = np.arange(0.50,6.00,0.50);
+        binSprw = np.arange(0.1,1.2,0.1);
+        
+        #dfDay = df.iloc[df.index.get_level_values('DayofWk') == dayOfWk]
+        dfDay = df.loc[dayOfWk]
+        
+        for idx in dfDay.index:
+        
+            dayNum, hr = idx[0], idx[1]
+            
+            # 15 min row
+            if hr == 24:
+                r = 0;
+            else:   
+                r = int(4*hr);
+                
+            print("--- Index: ", dayOfWk, idx)
+                    
+            #dfTemp = dfDay[idx]
+            #dfTemp = pd.DataFrame(dfDay.xs((idx)))
+            dfTemp = dfDay.xs((idx))
+                                            
+            cnctdPerDay[r,dayNum] = len(dfTemp);
+            energyPerDay[r,dayNum] = np.sum(dfTemp['Energy (kWh)'])#.values);
+            durationPerDay[r,dayNum] = np.sum(dfTemp['Duration (h)'])#.values);
+        
+            # Condition set to avoid division by zero
+            if np.sum(dfTemp['Duration (h)']) > 0.0: #.values) > 0.0:
+                sparrowPerDay[r,dayNum] = np.sum(dfTemp['Charging (h)'])/np.sum(dfTemp['Duration (h)'])
+                #sparrowPerDay[r,dayNum] = np.sum(dfTemp['Charging (h)'].values)/np.sum(dfTemp['Duration (h)'].values)
+        
+            # Histogram
+            n_cnctd = np.histogram(cnctdPerDay[r,:], bins=binCar, density=True);
+            n_energy = np.histogram(energyPerDay[r,:], bins=binKWH, density=True);
+            n_duration = np.histogram(durationPerDay[r,:], bins=binDur, density=True);
+            n_sparrow = np.histogram(sparrowPerDay[r,:], bins=binSprw, density=True);
+            
+            rv_Connected[r,:] = n_cnctd[0];
+            rv_Energy[r,:] = 6*n_energy[0];
+            rv_Duration[r,:] = 0.5*n_duration[0];
+            rv_Sparrow[r,:] = 0.1*n_sparrow[0];
+        
+        dicts = {'rv_Connected': rv_Connected, 'rv_Energy': rv_Energy, 'rv_Duration': rv_Duration, 'rv_Sparrow': rv_Sparrow }
+        rv_Dict[dayOfWk] = dicts
+
+    return rv_Dict
+
+
+flex
+
+#    rv_Dict[dayOfWk]['rv_Connected'][np.isnan(rv_Dict[dayNum]['rv_Connected'])] = 0
+#    rv_Dict[dayOfWk]['rv_Energy'][np.isnan(rv_Dict[dayNum]['rv_Energy'])] = 0
+#    rv_Dict[dayOfWk]['rv_Duration'][np.isnan(rv_Dict[dayNum]['rv_Duration'])] = 0
+#    rv_Dict[dayOfWk]['rv_Sparrow'][np.isnan(rv_Dict[dayNum]['rv_Sparrow'])] = 0
+
+
+#%% Calculate Random Variable from Multi-Index Dictionary
+
+df = dfPackMulti;
+
+# Initialize Random Variable Dicitionary
+rv_Dict = {};
+
+# Define Bin for RV Histogram    
+binHr = np.arange(0,24.0,0.25);
+binCar = np.arange(0,11,1);
+binKWH = np.arange(0,66,6);
+binDur = np.arange(0.50,6.00,0.50);
+binSprw = np.arange(0.1,1.2,0.1);       
+
+for idx3 in df.keys():
+            
+    #daysTot = (df['Start Date'].iloc[len(df)-1] - df['Start Date'].iloc[0]).days+1    
+
+    cnctdPerDay = np.zeros((len(binHr),daysTot));
+    energyPerDay = np.zeros((len(binHr),daysTot));
+    durationPerDay = np.zeros((len(binHr),daysTot));
+    sparrowPerDay = np.zeros((len(binHr),daysTot));
+    
+    rv_Connected = np.zeros((len(binHr),len(binCar)-1));
+    rv_Energy = np.zeros((len(binHr),len(binKWH)-1));
+    rv_Duration = np.zeros((len(binHr),len(binDur)-1));
+    rv_Sparrow = np.zeros((len(binHr),len(binSprw)-1));
+
+    dayOfWk, dayNum, hr = idx3[0], idx3[1], idx3[2]
+    
+    #dfDay = df.iloc[df.index.get_level_values('DayofWk') == dayOfWk]
+    dfDay = df.loc[dayOfWk]
+    
+    for idx in dfDay.index:
+    
+        dayNum, hr = idx[0], idx[1]
+        
+        # 15 min row
+        if hr == 24:
+            r = 0;
+        else:   
+            r = int(4*hr);
+            
+        print("--- Index: ", dayOfWk, idx)
+                
+        #dfTemp = dfDay[idx]
+        #dfTemp = pd.DataFrame(dfDay.xs((idx)))
+        dfTemp = dfDay.xs((idx))
+                                    
+        cnctdPerDay[r,dayNum] = len(dfTemp);
+        energyPerDay[r,dayNum] = np.sum(dfTemp['Energy (kWh)'].values)
+        durationPerDay[r,dayNum] = np.sum(dfTemp['Duration (h)'].values)
+    
+        # Condition set to avoid division by zero
+        if np.sum(dfTemp['Duration (h)'].values) > 0.0:
+            sparrowPerDay[r,dayNum] = np.sum(dfTemp['Charging (h)'].values)/np.sum(dfTemp['Duration (h)'].values)
+    
+        # Histogram
+        n_cnctd = np.histogram(cnctdPerDay[r,:], bins=binCar, density=True);
+        n_energy = np.histogram(energyPerDay[r,:], bins=binKWH, density=True);
+        n_duration = np.histogram(durationPerDay[r,:], bins=binDur, density=True);
+        n_sparrow = np.histogram(sparrowPerDay[r,:], bins=binSprw, density=True);
+        
+        rv_Connected[r,:] = n_cnctd[0];
+        rv_Energy[r,:] = 6*n_energy[0];
+        rv_Duration[r,:] = 0.5*n_duration[0];
+        rv_Sparrow[r,:] = 0.1*n_sparrow[0];
+
+    dicts = {'rv_Connected': rv_Connected, 'rv_Energy': rv_Energy, 'rv_Duration': rv_Duration, 'rv_Sparrow': rv_Sparrow }
+    rv_Dict[dayOfWk] = dicts
+
+#    rv_Dict[dayOfWk]['rv_Connected'][np.isnan(rv_Dict[dayNum]['rv_Connected'])] = 0
+#    rv_Dict[dayOfWk]['rv_Energy'][np.isnan(rv_Dict[dayNum]['rv_Energy'])] = 0
+#    rv_Dict[dayOfWk]['rv_Duration'][np.isnan(rv_Dict[dayNum]['rv_Duration'])] = 0
+#    rv_Dict[dayOfWk]['rv_Sparrow'][np.isnan(rv_Dict[dayNum]['rv_Sparrow'])] = 0
+
+#%% Calculate Random Variables Multi-Index (Per Hr)
+
+def calcRVmulti(df):
+        
+    for dayOfWk, dayNum, hr in df.index:
+        
+        # Initialize Random Variable Dicitionary
+        rv_Dict = {};
+                    
+        daysTot = (df['Start Date'].iloc[len(df)-1] - df['Start Date'].iloc[0]).days+1
+        
+        # Define Bin for RV Histogram    
+        binHr = np.arange(0,24.0,0.25);
+        binCar = np.arange(0,11,1);
+        binKWH = np.arange(0,66,6);
+        binDur = np.arange(0.50,6.00,0.50);
+        binSprw = np.arange(0.1,1.2,0.1);
+        
+        print(dayOfWk,dayNum,hr)
+        
+        for idx in df.keys():
+            
+            dfTemp = df[idx]
+            
+            cnctdPerDay = np.zeros((len(binHr),daysTot));
+            energyPerDay = np.zeros((len(binHr),daysTot));
+            durationPerDay = np.zeros((len(binHr),daysTot));
+            sparrowPerDay = np.zeros((len(binHr),daysTot));
+            
+            rv_Connected = np.zeros((len(binHr),len(binCar)-1));
+            rv_Energy = np.zeros((len(binHr),len(binKWH)-1));
+            rv_Duration = np.zeros((len(binHr),len(binDur)-1));
+            rv_Sparrow = np.zeros((len(binHr),len(binSprw)-1));
+                                    
+            cnctdPerDay[4*hr,dayNum] = len(dfTemp);
+            energyPerDay[4*hr,dayNum] = np.sum(dfTemp['Energy (kWh)'].values)
+            durationPerDay[4*hr,dayNum] = np.sum(dfTemp['Duration (h)'].values)
+
+            # Condition set to avoid division by zero
+            if np.sum(dfTemp['Duration (h)'].values) > 0.0:
+                    sparrowPerDay[4*hr,dayNum] = np.sum(dfTemp['Charging (h)'].values)/np.sum(dfTemp['Duration (h)'].values)
+    
+            # Histogram
+            n_cnctd = np.histogram(cnctdPerDay[4*hr,:], bins=binCar, density=True);
+            n_energy = np.histogram(energyPerDay[4*hr,:], bins=binKWH, density=True);
+            n_duration = np.histogram(durationPerDay[4*hr,:], bins=binDur, density=True);
+            n_sparrow = np.histogram(sparrowPerDay[4*hr,:], bins=binSprw, density=True);
+            
+            rv_Connected[4*hr,:] = n_cnctd[0];
+            rv_Energy[4*hr,:] = 6*n_energy[0];
+            rv_Duration[4*hr,:] = 0.5*n_duration[0];
+            rv_Sparrow[4*hr,:] = 0.1*n_sparrow[0];
+
+    return rv_Dict;
+
+rv_Result = calcRVmulti(dfPackMulti)
+
+#%% Calculate Random Variables (Per Hr)
 
 def calcRV(df):
     
@@ -205,7 +451,7 @@ def outputFlex(flexParams, outputPath):
         
     writer.save()
         
-outputFlex(flexParams, "PackSize-Flexibility")
+#outputFlex(flexParams, "PackSize-Flexibility")
 
 
 #%% Output Covariance to CSV
@@ -236,3 +482,20 @@ def outputCov(flexParams, outputPath):
     writer.save()
 
 outputCov(flexParams, "PackSize-Flexibility")
+
+
+#%% EVSE IDs
+
+def getID(df):
+
+    evse_ID = list(set(df['EVSE ID']))
+    evseDict = {}
+    
+    for id in evse_ID:
+        dfTemp = df.loc[df['EVSE ID'] == id]
+        name = dfTemp['Station Name'].iloc[0]
+        evseDict[id] = name
+    
+    return evseDict
+        
+dfPacksizeIDs = getID(dfPacksize)
