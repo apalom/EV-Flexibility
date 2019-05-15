@@ -31,7 +31,7 @@ allColumns = list(data);
 
 #%% Dataframe Preparation
 
-def filterPrep(df, string):
+def filterPrep(df, string, contains):
     
     colNames = ['EVSE ID', 'Port Number', 'Station Name', 'Plug In Event Id', 'Start Date', 'End Date', 
             'Total Duration (hh:mm:ss)', 'Charging Time (hh:mm:ss)', 'Energy (kWh)',
@@ -45,15 +45,21 @@ def filterPrep(df, string):
     df['Charging Time (hh:mm:ss)'] = pd.to_timedelta(df['Charging Time (hh:mm:ss)']);
     
     #filter by string name
-    df = df[df['Station Name'].str.contains(string)]
-    
+#    if contains:
+#        df = df[df['Station Name'].str.contains(string)]
+#        print("Packsize Chargers")
+#    else:
+#        df = df[~df['Station Name'].str.contains(string)]
+#        print("All Non-Packsize Chargers")
+           
     #clean data
-    df = df.loc[data['Energy (kWh)'] > 0]
+    df = df.loc[df['Energy (kWh)'] > 0]
+    df = df.loc[~pd.isnull(df['End Date'])]
     
     #update data types
     df['Duration (h)'] = df['Total Duration (hh:mm:ss)'].apply(lambda x: x.seconds/3600)
     df['Duration (h)'] = df['Duration (h)'].apply(lambda x: round(x * 2) / 4) 
-    df['Charging (h)'] = df['Charging Time (hh:mm:ss)'].apply(lambda x: x.seconds/3600)
+    df['Charging (h)'] = df['Charging Time (hh:mm:ss)'].apply(lambda x: x.seconds/3600)    
     df['Charging (h)'] = df['Charging (h)'].apply(lambda x: round(x * 2) / 4) 
     
     # Day of year 0 = Jan1 and day of year 365 = Dec31
@@ -92,9 +98,9 @@ def filterPrep(df, string):
     
     return df, daysTot
 
-dfPacksize, daysTot = filterPrep(data, "PACKSIZE")
-
-
+#dfPack, daysTot = filterPrep(data, "PACKSIZE", True)
+#dfNotPack, daysTot = filterPrep(data, "PACKSIZE", False)
+dfAll, daysTot = filterPrep(data, "PACKSIZE", False)
 
 #%% Create Multi-Index Dictionary
 
@@ -115,9 +121,15 @@ dfPackMulti = dfMulti(dfPacksize, idxSelect)
 
 #%% Create Multi-Index DF Day 
 
-idxList = ['DayofWk', 'dayCount', 'StartHr'];
-dfPackMulti = dfPacksize.set_index(idxList)
-dfPackMulti = dfPackMulti.sort_index()
+def dfMulti(df, idxList):
+    
+    dfMulti = df.set_index(idxList)
+    dfMulti = dfMulti.sort_index()
+
+    return dfMulti
+
+idxSelect = ['DayofWk', 'dayCount', 'StartHr'];
+dfMulti = dfMulti(dfNotPack, idxSelect)
 
 #%% Calculate Random Variable from Multi-Index DataFrame
 
@@ -199,10 +211,10 @@ def calcRVmulti(df, daysTot):
             rv_Duration[r,:] = 0.5*n_duration[0];
             rv_Sparrow[r,:] = 0.1*n_sparrow[0];
         
-        averages = {'avg_Connected': np.mean(cnctdPerDay/np.max(cnctdPerDay), axis=1), 
-                    'avg_Energy': np.mean(energyPerDay/np.max(energyPerDay), axis=1),
-                    'avg_Duration': np.mean(durationPerDay/np.max(durationPerDay), axis=1), 
-                    'avg_Sparrow': np.mean(sparrowPerDay/np.max(sparrowPerDay), axis=1) 
+        averages = {'avg_Connected': np.mean(cnctdPerDay, axis=1), 
+                    'avg_Energy': np.mean(energyPerDay, axis=1),
+                    'avg_Duration': np.mean(durationPerDay, axis=1), 
+                    'avg_Sparrow': np.mean(sparrowPerDay, axis=1) 
                     }
         avg_Dict[dayOfWk] = averages;
         
@@ -216,14 +228,46 @@ def calcRVmulti(df, daysTot):
 
     return rv_Dict, avg_Dict
 
-flexParams, avgParams = calcRVmulti(dfPacksize, daysTot)
+flexParams, avgParams = calcRVmulti(dfAll, daysTot)
 
-outputFlex(flexParams, "PackSize-Flexibility")
+outputFlex(flexParams, "All-Flexibility")
 
-#    rv_Dict[dayOfWk]['rv_Connected'][np.isnan(rv_Dict[dayNum]['rv_Connected'])] = 0
-#    rv_Dict[dayOfWk]['rv_Energy'][np.isnan(rv_Dict[dayNum]['rv_Energy'])] = 0
-#    rv_Dict[dayOfWk]['rv_Duration'][np.isnan(rv_Dict[dayNum]['rv_Duration'])] = 0
-#    rv_Dict[dayOfWk]['rv_Sparrow'][np.isnan(rv_Dict[dayNum]['rv_Sparrow'])] = 0
+#%% Plot Averages 
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+import matplotlib
+
+# Plot Style Definition
+matplotlib.rcParams['font.size'] = 11
+matplotlib.rcParams['lines.linewidth'] = 1
+matplotlib.rcParams['lines.color'] = 'k'
+matplotlib.rcParams['font.family'] = 'serif'
+
+
+day = 1
+t = np.arange(0,96)
+
+# Define Sub-Figures
+fig, ax = sns.plt.subplots(len(avgParams[day]), 1, figsize=(10,8))
+fig.subplots_adjust(hspace=0.6)#, wspace=0.4)
+plt.xlabel("Time")
+
+for a, key in zip(ax,avgParams[day].keys() ):
+    y = avgParams[day][key]
+    n = len(y)
+    x = np.linspace(1,n,n)
+    a.plot(x,y)    
+    
+    # labels/titles and such here
+    a.set(ylim=(0, 0.02))
+    a.set(xticks = np.arange(0,96,4))
+    a.set_xticklabels(np.arange(0,24,1))
+    a.set_title(key)    
+
+plt.show()
+
+
 
 #%% Calculate Random Variables (Per Hr)
 
@@ -337,7 +381,7 @@ def outputFlex(flexParams, outputPath):
         
     writer.save()
         
-outputFlex(flexParams, "PackSize-Flexibility")
+#outputFlex(flexParams, "PackSize-Flexibility")
 
 
 #%% Output Covariance for Each TimeStep to CSV
