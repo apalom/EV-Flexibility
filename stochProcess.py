@@ -31,7 +31,7 @@ allColumns = list(data);
 
 #%% Dataframe Preparation
 
-def filterPrep(df, string, contains):
+def filterPrep(df, string, fltr):
     
     colNames = ['EVSE ID', 'Port Number', 'Station Name', 'Plug In Event Id', 'Start Date', 'End Date', 
             'Total Duration (hh:mm:ss)', 'Charging Time (hh:mm:ss)', 'Energy (kWh)',
@@ -45,12 +45,11 @@ def filterPrep(df, string, contains):
     df['Charging Time (hh:mm:ss)'] = pd.to_timedelta(df['Charging Time (hh:mm:ss)']);
     
     #filter by string name
-#    if contains:
-#        df = df[df['Station Name'].str.contains(string)]
-#        print("Packsize Chargers")
-#    else:
-#        df = df[~df['Station Name'].str.contains(string)]
-#        print("All Non-Packsize Chargers")
+    if fltr:
+        df = df[df['Station Name'].str.contains(string)]
+        print("Filter for: ", string)
+    else:        
+        print("No Filter")
            
     #clean data
     df = df.loc[df['Energy (kWh)'] > 0]
@@ -98,8 +97,9 @@ def filterPrep(df, string, contains):
     
     return df, daysTot;
 
-#dfPack, daysTot = filterPrep(data, "PACKSIZE", True)
-#dfNotPack, daysTot = filterPrep(data, "PACKSIZE", False)
+
+#%%
+    
 dfAll, daysTot = filterPrep(data, "PACKSIZE", False)
 
 #%% Create Multi-Index Dictionary
