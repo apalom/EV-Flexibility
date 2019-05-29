@@ -54,6 +54,9 @@ def filterPrep(df, string, fltr):
     #clean data
     df = df.loc[df['Energy (kWh)'] > 0]
     df = df.loc[~pd.isnull(df['End Date'])]
+    yr = 2018
+    df = df.loc[(df['Start Date'] > datetime.date(yr,1,1)) & (df['Start Date'] < datetime.date(yr+1,1,1))]
+    
     
     #update data types
     df['Duration (h)'] = df['Total Duration (hh:mm:ss)'].apply(lambda x: x.seconds/3600)
@@ -67,9 +70,11 @@ def filterPrep(df, string, fltr):
     df['DayofWk'] = df['Start Date'].apply(lambda x: x.weekday()) 
     df['Year'] = df['Start Date'].apply(lambda x: x.year) 
     df['StartHr'] = df['Start Date'].apply(lambda x: x.hour + x.minute/60) 
-    df['StartHr'] = df['StartHr'].apply(lambda x: round(x * 4) / 4) 
+    df['StartHr'] = df['StartHr'].apply(lambda x: round(x)) 
+    #df['StartHr'] = df['StartHr'].apply(lambda x: round(x * 4) / 4) 
     df['EndHr'] = df['End Date'].apply(lambda x: x.hour + x.minute/60) 
-    df['EndHr'] = df['EndHr'].apply(lambda x: round(x * 4) / 4) 
+    #df['EndHr'] = df['EndHr'].apply(lambda x: round(x * 4) / 4) 
+    df['EndHr'] = df['EndHr'].apply(lambda x: round(x)) 
     df['AvgPwr'] = df['Energy (kWh)']/df['Duration (h)']
     df['Date'] = df['Start Date'].apply(lambda x: str(x.year) + '-' + str(x.month) + '-' + str(x.day)) 
         
@@ -98,7 +103,7 @@ def filterPrep(df, string, fltr):
     return df, daysTot;
 
 
-#%% Salt Lake City Sessions
+#% Salt Lake City Sessions
     
 dfSLC, daysTot = filterPrep(data, "Salt Lake City", True)
 
@@ -122,3 +127,46 @@ def testTrain(dfSLC, p):
 dfTrain, dfTest = testTrain(dfSLC, 0.80)
 
 
+
+#%% Calculate Mean, 1st and 2nd Standard Deviation of Connected Vehicles
+
+def quants(df, weekday):
+
+    allDays = list(set(df.dayCount))
+    
+    if weekday:
+        df = df[df.DayofWk < 5]
+    else:
+        df = df[df.DayofWk >= 5]
+    
+    daysIn = list(set(df.dayCount))
+    daysIn.sort()
+    
+    dfDays = pd.DataFrame(np.zeros((24,len(set(df.dayCount)))), 
+                        index= np.arange(0,24,1), columns=daysIn)
+    
+    for d in df.dayCount:
+    
+        dfDay = df[df.dayCount == d]
+        cnct = dfDay.StartHr.value_counts()
+        cnct = cnct.sort_index()
+        
+        dfDays.loc[:,d] = dfDay.StartHr.value_counts()
+        dfDays.loc[:,d] = np.nan_to_num(dfDays.loc[:,d])
+    
+    quants = pd.DataFrame(np.zeros((24,5)), 
+                        index= np.arange(0,24,1), 
+                        columns=['-2_sigma','-1_sigma','mu','+1_sigma','+2_sigma'])
+    
+    quants['-2_sigma'] = dfDays.quantile(q=0.023, axis=1)
+    quants['-1_sigma'] = dfDays.quantile(q=0.159, axis=1)
+    quants['mu'] = dfDays.quantile(q=0.50, axis=1)
+    quants['+1_sigma'] = dfDays.quantile(q=0.841, axis=1)
+    quants['+2_sigma'] = dfDays.quantile(q=0.977, axis=1)
+
+    return dfDays, quants
+
+dfWkdy, quants = quants(dfSLC, True)
+
+quants.plot()
+dfDays.plot()
