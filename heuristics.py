@@ -36,6 +36,7 @@ from stochProcess import filterPrep
 dfAll, daysTot = filterPrep(data, "PACKSIZE", False)
 
 #%%
+
 dfHeur = pd.DataFrame(dfAll, columns=['Station Name', 'EVSE ID', 'Energy (kWh)', 
                                       'Charging Time (hh:mm:ss)', 'Total Duration (hh:mm:ss)', 
                                       'Port Type', 'Latitude', 'Longitude'])
@@ -47,36 +48,91 @@ filePath = 'data/UT-citiesGPS.csv';
 
 # Import Data
 cities = pd.read_csv(filePath);
-cities = cities.drop(columns='Unnamed: 0')
+#cities = cities.drop('Unnamed: 0', axis=1)
 
-#%% Create EVSE ID 
-
-from geopy import distance
-
-EVSEs = list(set(dfAll['EVSE ID']))
-
-dfEVSEs = pd.DataFrame(np.zeros((len(EVSEs),2)),index = EVSEs, columns=['Lat','Lng'])
-
-for e in EVSEs:
-    lat = dfAll.loc[dfAll['EVSE ID'] == e].iloc[0].Latitude
-    lng = dfAll.loc[dfAll['EVSE ID'] == e].iloc[0].Longitude
-    loc = (lat,lng)
-    
-    dfEVSEs.at[e] = [lat,lng]
-
+cities = cities.loc[cities['2019 Population'] > 50000]
 
 #%% Measure Distance 
 
 def calcMinDist(loc,cities):
     
-    dist = np.zeros((len(cities),1))
-    dist = cities['Lat-Lng'].apply(lambda x: distance.distance(loc,x)) 
-    #### Need to convert geopy datatype to float to apply idx min
-    dist0 = np.min(dist)
-    nearest = dist.idxmin 
+    from geopy import distance
     
-    return miles;
+    dist = np.zeros((len(cities),1))
+    dist = cities['Lat-Lng'].apply(lambda x: distance.distance(loc,x).miles) 
+    
+    dist0 = np.min(dist)
+    nearest = dist.idxmin() 
+    nearestCity = cities.at[nearest,'City']
+    population = cities.at[nearest,'2019 Population']
+        
+    return nearestCity, population, dist0;
 
-newport_ri = (41.49008, -71.312796)
-cleveland_oh = (41.499498, -81.695391)
-print(distance.distance(newport_ri, cleveland_oh).miles)
+#%% Create EVSE Heurstics DF 
+
+def calcHeurDF(df, wknd):
+
+    if wknd == 'Weekend':
+        df = df.loc[df['DayofWk'] >= 5]
+        print("--- Weekends ---")
+    elif wknd == 'Weekday':
+        df = df.loc[df['DayofWk'] < 5]
+        print("--- Weekdays ---")
+    elif wknd == 'All':
+        print("--- All Days ---")
+    
+    EVSEs = list(set(df['EVSE ID']))
+    
+    dfEVSEs = pd.DataFrame(np.zeros((len(EVSEs),7)), index = EVSEs, 
+                           columns=['Station','Port Type','Lat','Lng','Nearest','Population','Miles'])
+    
+    for e in EVSEs:
+        station = df.loc[df['EVSE ID'] == e].iloc[0]['Station Name']
+        port = df.loc[df['EVSE ID'] == e].iloc[0]['Port Type']
+        lat = df.loc[df['EVSE ID'] == e].iloc[0].Latitude
+        lng = df.loc[df['EVSE ID'] == e].iloc[0].Longitude
+        loc = (lat,lng)
+        
+        # calculate nearest city to each EVSE station
+        nearest, population, miles = calcMinDist(loc,cities)
+        
+        dfEVSEs.at[e] = [station,port,lat,lng,nearest,population,miles]        
+        
+    grouped = df.groupby('EVSE ID');
+    
+    for name, group in grouped:
+        dfEVSEs.at[name,'SeshkWh'] = group['Energy (kWh)'].mean()
+        dfEVSEs.at[name,'SeshPwr'] = group['AvgPwr'].mean()
+        if len(group) == 1:
+            dfEVSEs.at[name,'Age'] = 1;
+            print('Single Charge Session')
+        else:
+            dfEVSEs.at[name,'Age'] = (group.iloc[len(group)-1]['Start Date'] - group.iloc[0]['Start Date']).days
+        
+        dfEVSEs.at[name,'daykWh'] = group['Energy (kWh)'].sum()/dfEVSEs.at[name,'Age']
+        
+        tChrg = group['Charging Time (hh:mm:ss)'].mean()        
+        dfEVSEs.at[name,'SeshChrg'] = tChrg.seconds/3600
+        
+        tCnct = group['Total Duration (hh:mm:ss)'].mean()
+        dfEVSEs.at[name,'SeshCnctd'] = tCnct.seconds/3600
+        
+        dfEVSEs.at[name,'Sparrow'] = dfEVSEs.at[name,'SeshChrg']/dfEVSEs.at[name,'SeshCnctd']
+    
+    return dfEVSEs;
+
+#%% Build Heuristics Table
+    
+tHeur = timeit.default_timer()
+
+#wknd = all, weekday or weekend    
+dayFilter = 'All'
+dfEVSEs = calcHeurDF(dfAll, dayFilter)
+
+fileName = 'exports\\EVSE_Heuristics-' + dayFilter + '50k_pop.xlsx'
+        
+dfEVSEs.to_excel(fileName)
+
+# timeit statement
+elapsedMain = timeit.default_timer() - tHeur
+print('Run time: {0:.4f} sec'.format(elapsedMain))
