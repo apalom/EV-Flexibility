@@ -169,4 +169,60 @@ def quants(df, weekday):
 dfWkdy, quants = quants(dfSLC, True)
 
 quants.plot()
-dfDays.plot()
+
+#%% Poisson Distribution Fit
+
+from scipy.stats import poisson
+
+N = 21;
+
+poissMatch = np.zeros((N,3))
+
+for n in range(1, N):
+    
+    mean, var, skew, kurt = poisson.stats(n, moments='mvsk')
+    print(mean, var)
+    poissMatch[n,0] = mean
+    poissMatch[n,1] = mean + var
+    poissMatch[n,2] = mean - var
+    
+#%% Poisson Distribution Fit
+    
+trials = 20000
+N = 21
+
+poissTrial = np.zeros((N,trials))
+poissMatch = pd.DataFrame(np.zeros((3*N,3)), columns=['mu','val','cat'])
+
+for n in range(0,N):
+    
+    poisRdm = np.random.poisson(n, trials)
+    poissTrial[n] = poisRdm
+    
+    mu = np.mean(poisRdm)
+    var = np.var(poisRdm)
+    
+    poissMatch.at[n] = [mu, mu, 'mu']
+    poissMatch.at[n+N] = [mu, mu-var, '-var']
+    poissMatch.at[n+2*N] = [mu, mu+var, '+var']
+
+
+#%% Plot Poisson Distribution
+
+import seaborn as sns
+sns.set(style="whitegrid")
+sns.set_context("notebook", font_scale=1.5, rc={"lines.linewidth": 1.0})
+
+colors = ["black", "grey", "grey", ]
+
+# Show the results of a linear regression within each dataset
+lm = sns.lmplot(x="mu", y="val", hue="cat", data=poissMatch, scatter=True,
+           palette=sns.xkcd_palette(colors), scatter_kws={"s": 25, "alpha": 1})
+
+lm.axes[0,0].set_xlim(0,)
+
+#%%
+
+evCount = dfWkdy.values.flatten()
+
+plt.scatter(evCount,evCount)
