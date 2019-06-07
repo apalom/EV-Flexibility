@@ -191,21 +191,24 @@ for n in range(1, N):
 trials = 20000
 N = 21
 
-poissTrial = np.zeros((N,trials))
+
 poissMatch = pd.DataFrame(np.zeros((3*N,3)), columns=['mu','val','cat'])
+poissTrial = pd.DataFrame(np.zeros((trials,2)), columns=['mu','val'])
 
 for n in range(0,N):
     
     poisRdm = np.random.poisson(n, trials)
-    poissTrial[n] = poisRdm
+    poissTrial.iloc[n:trials+(n)] = [np.array(trials*([n]-1)), poisRdm]
     
     mu = np.mean(poisRdm)
-    var = np.var(poisRdm)
-    
     poissMatch.at[n] = [mu, mu, 'mu']
+    
+    var = np.var(poisRdm)  
     poissMatch.at[n+N] = [mu, mu-var, '-var']
+    
+    var = np.var(poisRdm)
     poissMatch.at[n+2*N] = [mu, mu+var, '+var']
-
+    
 
 #%% Plot Poisson Distribution
 
@@ -225,4 +228,32 @@ lm.axes[0,0].set_xlim(0,)
 
 evCount = dfWkdy.values.flatten()
 
-plt.scatter(evCount,evCount)
+#%%
+
+xD = np.mean(dfWkdy,axis=1)
+yD = np.var(dfWkdy,axis=1)
+
+plt.scatter(xD, yD)
+plt.xlim(0,16)
+plt.xlim(0,16)
+
+#%%
+
+time = np.zeros((21,1))
+time = np.arange(0,21)
+
+idxMat = np.full((20000,21), time)
+
+#idx1 = np.repeat(time, N, axis=1)
+
+plt.scatter(x=idxMat,y=dfPoissTrial.values)
+
+#%%
+
+dfPoissTrial = pd.DataFrame(data=poissTrial)
+sns.regplot(x=dfPoissTrial.index,y=dfPoissTrial.values,data=dfPoissTrial)
+
+
+
+
+
