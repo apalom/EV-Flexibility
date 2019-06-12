@@ -170,6 +170,76 @@ def quants(df, weekday):
 # quants(df, weekday = True/False)
 dfWkdy, quantData = quants(dfSLC, True)
 
+#%% 
+
+dfMonday = dfSLC.loc[dfSLC.DayofWk == 0]
+dfMonday = dfMonday.reset_index(drop=True)
+
+#%%
+
+dim = 'Energy (kWh)'
+stdDev2 = int(dfMonday[dim].quantile(q=0.977))
+
+
+dfMon = dfMonday.loc[dfMonday[dim] < stdDev2]
+
+# Sturge’s Rule for Bin Count
+kBins = 1 + 3.22*np.log(len(dfMon))
+# results approximately in 1 kWh wide bins for Energy
+
+dfMon[dim].plot.hist(grid=True, bins=np.arange(0,25,1), 
+                     density=True, rwidth=0.9, color='#607c8e')
+                                    
+mean, var = np.mean(dfMon[dim]), np.var(dfMon[dim])
+
+#%%
+import seaborn as sns
+
+sns.set_style('darkgrid')
+sns.distplot(dfMon[dim])
+
+#%% Plot Fits
+
+import scipy
+from scipy import stats
+
+sns.set_color_codes()
+
+ax = sns.distplot(dfMon[dim], fit=stats.norm, kde=False,  
+                  fit_kws={'color':'blue', 'label':'norm'})
+
+ax = sns.distplot(dfMon[dim], fit=stats.gamma, hist=False, kde=False,  
+                  fit_kws={'color':'green', 'label':'gamma'})
+
+ax = sns.distplot(dfMon[dim], fit=stats.beta, hist=False, kde=False,  
+                  fit_kws={'color':'red', 'label':'beta'})
+
+ax = sns.distplot(dfMon[dim], fit=stats.skewnorm, hist=False, kde=False,  
+                  fit_kws={'color':'grey', 'label':'skewnorm'})
+
+ax.legend()
+
+#%% Test Fits
+
+x = dfMon[dim]
+dists = ['norm','gamma','beta','skewnorm']
+
+distribution = "beta"
+
+for d in dists: 
+    distr = getattr(stats, d)
+    params = distr.fit(x)
+    result = stats.kstest(x, d, args=params, N=1000)
+    print(d, result)
+
+
+#%%
+
+ax = sns.distplot(dfMon[dim], rug=True, rug_kws={"color": "g"},
+                   kde_kws={"color": "k", "lw": 1, "label": "KDE"},
+                   hist_kws={"histtype": "step", "linewidth": 1.5,
+                             "alpha": 1, "color": "g"})
+
 #%% Plot Connected Quants
 
 quantData.plot()
