@@ -126,8 +126,6 @@ def testTrain(dfSLC, p):
 # Inputs (dfAll, percent Training Data)
 dfTrain, dfTest = testTrain(dfSLC, 0.80)
 
-
-
 #%% Calculate Mean, 1st and 2nd Standard Deviation of Connected Vehicles
 
 def quants(df, weekday):
@@ -165,10 +163,38 @@ def quants(df, weekday):
     quants['+2_sigma'] = dfDays.quantile(q=0.977, axis=1)
 
     return dfDays, quants
+# quants(df, weekday = True/False)
+dfWkdy, quantData = quants(dfSLC, True)
 
-dfWkdy, quants = quants(dfSLC, True)
+#%% Plot Connected Quants
 
-quants.plot()
+quantData.plot()
+
+plt.xlabel('Time (hr)')
+plt.ylabel('Count')
+plt.title('EV Sessions Started, SLC-Weekday')
+plt.xlim(0,24)
+plt.xticks(np.arange(0,26,2))
+
+#%% Create a Sessions Plot
+
+from matplotlib import pyplot as plt
+plt.figure(figsize=(10,8))
+
+i = 0;
+dfSessions = pd.DataFrame(columns=['StartHr','Charging','Duration','Energy'])
+
+for idx,row in dfSLC.sample(2000).iterrows():
+    i += 1;
+    dfSessions.at[i] = [row.StartHr, row['Charging (h)'], row['Duration (h)'], row['Energy (kWh)']]
+    plt.plot((row.StartHr,row.EndHr),(row['Energy (kWh)'], row['Energy (kWh)']),
+             linewidth=0.5, alpha=0.66)
+
+plt.xlabel('Time (hr)')
+plt.ylabel('Energy (kWh)')
+plt.title('EV Sessions Energy, SLC-Weekday')
+plt.xlim(0,24)
+plt.xticks(np.arange(0,26,2))
 
 #%% Poisson Distribution Fit
 
