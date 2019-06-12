@@ -107,24 +107,28 @@ def filterPrep(df, string, fltr):
     
 dfSLC, daysTot = filterPrep(data, "Salt Lake City", True)
 
-#%% Training and Testing
+#%% Training and Testing for a Single Day
 
-def testTrain(dfSLC, p):
-    dfTrain = dfSLC.sample(int(p*len(dfSLC)))
+def testTrain(df, day, p):
+    
+    df = df.loc[df.DayofWk == day]
+    df = df.reset_index(drop=True)
+    
+    dfTrain = df.sample(int(p*len(df)))
     
     # Indices of Training Data
     idxTrain = list(dfTrain.index.values)
     # Indices of All Data
-    idxdf = list(dfSLC.index.values)
+    idxdf = list(df.index.values)
     # Indices of Test Data
     idxTest = list(set(idxdf) - set(idxTrain))
     
-    dfTest = dfSLC.iloc[idxTest]
+    dfTest = df.iloc[idxTest]
     
     return dfTrain, dfTest
 
-# Inputs (dfAll, percent Training Data)
-dfTrain, dfTest = testTrain(dfSLC, 0.80)
+# Inputs (dfAll, Day of Week [Mon = 0, Sat = 5] ,percent Training Data)
+dfTrain, dfTest = testTrain(dfSLC, 0, 0.80)
 
 #%% Calculate Mean, 1st and 2nd Standard Deviation of Connected Vehicles
 
