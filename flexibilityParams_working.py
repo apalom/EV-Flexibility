@@ -46,7 +46,8 @@ dataHead = data.head(100);
 
 #%% All EVSEs
 
-dfAll = data.loc[data['Energy (kWh)'].notna()]
+#dfAll = data.loc[data['Energy (kWh)'].notna()]
+dfAll = data.loc[data['Energy (kWh)'] > 0]
 dfAll['Duration (h)'] = dfAll['Total Duration (hh:mm:ss)'].apply(lambda x: x.seconds/3600)
 dfAll['Duration (h)'] = dfAll['Duration (h)'].apply(lambda x: round(x * 2) / 4) 
 dfAll['Charging (h)'] = dfAll['Charging Time (hh:mm:ss)'].apply(lambda x: x.seconds/3600)
