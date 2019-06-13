@@ -111,7 +111,7 @@ dfSLC, daysTot = filterPrep(data, "Salt Lake City", True)
 
 def testTrain(df, day, p):
     
-    df = df.loc[df.DayofWk == day]
+    #df = df.loc[df.DayofWk == day]
     df = df.reset_index(drop=True)
     
     dfTrain = df.sample(int(p*len(df)))
@@ -168,7 +168,7 @@ def quants(df, weekday):
 
     return dfDays, quants
 # quants(df, weekday = True/False)
-dfWkdy, quantData = quants(dfSLC, True)
+dfWkdy, quantData = quants(dfTrain, True)
 
 #%% 
 
@@ -189,7 +189,7 @@ print('Number of Bins: ', kBins)
 
 dfCln[dim].plot.hist(grid=True, bins=int(kBins), 
                      density=True, rwidth=0.9, color='#607c8e')
-                                    
+
 #%% Hourly Plot Histograms
               
 hrs = np.arange(0,24)
@@ -240,6 +240,51 @@ g.ax_joint.set_xticks(np.arange(0,26,2))
 #g.ax_joint.set_ylim(0,yM)
 g.ax_joint.set_title(ttl, x = 1.1, y = 1.0)
 #g.annotate(stats.pearsonr, loc=(1.2,1), fontsize=0.1)
+         
+#%% Import Training Connected Dat
+
+# Raw Data
+filePath = 'data/train_connected_per_hr.csv';
+
+# Import Data
+dfCnctd = pd.read_csv(filePath);
+dfCnctdT = dfCnctd.transpose();
+
+#%% Hourly Plot Histograms
+              
+hrs = np.arange(0,24)
+hists = {}
+
+fig, axs = plt.subplots(4, 6, figsize=(12, 8), sharex=True, sharey=True) 
+
+r,c = 0,0;
+#kBins = int(1 + 3.22*np.log(261)) #Sturge's Rule for Bin Count
+kBins = np.arange(0,10,1)
+
+for hr in hrs:   
+    
+    print('position', r, c)
+    axs[r,c].hist(dfCnctdT[hr], edgecolor='white', linewidth=0.5, bins=kBins, density=True) 
+    axs[r,c].set_title('Hr: ' + str(hr))
+    
+    # Subplot Spacing
+    c += 1
+    if c >= 6:
+        r += 1;
+        c = 0;
+        if r >= 4:
+            r=0;
+  
+fig.tight_layout()
+fig.suptitle('Hourly Histogram: Connected', y = 1.02)
+#xM, bS = int(np.max(np.max(dfCnctdT))), 5
+xM, bS = 10, 2
+plt.xlim(0,xM)
+plt.xticks(np.arange(0,xM+bS,bS))
+plt.ylim(0,1)
+plt.show()
+                         
+
 
 #%% Plot Fits
 
