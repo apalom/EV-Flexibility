@@ -70,11 +70,11 @@ def filterPrep(df, string, fltr):
     df['DayofWk'] = df['Start Date'].apply(lambda x: x.weekday()) 
     df['Year'] = df['Start Date'].apply(lambda x: x.year) 
     df['StartHr'] = df['Start Date'].apply(lambda x: x.hour + x.minute/60) 
-    df['StartHr'] = df['StartHr'].apply(lambda x: round(x)) 
+    df['StartHr'] = df['StartHr'].apply(lambda x: np.floor(x))  
     #df['StartHr'] = df['StartHr'].apply(lambda x: round(x * 4) / 4) 
     df['EndHr'] = df['End Date'].apply(lambda x: x.hour + x.minute/60) 
     #df['EndHr'] = df['EndHr'].apply(lambda x: round(x * 4) / 4) 
-    df['EndHr'] = df['EndHr'].apply(lambda x: round(x)) 
+    df['EndHr'] = df['EndHr'].apply(lambda x: np.floor(x)) 
     df['AvgPwr'] = df['Energy (kWh)']/df['Duration (h)']
     df['Date'] = df['Start Date'].apply(lambda x: str(x.year) + '-' + str(x.month) + '-' + str(x.day)) 
         
@@ -177,7 +177,7 @@ dfMonday = dfMonday.reset_index(drop=True)
 
 #%%
 
-dim = 'Energy (kWh)'
+dim = 'Duration (h)'
 stdDev2 = int(dfMonday[dim].quantile(q=0.977))
 
 
@@ -190,8 +190,54 @@ print('Number of Bins: ', kBins)
 
 dfMon[dim].plot.hist(grid=True, bins=int(kBins), 
                      density=True, rwidth=0.9, color='#607c8e')
+
                                     
-mean, var = np.mean(dfMon[dim]), np.var(dfMon[dim])
+#mean, var = np.mean(dfMon[dim]), np.var(dfMon[dim])
+
+#%% Hourly Plot Histograms
+              
+hrs = np.arange(0,24)
+hists = {}
+
+fig, axs = plt.subplots(4, 6, figsize=(10,8), sharex=True, sharey=True) 
+
+r,c = 0,0;
+
+for hr in hrs:
+    mask = (dfMon['StartHr'] == hr)
+    df_hr = dfMon[mask]
+    
+    if len(df_hr) > 0:
+        kBins = 1 + 3.22*np.log(len(df_hr)) #Sturge's Rule for Bin Count
+        hists[hr] = np.histogram(df_hr['Energy (kWh)'], bins=int(kBins))        
+    else: 
+        hists[hr] = np.histogram(0)
+    
+    print('position', r, c)
+    axs[r,c].hist(df_hr['Energy (kWh)'], edgecolor='white', linewidth=0.5, bins=int(kBins), density=True) 
+    axs[r,c].set_title('Hr: ' + str(hr))
+    
+    # Subplot Spacing
+    c += 1
+    if c >= 6:
+        r += 1;
+        c = 0;
+        if r >= 4:
+            r=0;
+  
+fig.tight_layout()
+fig.suptitle('Hourly Histogram: '+ dim, y = 1.02)
+plt.xlim(0,10)
+plt.xticks(np.arange(0,10,1))
+plt.ylim(0,0.30)
+plt.show()
+
+#%%
+
+hrs = np.arange(0,24)
+hists = {}
+fig, axs = plt.subplots(4, 6)
+
 
 #%% Plot Fits
 
