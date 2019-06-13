@@ -130,7 +130,7 @@ def testTrain(df, day, p):
 # Inputs (dfAll, Day of Week [Mon = 0, Sat = 5] ,percent Training Data)
 dfTrain, dfTest = testTrain(dfSLC, 0, 0.80)
 
-#%% Calculate Mean, 1st and 2nd Standard Deviation of Connected Vehicles
+#%% Calculate Connected EVs per Day/Hr and Calculate Mean, 1st and 2nd Standard Deviation of Connected Vehicles
 
 def quants(df, weekday):
 
@@ -172,28 +172,24 @@ dfWkdy, quantData = quants(dfSLC, True)
 
 #%% 
 
-dfMonday = dfSLC.loc[dfSLC.DayofWk == 0]
+dfMonday = dfSLC.loc[dfSLC.DayofWk >= 5]
 dfMonday = dfMonday.reset_index(drop=True)
 
-#%%
+#%% Remove data outside of 2nd standard deviation
 
-dim = 'Duration (h)'
+dim = 'Energy (kWh)' 
 stdDev2 = int(dfMonday[dim].quantile(q=0.977))
 
-
-dfMon = dfMonday.loc[dfMonday[dim] < stdDev2]
+dfCln = dfMonday.loc[dfMonday[dim] < stdDev2]
 
 # Sturge’s Rule for Bin Count
-kBins = 1 + 3.22*np.log(len(dfMon))
+kBins = 1 + 3.22*np.log(len(dfCln))
 print('Number of Bins: ', kBins)
 # results approximately in 1 kWh wide bins for Energy
 
-dfMon[dim].plot.hist(grid=True, bins=int(kBins), 
+dfCln[dim].plot.hist(grid=True, bins=int(kBins), 
                      density=True, rwidth=0.9, color='#607c8e')
-
                                     
-#mean, var = np.mean(dfMon[dim]), np.var(dfMon[dim])
-
 #%% Hourly Plot Histograms
               
 hrs = np.arange(0,24)
@@ -209,12 +205,12 @@ for hr in hrs:
     
     if len(df_hr) > 0:
         kBins = 1 + 3.22*np.log(len(df_hr)) #Sturge's Rule for Bin Count
-        hists[hr] = np.histogram(df_hr['Energy (kWh)'], bins=int(kBins))        
+        hists[hr] = np.histogram(df_hr[dim], bins=int(kBins))        
     else: 
         hists[hr] = np.histogram(0)
     
     print('position', r, c)
-    axs[r,c].hist(df_hr['Energy (kWh)'], edgecolor='white', linewidth=0.5, bins=int(kBins), density=True) 
+    axs[r,c].hist(df_hr[dim], edgecolor='white', linewidth=0.5, bins=int(kBins), density=True) 
     axs[r,c].set_title('Hr: ' + str(hr))
     
     # Subplot Spacing
@@ -227,17 +223,23 @@ for hr in hrs:
   
 fig.tight_layout()
 fig.suptitle('Hourly Histogram: '+ dim, y = 1.02)
-plt.xlim(0,10)
-plt.xticks(np.arange(0,10,1))
-plt.ylim(0,0.30)
+xM, bS = int(np.max(dfMon[dim])), 5
+plt.xlim(0,xM)
+plt.xticks(np.arange(0,xM+bS,bS))
+plt.ylim(0,0.4)
 plt.show()
 
-#%%
+#%% Margin Plots
 
-hrs = np.arange(0,24)
-hists = {}
-fig, axs = plt.subplots(4, 6)
+import seaborn as sns
+from scipy import stats
 
+yM, cc, ttl = 20, 'lightblue', 'dfWknd-Cln'
+g = sns.jointplot(dfCln.StartHr, dfCln[dim], color=cc, kind='kde')
+g.ax_joint.set_xticks(np.arange(0,26,2))
+#g.ax_joint.set_ylim(0,yM)
+g.ax_joint.set_title(ttl, x = 1.1, y = 1.0)
+#g.annotate(stats.pearsonr, loc=(1.2,1), fontsize=0.1)
 
 #%% Plot Fits
 
