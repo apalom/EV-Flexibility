@@ -185,25 +185,24 @@ dfMon = dfMonday.loc[dfMonday[dim] < stdDev2]
 
 # Sturge’s Rule for Bin Count
 kBins = 1 + 3.22*np.log(len(dfMon))
+print('Number of Bins: ', kBins)
 # results approximately in 1 kWh wide bins for Energy
 
-dfMon[dim].plot.hist(grid=True, bins=np.arange(0,25,1), 
+dfMon[dim].plot.hist(grid=True, bins=int(kBins), 
                      density=True, rwidth=0.9, color='#607c8e')
                                     
 mean, var = np.mean(dfMon[dim]), np.var(dfMon[dim])
 
-#%%
-import seaborn as sns
-
-sns.set_style('darkgrid')
-sns.distplot(dfMon[dim])
-
 #%% Plot Fits
 
 import scipy
+import seaborn as sns
 from scipy import stats
 
 sns.set_color_codes()
+sns.set_style('darkgrid')
+plt.figure(figsize=(10,8))
+x = dfMon[dim]
 
 ax = sns.distplot(dfMon[dim], fit=stats.norm, kde=False,  
                   fit_kws={'color':'blue', 'label':'norm'})
@@ -219,18 +218,44 @@ ax = sns.distplot(dfMon[dim], fit=stats.skewnorm, hist=False, kde=False,
 
 ax.legend()
 
-#%% Test Fits
+#%% Normality Tests
 
-x = dfMon[dim]
-dists = ['norm','gamma','beta','skewnorm']
+print(dim)
 
-distribution = "beta"
+#Perform the Shapiro-Wilk test for normality.
+stat, p = stats.shapiro(x)
 
-for d in dists: 
-    distr = getattr(stats, d)
-    params = distr.fit(x)
-    result = stats.kstest(x, d, args=params, N=1000)
-    print(d, result)
+alpha = 0.05
+print('\n')
+if p > alpha:
+    print('Shapiro: Sample looks Gaussian (fail to reject H0)')
+else:
+    print('Shapiro: Sample does not look Gaussian (reject H0)')
+print(stat,p)
+
+# Perform Anderson-Darling test for normality
+result = stats.anderson(x, dist='norm')
+stat = round(result.statistic, 4)
+print('\n')
+p = 0
+for i in range(len(result.critical_values)):
+    sl, cv = result.significance_level[i], result.critical_values[i]
+    if result.statistic < result.critical_values[i]:
+        print('Anderson: Sample looks Gaussian (fail to reject H0)')        
+    else:
+        print('Anderson: Sample does not look Gaussian (reject H0)')
+    print('\t', len(x), stat, sl, cv)
+
+# Perform K-S test for normality
+distr = getattr(stats, 'norm')
+params = distr.fit(x)
+stat, p = stats.kstest(x, 'norm', args=params, N=1000)
+print('\n')
+if p > alpha:
+    print('K-S: Sample looks Gaussian (fail to reject H0)')
+else:
+    print('K-S: Sample does not look Gaussian (reject H0)')
+print(stat,p)
 
 
 #%%
