@@ -30,10 +30,17 @@ kernels = [1.0 * RBF(length_scale=1.0, length_scale_bounds=(1e-1, 10.0)),
            ConstantKernel(0.1, (0.01, 10.0)) * (DotProduct(sigma_0=1.0, sigma_0_bounds=(0.1, 10.0)) ** 2),
            1.0 * Matern(length_scale=1.0, length_scale_bounds=(1e-1, 10.0), nu=1.5)]
 
-kernels = [1.0 * RBF(length_scale=1.0, length_scale_bounds=(1e-1, 10.0))]
+#kernels = [1.0 * RationalQuadratic(length_scale=1.0, alpha=0.1)]
+
+logLik = {}
+ii = 0;
 
 for kernel in kernels:
     # Specify Gaussian Process
+    # Note that the kernel’s hyperparameters are optimized during fitting.
+    # Depending on the initial value for the hyperparameters, the gradient-based 
+    # optimization might also converge to the high-noise solution. It is thus 
+    # important to repeat the optimization several times for different initializations.
     gp = GaussianProcessRegressor(kernel=kernel)
 
     # Plot prior
@@ -73,6 +80,10 @@ for kernel in kernels:
               % (gp.kernel_, gp.log_marginal_likelihood(gp.kernel_.theta)),
               fontsize=12)
     plt.tight_layout()
+
+    # Print Log-Likehood value for each kernel
+    logLik[ii] = [str(gp.kernel_), gp.kernel_.theta, gp.log_marginal_likelihood(gp.kernel_.theta)];
+    ii += 1;
 
 plt.show()
 

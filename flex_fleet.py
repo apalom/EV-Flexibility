@@ -111,9 +111,10 @@ dfSLC, daysTot = filterPrep(data, "Salt Lake City", True)
 
 def testTrain(df, day, p):
     
-    #df = df.loc[df.DayofWk == day]
+    df = df.loc[df.DayofWk == day]
     df = df.reset_index(drop=True)
     
+    # Sample training data
     dfTrain = df.sample(int(p*len(df)))
     
     # Indices of Training Data
@@ -124,6 +125,9 @@ def testTrain(df, day, p):
     idxTest = list(set(idxdf) - set(idxTrain))
     
     dfTest = df.iloc[idxTest]
+    
+    dfTrain = dfTrain.sort_values(by=['dayCount'])
+    dfTest = dfTest.sort_values(by=['dayCount'])
     
     return dfTrain, dfTest
 
@@ -145,10 +149,10 @@ def quants(df, weekday):
     daysIn.sort()
     
     dfDays = pd.DataFrame(np.zeros((24,len(set(df.dayCount)))), 
-                        index= np.arange(0,24,1), columns=daysIn)
-    
+                        index=np.arange(0,24,1), columns=daysIn)
+        
     for d in df.dayCount:
-    
+        print('Day: ', d)
         dfDay = df[df.dayCount == d]
         cnct = dfDay.StartHr.value_counts()
         cnct = cnct.sort_index()
@@ -169,6 +173,32 @@ def quants(df, weekday):
     return dfDays, quants
 # quants(df, weekday = True/False)
 dfWkdy, quantData = quants(dfTrain, True)
+
+#%% Scatterplot 
+
+dlen = 24*len(set(dfTrain.dayCount))
+dfDays = pd.DataFrame(np.zeros((dlen,3)), columns=['Hour','Day','Connected'])
+
+for c in np.arange(0,dfWkdy.shape[1]):
+    print('Day: ', c);
+    
+    for h in np.arange(0,24):
+        print('  Hr: ', h);
+        dfDays.Hour.at[(c*24)+h] = int(h);
+        dfDays.Day.at[(c*24)+h] = c;    
+        dfDays.Connected.at[(c*24)+h] = dfWkdy.iloc[h,c];
+        
+#%%
+
+import seaborn as sns
+
+sns.set_style("whitegrid")
+fig, ax = plt.subplots(figsize=(12,6))
+ax = sns.stripplot(x="Hour", y="Connected", hue="Day", data=dfDays, jitter=True)
+ax.set(xlabel='Hour',  ylabel='EV Connected', xlim=((0,24)))
+
+ax.legend_.remove()
+sns.despine()
 
 #%% 
 
