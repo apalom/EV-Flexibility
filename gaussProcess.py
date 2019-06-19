@@ -34,6 +34,8 @@ kernels = [1.0 * RBF(length_scale=1.0, length_scale_bounds=(1e-1, 10.0)),
 #krnl_ESS = 1.0 * ExpSineSquared(length_scale=1, periodicity=3.0, length_scale_bounds=(0.1, 10.0), periodicity_bounds=(1.0, 10.0))
 #kernel = krnl_ESS;
 
+kernels = [1.0 * ExpSineSquared(length_scale=1.0, periodicity=3.0, length_scale_bounds=(0.1, 10.0), periodicity_bounds=(1.0, 10.0))]
+
 results = pd.DataFrame(index=np.arange(0,len(kernels)), columns=['Kernel','Params','LogLike'])
 idx = 0;
 
@@ -50,7 +52,7 @@ for kernel in kernels:
     plt.figure(figsize=(8, 8))
     plt.subplot(2, 1, 1)
     X_ = np.linspace(0, 5, 100)
-    y_mean, y_std = gp.predict(X_[:, np.newaxis], return_std=True)
+    y_mean, y_std, y_cov = gp.predict(X_[:, np.newaxis], return_std=False, return_cov=True)
     plt.plot(X_, y_mean, 'k', lw=3, zorder=1)
     plt.fill_between(X_, y_mean - y_std, y_mean + y_std,
                      alpha=0.2, color='k')
@@ -265,3 +267,82 @@ y_pred, sigmas = np.transpose(predictions)
 plt.errorbar(x_pred, y_pred, yerr=sigmas, capsize=0)
 plt.plot(x, y, "ro")
 plt.ylim(-3, 3);
+
+#%%
+# https://plot.ly/scikit-learn/plot-gpr-noisy-targets/
+
+import sklearn
+import plotly.plotly as py
+import plotly.graph_objs as go
+
+import numpy as np
+from sklearn.gaussian_process import GaussianProcessRegressor
+from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C
+
+np.random.seed(1)
+
+def f(x):
+    """The function to predict."""
+    return x * np.sin(x)
+
+def data_to_plotly(x):
+    k = []
+    
+    for i in range(0, len(x)):
+        k.append(x[i][0])
+        
+    return k
+
+X = np.atleast_2d([1., 3., 5., 6., 7., 8.]).T
+
+# Observations
+y = f(X).ravel()
+
+# Mesh the input space for evaluations of the real function, the prediction and
+# its MSE
+x = np.atleast_2d(np.linspace(0, 10, 1000)).T
+
+# Instanciate a Gaussian Process model
+kernel = C(1.0, (1e-3, 1e3)) * RBF(10, (1e-2, 1e2))
+gp = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=9)
+
+# Fit to data using Maximum Likelihood Estimation of the parameters
+fit = gp.fit(X, y)
+print(fit)
+
+# Make the prediction on the meshed x-axis (ask for MSE as well)
+y_pred, sigma = gp.predict(x, return_std=True)
+
+#%% Plot
+
+p1 = go.Scatter(x=data_to_plotly(x), y=data_to_plotly(f(x)), 
+                mode='lines',
+                line=dict(color='red', dash='dot'),
+                name=u'<i>f(x) = xsin(x)</i>')
+
+p2 = go.Scatter(x=data_to_plotly(X), y=y, 
+               mode='markers',
+               marker=dict(color='red'),
+               name=u'Observations')
+
+p3 = go.Scatter(x=data_to_plotly(x), y=y_pred, 
+                mode='lines',
+                line=dict(color='blue'),
+                name=u'Prediction',
+               )
+
+p4 = go.Scatter(x=data_to_plotly(np.concatenate([x, x[::-1]])),
+                y=np.concatenate([y_pred - 1.9600 * sigma,]),
+                mode='lines',
+                line=dict(color='blue'),
+                fill='tonexty',
+                name='95% confidence interval')
+
+
+data = [p3, p4, p1, p2]
+layout = go.Layout(xaxis=dict(title='<i>x</i>'),
+                   yaxis=dict(title='<i>f(x)</i>'),
+                  )
+fig = go.Figure(data=data, layout=layout)
+
+py.iplot(fig)
