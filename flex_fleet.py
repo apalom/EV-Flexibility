@@ -193,9 +193,12 @@ for c in np.arange(0,dfWkdy.shape[1]):
 import seaborn as sns
 
 sns.set_style("whitegrid")
-fig, ax = plt.subplots(figsize=(12,6))
-ax = sns.stripplot(x="Hour", y="Connected", hue="Day", data=dfDays, jitter=True)
-ax.set(xlabel='Hour',  ylabel='EV Connected', xlim=((0,24)))
+fig, ax = plt.subplots(figsize=(8,6))
+
+ax = sns.stripplot(x="Hour", y="Connected", hue="Day", s=4, data=dfDays, jitter=True)
+
+ax.set(xlabel='Hour',  ylabel='EV Connected', title='Scatterplot - Monday',
+       xlim=((0,24)), xticks=np.arange(0,26,2), xticklabels = np.arange(0,26,2))
 
 ax.legend_.remove()
 sns.despine()
