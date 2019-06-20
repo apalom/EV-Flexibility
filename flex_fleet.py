@@ -138,7 +138,7 @@ dfTrain, dfTest = testTrain(dfSLC, 0, 0.80)
 
 def quants(df, weekday):
 
-    allDays = list(set(df.dayCount))
+    #allDays = list(set(df.dayCount))
     
     if weekday:
         df = df[df.DayofWk < 5]
@@ -172,36 +172,107 @@ def quants(df, weekday):
 
     return dfDays, quants
 # quants(df, weekday = True/False)
-dfWkdy, quantData = quants(dfTrain, True)
+dfWkdyTest, quantDataTest = quants(dfTest, True)
 
-#%% Scatterplot 
+#%% Create Fitting Data 
 
-dlen = 24*len(set(dfTrain.dayCount))
-dfDays = pd.DataFrame(np.zeros((dlen,3)), columns=['Hour','Day','Connected'])
+def dfFitting(df, dfWkdy):
 
-for c in np.arange(0,dfWkdy.shape[1]):
-    print('Day: ', c);
+    dlen = 24*len(set(df.dayCount))
+    dfDays = pd.DataFrame(np.zeros((dlen,3)), columns=['Hour','Day','Connected'])
     
-    for h in np.arange(0,24):
-        print('  Hr: ', h);
-        dfDays.Hour.at[(c*24)+h] = int(h);
-        dfDays.Day.at[(c*24)+h] = c;    
-        dfDays.Connected.at[(c*24)+h] = dfWkdy.iloc[h,c];
+    for c in np.arange(0,dfWkdy.shape[1]):
+        print('Day: ', c);
         
-#%%
+        for h in np.arange(0,24):
+            print('  Hr: ', h);
+            dfDays.Hour.at[(c*24)+h] = int(h);
+            dfDays.Day.at[(c*24)+h] = c;    
+            dfDays.Connected.at[(c*24)+h] = dfWkdy.iloc[h,c];
+
+    return dfDays
+
+dfFitTest = dfFitting(dfTrain, dfWkdyTest)
+
+#%% Scatterplot Fitting Data
 
 import seaborn as sns
 
 sns.set_style("whitegrid")
 fig, ax = plt.subplots(figsize=(8,6))
 
-ax = sns.stripplot(x="Hour", y="Connected", hue="Day", s=4, data=dfDays, jitter=True)
+ax = sns.stripplot(x="Hour", y="Connected", hue="Day", s=5, data=dfFitTest, jitter=True)
 
-ax.set(xlabel='Hour',  ylabel='EV Connected', title='Scatterplot - Monday',
-       xlim=((0,24)), xticks=np.arange(0,26,2), xticklabels = np.arange(0,26,2))
+ax.set(xlabel='Hour',  ylabel='EV Connected', title='Testing Data - Monday',
+       xlim=((0,24)), xticks=np.arange(0,26,2), xticklabels = np.arange(0,26,2), ylim=((0,16)))
 
 ax.legend_.remove()
 sns.despine()
+
+#%% GP Fit
+
+# Import Kernels
+from sklearn import gaussian_process
+from sklearn.gaussian_process import GaussianProcessRegressor
+from sklearn.gaussian_process.kernels import (RBF, Matern, RationalQuadratic,
+                                              ExpSineSquared, DotProduct,
+                                              ConstantKernel)
+
+kernels = [1.0 * RBF(length_scale=1.0, length_scale_bounds=(1e-1, 10.0)),
+           1.0 * RationalQuadratic(length_scale=1.0, alpha=0.5),
+           1.0 * ExpSineSquared(length_scale=1.0, periodicity=3.0,
+                                length_scale_bounds=(0.1, 10.0),
+                                periodicity_bounds=(1.0, 10.0)),
+           ConstantKernel(0.1, (0.01, 10.0))
+               * (DotProduct(sigma_0=1.0, sigma_0_bounds=(0.1, 10.0)) ** 2),
+           1.0 * Matern(length_scale=1.0, length_scale_bounds=(1e-1, 10.0), nu=1.5)]
+
+kernel = RBF(length_scale=1.0, length_scale_bounds=(1e-1, 10.0)) #+ RationalQuadratic(length_scale=1.0, alpha=0.1)
+
+# Training Data
+x = np.array(dfFitTrain.Hour)
+X = x.reshape(-1, 1)
+X.shape
+Xc = np.linspace(0, 23, 240).reshape(-1, 1)
+
+y = np.array(dfFitTrain.Connected)
+Y = y.reshape(-1, 1)
+y_mean = np.mean(dfWkdyTrain, axis=1)
+y_std = np.std(dfWkdyTrain, axis=1)
+
+# Fit GP to Training Data
+gp = gaussian_process.GaussianProcessRegressor(kernel=kernel)
+gp.fit(X, Y)
+
+# Plot GP Prior
+plt.figure(figsize=(8, 8))
+plt.subplot(2, 1, 1)
+plt.plot(np.arange(0,24), y_mean, 'k', lw=2, zorder=9)
+plt.fill_between(np.arange(0,24), y_mean - y_std, y_mean + y_std,
+                 alpha=0.2, color='k')
+plt.xticks(np.arange(0,26,2))
+
+nS = 1
+y_samples = gp.sample_y(Xc, nS)
+
+y_samples1 = np.zeros((len(y_samples),nS))
+
+for j in range(len(y_samples1)):
+    y_samples1[j] = y_samples[j]
+    
+Xc1 = np.repeat(Xc, nS, axis=1)
+
+plt.plot(Xc1, y_samples1, lw=1)
+
+plt.title("Prior (kernel:  %s)" % kernel, fontsize=12)
+
+gp.kernel_
+
+## Testing Data Predicted from GP
+#x_pred = np.array(dfFitTest.Hour).reshape(-1, 1)
+#y_pred, sigma = gp.predict(x_pred, return_std=True)
+
+
 
 #%% 
 

@@ -169,9 +169,61 @@ for kernel in kernels:
 
 plt.show()
 
-result0 = [str(krnl_ESS), gp.kernel_.theta, gp.log_marginal_likelihood(gp.kernel_.theta)]
+result0 = [str(kernel), gp.kernel_.theta, gp.log_marginal_likelihood(gp.kernel_.theta)]
 
 print('Default Result \n  ', result0)
+
+#%%
+
+import numpy as np
+
+from matplotlib import pyplot as plt
+
+from sklearn.gaussian_process import GaussianProcessRegressor
+from sklearn.gaussian_process.kernels import (RBF, Matern, RationalQuadratic,
+                                              ExpSineSquared, DotProduct,
+                                              ConstantKernel)
+
+kernel = 1.0 * RBF(length_scale=0.5, length_scale_bounds=(0.1, 5.0))
+
+gp = GaussianProcessRegressor(kernel=kernel)
+
+# Plot prior
+plt.figure(figsize=(8, 8))
+plt.subplot(2, 1, 1)
+X_ = np.linspace(0, 5, 100)
+y_mean, y_std = gp.predict(X_[:, np.newaxis], return_std=True)
+plt.plot(X_, y_mean, 'k', lw=3, zorder=9)
+plt.fill_between(X_, y_mean - y_std, y_mean + y_std,
+                 alpha=0.2, color='k')
+y_samples = gp.sample_y(X_[:, np.newaxis], 10)
+plt.plot(X_, y_samples, lw=1)
+plt.xlim(0, 5)
+plt.ylim(-3, 3)
+plt.title("Prior (kernel:  %s)" % kernel, fontsize=12)
+
+# Generate data and fit GP
+X = np.arange(0,24)[:, np.newaxis]
+y = data[2]
+gp.fit(X, y)
+
+# Plot posterior
+plt.subplot(2, 1, 2)
+X_ = np.linspace(0, 5, 100)
+y_mean, y_std = gp.predict(X_[:, np.newaxis], return_std=True)
+plt.plot(X_, y_mean, 'k', lw=3, zorder=9)
+plt.fill_between(X_, y_mean - y_std, y_mean + y_std,
+                 alpha=0.2, color='k')
+
+y_samples = gp.sample_y(X_[:, np.newaxis], 10)
+plt.plot(X_, y_samples, lw=1)
+plt.scatter(X[:, 0], y, c='r', s=50, zorder=10, edgecolors=(0, 0, 0))
+plt.xlim(0, 5)
+plt.ylim(-3, 3)
+plt.title("Posterior (kernel: %s)\n Log-Likelihood: %.3f"
+          % (gp.kernel_, gp.log_marginal_likelihood(gp.kernel_.theta)),
+          fontsize=12)
+plt.tight_layout()
 
 #%%
 """
@@ -272,14 +324,16 @@ plt.ylim(-3, 3);
 # https://plot.ly/scikit-learn/plot-gpr-noisy-targets/
 
 import sklearn
+import plotly 
 import plotly.plotly as py
 import plotly.graph_objs as go
+from plotly.offline import *
 
 import numpy as np
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C
 
-np.random.seed(1)
+#np.random.seed(1)
 
 def f(x):
     """The function to predict."""
@@ -293,56 +347,58 @@ def data_to_plotly(x):
         
     return k
 
-X = np.atleast_2d([1., 3., 5., 6., 7., 8.]).T
+zX = np.atleast_2d([1., 3., 5., 6., 7., 8.]).T
 
 # Observations
-y = f(X).ravel()
+zy = f(zX).ravel()
 
 # Mesh the input space for evaluations of the real function, the prediction and
 # its MSE
-x = np.atleast_2d(np.linspace(0, 10, 1000)).T
+zx = np.atleast_2d(np.linspace(0, 10, 1000)).T
 
 # Instanciate a Gaussian Process model
-kernel = C(1.0, (1e-3, 1e3)) * RBF(10, (1e-2, 1e2))
-gp = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=9)
+zkernel = C(1.0, (1e-3, 1e3)) * RBF(10, (1e-2, 1e2))
+zgp = GaussianProcessRegressor(kernel=zkernel, n_restarts_optimizer=9)
 
 # Fit to data using Maximum Likelihood Estimation of the parameters
-fit = gp.fit(X, y)
-print(fit)
+zfit = zgp.fit(zX, zy)
+print(zfit)
 
 # Make the prediction on the meshed x-axis (ask for MSE as well)
-y_pred, sigma = gp.predict(x, return_std=True)
+zy_pred, zsigma = zgp.predict(zx, return_std=True)
 
 #%% Plot
 
-p1 = go.Scatter(x=data_to_plotly(x), y=data_to_plotly(f(x)), 
+zp1 = go.Scatter(x=data_to_plotly(zx), y=data_to_plotly(f(zx)), 
                 mode='lines',
                 line=dict(color='red', dash='dot'),
                 name=u'<i>f(x) = xsin(x)</i>')
 
-p2 = go.Scatter(x=data_to_plotly(X), y=y, 
+zp2 = go.Scatter(x=data_to_plotly(zX), y=zy, 
                mode='markers',
                marker=dict(color='red'),
                name=u'Observations')
 
-p3 = go.Scatter(x=data_to_plotly(x), y=y_pred, 
+zp3 = go.Scatter(x=data_to_plotly(zx), y=zy_pred, 
                 mode='lines',
                 line=dict(color='blue'),
                 name=u'Prediction',
                )
 
-p4 = go.Scatter(x=data_to_plotly(np.concatenate([x, x[::-1]])),
-                y=np.concatenate([y_pred - 1.9600 * sigma,]),
+zp4 = go.Scatter(x=data_to_plotly(np.concatenate([zx, zx[::-1]])),
+                y=np.concatenate([zy_pred - 1.9600 * zsigma,]),
                 mode='lines',
                 line=dict(color='blue'),
                 fill='tonexty',
                 name='95% confidence interval')
 
 
-data = [p3, p4, p1, p2]
-layout = go.Layout(xaxis=dict(title='<i>x</i>'),
+zdata = [zp3, zp4, zp1, zp2]
+zlayout = go.Layout(xaxis=dict(title='<i>x</i>'),
                    yaxis=dict(title='<i>f(x)</i>'),
                   )
-fig = go.Figure(data=data, layout=layout)
+zfig = go.Figure(data=zdata, layout=zlayout)
 
-py.iplot(fig)
+#%%
+#py.iplot(fig)
+plotly.offline.plot(zfig)
