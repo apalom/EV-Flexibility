@@ -177,7 +177,7 @@ dfWkdyTest, quantDataTest = quants(dfTest, True)
 #%% Create Fitting Data 
 
 def dfFitting(df, dfWkdy):
-
+    
     dlen = 24*len(set(df.dayCount))
     dfDays = pd.DataFrame(np.zeros((dlen,3)), columns=['Hour','Day','Connected'])
     
@@ -192,19 +192,22 @@ def dfFitting(df, dfWkdy):
 
     return dfDays
 
-dfFitTest = dfFitting(dfTrain, dfWkdyTest)
+dfFitTrain = dfFitting(dfTrain, dfWkdyTrain)
 
 #%% Scatterplot Fitting Data
 
 import seaborn as sns
 
 sns.set_style("whitegrid")
-fig, ax = plt.subplots(figsize=(8,6))
+fig, ax = plt.subplots(figsize=(16,6))
+fig.tight_layout()
 
-ax = sns.stripplot(x="Hour", y="Connected", hue="Day", s=5, data=dfFitTest, jitter=True)
+endHr = 143
+ax = sns.stripplot(x=dfFitTrain.head(endHr).index, y="Connected", hue="Day", 
+                   s=5, data=dfFitTrain.head(endHr), jitter=True)
 
-ax.set(xlabel='Hour',  ylabel='EV Connected', title='Testing Data - Monday',
-       xlim=((0,24)), xticks=np.arange(0,26,2), xticklabels = np.arange(0,26,2), ylim=((0,16)))
+ax.set(xlabel='Hour',  ylabel='EV Connected', title='Training Data - Monday',
+       xticks=np.arange(0,endHr,4), xticklabels = np.arange(0,endHr,4), ylim=((0,16)))
 
 ax.legend_.remove()
 sns.despine()
@@ -227,22 +230,53 @@ kernels = [1.0 * RBF(length_scale=1.0, length_scale_bounds=(1e-1, 10.0)),
                * (DotProduct(sigma_0=1.0, sigma_0_bounds=(0.1, 10.0)) ** 2),
            1.0 * Matern(length_scale=1.0, length_scale_bounds=(1e-1, 10.0), nu=1.5)]
 
-kernel = RBF(length_scale=1.0, length_scale_bounds=(1e-1, 10.0)) #+ RationalQuadratic(length_scale=1.0, alpha=0.1)
+kernel = 5**2 * RBF(length_scale=24, length_scale_bounds=(0.1, 48)) + 2**2 * RationalQuadratic(length_scale=1.0, alpha=0.1)
+
+days = 10;
 
 # Training Data
-x = np.array(dfFitTrain.Hour)
-X = x.reshape(-1, 1)
-X.shape
-Xc = np.linspace(0, 23, 240).reshape(-1, 1)
-
-y = np.array(dfFitTrain.Connected)
-Y = y.reshape(-1, 1)
-y_mean = np.mean(dfWkdyTrain, axis=1)
-y_std = np.std(dfWkdyTrain, axis=1)
+X = np.array(dfFitTrain.index.values.head(24*days)).reshape(-1, 1)
+y = np.array(dfFitTrain.Connected.head(24*days))
 
 # Fit GP to Training Data
-gp = gaussian_process.GaussianProcessRegressor(kernel=kernel)
-gp.fit(X, Y)
+gp = GaussianProcessRegressor(kernel=kernel, alpha=0,
+                              optimizer=None, normalize_y=True)
+
+# GPML Kernel on Prior (Initial Hyperparameters)
+gp.fit(X, y)
+
+print("\n GPML kernel: %s" % gp.kernel_)
+print("Log-marginal-likelihood: %.3f" % gp.log_marginal_likelihood(gp.kernel_.theta))
+
+# Learned Kernel
+gp = GaussianProcessRegressor(kernel=kernel, alpha=0,
+                              optimizer='fmin_l_bfgs_b', normalize_y=True)
+
+# GPML Kernel on Prior (Optimized Hyperparameters)
+gp.fit(X, y)
+
+print("\n Learned kernel: %s" % gp.kernel_)
+print("Log-marginal-likelihood: %.3f"
+      % gp.log_marginal_likelihood(gp.kernel_.theta))
+
+#%% Plot
+
+X_ = np.linspace(X.min(), X.max() + 30, 1000)[:, np.newaxis]
+y_pred, y_std = gp.predict(X_, return_std=True)
+
+# Illustration
+plt.scatter(X, y, c='k')
+plt.plot(X_, y_pred)
+plt.fill_between(X_[:, 0], y_pred - y_std, y_pred + y_std,
+                 alpha=0.5, color='k')
+plt.xlim(X_.min(), X_.max())
+plt.xlabel("Year")
+plt.ylabel(r"EVs Connected")
+plt.title(r"Monday Training Data")
+plt.tight_layout()
+plt.show()
+
+#%%
 
 # Plot GP Prior
 plt.figure(figsize=(8, 8))
