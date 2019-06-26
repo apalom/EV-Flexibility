@@ -190,7 +190,7 @@ def dfFitting(dfs, dfDays):
     for frame in dfs:
     
         dlen = 24*len(set(dfs[i].dayCount))
-        dfDayCol = pd.DataFrame(np.zeros((dlen,3)), columns=['Hour','Day','Connected'])
+        dfDayCol = pd.DataFrame(np.zeros((dlen,4)), columns=['Hour','DayCnt','DayYr','Connected'])
         
         for c in np.arange(0,dfDays[i].shape[1]):
             print('Day: ', c);
@@ -198,7 +198,8 @@ def dfFitting(dfs, dfDays):
             for h in np.arange(0,24):
                 print('  Hr: ', h);
                 dfDayCol.Hour.at[(c*24)+h] = int(h);
-                dfDayCol.Day.at[(c*24)+h] = c;    
+                dfDayCol.DayCnt.at[(c*24)+h] = c;    
+                dfDayCol.DayYr.at[(c*24)+h] = dfDays[i].columns[c];    
                 dfDayCol.Connected.at[(c*24)+h] = dfDays[i].iloc[h,c];
         
         dfFits[i] = dfDayCol;
