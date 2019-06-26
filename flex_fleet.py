@@ -109,90 +109,104 @@ dfSLC, daysTot = filterPrep(data, "Salt Lake City", True)
 
 #%% Training and Testing for a Single Day
 
+import random
+
 def testTrain(df, day, p):
     
     df = df.loc[df.DayofWk == day]
     df = df.reset_index(drop=True)
+    daysIn = list(set(list(df.DayofYr)))
+    daysIn.sort()
+    
+    # Define list of days for training and testing
+    daysTrain = random.sample(daysIn, int(p*len(daysIn)))
+    daysTest = list(set(daysIn) - set(daysTrain))
     
     # Sample training data
-    dfTrain = df.sample(int(p*len(df)))
-    
-    # Indices of Training Data
-    idxTrain = list(dfTrain.index.values)
-    # Indices of All Data
-    idxdf = list(df.index.values)
-    # Indices of Test Data
-    idxTest = list(set(idxdf) - set(idxTrain))
-    
-    dfTest = df.iloc[idxTest]
+    dfTrain = df.loc[df.DayofYr.isin(daysTrain)]
+    dfTest = df.loc[df.DayofYr.isin(daysTest)]
     
     dfTrain = dfTrain.sort_values(by=['dayCount'])
     dfTest = dfTest.sort_values(by=['dayCount'])
     
-    return dfTrain, dfTest
+    return dfTrain, dfTest 
 
 # Inputs (dfAll, Day of Week [Mon = 0, Sat = 5] ,percent Training Data)
 dfTrain, dfTest = testTrain(dfSLC, 0, 0.80)
 
 #%% Calculate Connected EVs per Day/Hr and Calculate Mean, 1st and 2nd Standard Deviation of Connected Vehicles
 
-def quants(df, weekday):
+def quants(dfs, weekday):
 
     #allDays = list(set(df.dayCount))
     
-    if weekday:
-        df = df[df.DayofWk < 5]
-    else:
-        df = df[df.DayofWk >= 5]
-    
-    daysIn = list(set(df.dayCount))
-    daysIn.sort()
-    
-    dfDays = pd.DataFrame(np.zeros((24,len(set(df.dayCount)))), 
-                        index=np.arange(0,24,1), columns=daysIn)
+#    if weekday:
+#        df = df[df.DayofWk < 5]
+#    else:
+#        df = df[df.DayofWk >= 5]
+    i = 0;
+    dctQuant = {}; dctDay = {};
+    for frame in dfs:
+        df = frame;
+        daysIn = list(set(df.dayCount))
+        daysIn.sort()
         
-    for d in df.dayCount:
-        print('Day: ', d)
-        dfDay = df[df.dayCount == d]
-        cnct = dfDay.StartHr.value_counts()
-        cnct = cnct.sort_index()
+        dfDays = pd.DataFrame(np.zeros((24,len(set(df.dayCount)))), 
+                            index=np.arange(0,24,1), columns=daysIn)
+            
+        for d in df.dayCount:
+            print('Day: ', d)
+            dfDay = df[df.dayCount == d]
+            cnct = dfDay.StartHr.value_counts()
+            cnct = cnct.sort_index()
+            
+            dfDays.loc[:,d] = dfDay.StartHr.value_counts()
+            dfDays.loc[:,d] = np.nan_to_num(dfDays.loc[:,d])
         
-        dfDays.loc[:,d] = dfDay.StartHr.value_counts()
-        dfDays.loc[:,d] = np.nan_to_num(dfDays.loc[:,d])
-    
-    quants = pd.DataFrame(np.zeros((24,5)), 
-                        index= np.arange(0,24,1), 
-                        columns=['-2_sigma','-1_sigma','mu','+1_sigma','+2_sigma'])
-    
-    quants['-2_sigma'] = dfDays.quantile(q=0.023, axis=1)
-    quants['-1_sigma'] = dfDays.quantile(q=0.159, axis=1)
-    quants['mu'] = dfDays.quantile(q=0.50, axis=1)
-    quants['+1_sigma'] = dfDays.quantile(q=0.841, axis=1)
-    quants['+2_sigma'] = dfDays.quantile(q=0.977, axis=1)
+        quants = pd.DataFrame(np.zeros((24,5)), 
+                            index= np.arange(0,24,1), 
+                            columns=['-2_sigma','-1_sigma','mu','+1_sigma','+2_sigma'])
+        
+        quants['-2_sigma'] = dfDays.quantile(q=0.023, axis=1)
+        quants['-1_sigma'] = dfDays.quantile(q=0.159, axis=1)
+        quants['mu'] = dfDays.quantile(q=0.50, axis=1)
+        quants['+1_sigma'] = dfDays.quantile(q=0.841, axis=1)
+        quants['+2_sigma'] = dfDays.quantile(q=0.977, axis=1)
 
-    return dfDays, quants
+        dctQuant[i] = quants;
+        dctDay[i] = dfDays;
+        i += 1;
+
+    return dctDay, dctQuant
 # quants(df, weekday = True/False)
-dfWkdyTest, quantDataTest = quants(dfTest, True)
+dfDays, dfQaunts = quants([dfTrain, dfTest], True)
 
 #%% Create Fitting Data 
 
-def dfFitting(df, dfWkdy):
+def dfFitting(dfs, dfDays):
     
-    dlen = 24*len(set(df.dayCount))
-    dfDays = pd.DataFrame(np.zeros((dlen,3)), columns=['Hour','Day','Connected'])
+    dfFits = {}
+    i = 0;
+    for frame in dfs:
     
-    for c in np.arange(0,dfWkdy.shape[1]):
-        print('Day: ', c);
+        dlen = 24*len(set(dfs[i].dayCount))
+        dfDayCol = pd.DataFrame(np.zeros((dlen,3)), columns=['Hour','Day','Connected'])
         
-        for h in np.arange(0,24):
-            print('  Hr: ', h);
-            dfDays.Hour.at[(c*24)+h] = int(h);
-            dfDays.Day.at[(c*24)+h] = c;    
-            dfDays.Connected.at[(c*24)+h] = dfWkdy.iloc[h,c];
+        for c in np.arange(0,dfDays[i].shape[1]):
+            print('Day: ', c);
+            
+            for h in np.arange(0,24):
+                print('  Hr: ', h);
+                dfDayCol.Hour.at[(c*24)+h] = int(h);
+                dfDayCol.Day.at[(c*24)+h] = c;    
+                dfDayCol.Connected.at[(c*24)+h] = dfDays[i].iloc[h,c];
+        
+        dfFits[i] = dfDayCol;
+        i += 1;
 
-    return dfDays
+    return dfFits
 
-dfFitTrain = dfFitting(dfTrain, dfWkdyTrain)
+dfFits = dfFitting([dfTrain, dfTest], dfDays)
 
 #%% Scatterplot Fitting Data
 
