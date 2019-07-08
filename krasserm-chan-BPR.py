@@ -71,7 +71,9 @@ def plot_gp(mu, cov, X, X_train=None, Y_train=None, samples=[]):
     # 95% of the area under a normal curve lies within roughly 1.96 standard deviations of the mean, 
     # and due to the central limit theorem, this number is therefore used in the construction of 
     # approximate 95% confidence intervals
-    uncertainty = 1.96 * np.sqrt(np.diag(cov))
+    
+    #uncertainty = 1.96 * np.sqrt(np.diag(cov))
+    uncertainty = 1.96 * np.sqrt(cov)
     
     plt.fill_between(X, mu + uncertainty, mu - uncertainty, alpha=0.1)
     plt.plot(X, mu, label='Mean')
@@ -231,7 +233,7 @@ plt.tight_layout()
 
 #%% Krasserm-Chan-BPR
 
-l, sigma_f = 1.0, 12;
+l, sigma_f = 1.0, 1.0;
 
 #X_train = np.arange(0,24,1).reshape(-1, 1)
 #Y_train = np.array(dataFitTrain.Connected).reshape(-1, 1)
@@ -290,6 +292,32 @@ samples_s = np.random.poisson(mu_s.ravel(), size=(4,len(mu_s)))
 X = dfCount.Hour
 
 plot_gp(mu_s, cov_s, X, X_train=X_train, Y_train=Y_train, samples=samples_s)
+plt.xlim(0, 24)
+plt.xticks(np.arange(0,24,2))
+plt.xlabel("Hour")
+#plt.ylim(0, 12)
+plt.ylabel(r"EVs Connected")
+plt.title(r"Monday Posterior Prediction")
+plt.tight_layout()
+
+
+#%% Plot_GP 2
+
+X = dfCount.Hour
+
+dfPlot = pd.DataFrame()
+dfPlot['Hour'] = dfCount.Hour
+dfPlot['X_train'] = X_train; dfPlot['Y_train'] = Y_train;
+dfPlot['mu'] = mu_s; dfPlot['cov'] = np.diag(cov_s);
+dfPlot['Sample1'] = np.array(samples_s[0,:]).reshape(-1, 1)
+dfPlot['Sample2'] = np.array(samples_s[1,:]).reshape(-1, 1)
+dfPlot['Sample3'] = np.array(samples_s[2,:]).reshape(-1, 1)
+dfPlot['Sample4'] = np.array(samples_s[3,:]).reshape(-1, 1)
+dfPlot = dfPlot.sort_values(by=['Hour'])
+
+sample_array = np.array(dfPlot.iloc[:,5:9]).reshape(4,-1);
+
+plot_gp(dfPlot['mu'], dfPlot['cov'], dfPlot['X_train'], dfPlot['X_train'], dfPlot['Y_train'], samples=sample_array)
 plt.xlim(0, 24)
 plt.xticks(np.arange(0,24,2))
 plt.xlabel("Hour")
