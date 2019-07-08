@@ -90,6 +90,11 @@ def plot_gp_2D(gx, gy, mu, X_train, Y_train, title, i):
     ax.scatter(X_train[:,0], X_train[:,1], Y_train, c=Y_train, cmap=cm.coolwarm)
     ax.set_title(title)
 
+#%% --- Split Zero from Count Data
+    
+dfCount = dfFitTrain.loc[dfFitTrain.Connected>0]
+dfZeros = dfFitTrain.loc[dfFitTrain.Connected==0]
+
 #%% --- Fit Continuous Distribution to Mean 
 #https://towardsdatascience.com/polynomial-regression-bbe8b9d97491
     
@@ -104,17 +109,18 @@ from sklearn.preprocessing import PolynomialFeatures
 
 # Fit to Mean
 x = np.arange(0, 24, 1).reshape(-1, 1)
-y = np.array(quantDataTrain.mu.values).reshape(-1,1)
+mu_act = np.array(quantDataTrain.mu.values).reshape(-1,1)
 
 # Fit to All Data
-#x = np.array(dfFitTrain.Hour).reshape(-1, 1)
-#y = np.array(dfFitTrain.Connected).reshape(-1,1)
+x_scatter = np.array(dfFitTrain.Hour).reshape(-1, 1)
+y_scatter = np.array(dfFitTrain.Connected).reshape(-1,1)
 
 polynomial_features = PolynomialFeatures(degree=9)
 x_poly = polynomial_features.fit_transform(x)
 
+# Fit to polynomial linear regression
 model = LinearRegression()
-model.fit(x_poly, y)
+model.fit(x_poly, mu_act)
 y_poly_pred = (model.predict(x_poly))
 #y_poly_pred[y_poly_pred < 0] = 0.0
 
@@ -122,28 +128,60 @@ for yy in range(len(y_poly_pred)):
     if y_poly_pred[yy][0] < 0:
         y_poly_pred[yy][0] = 0;
 
-rmse = np.sqrt(mean_squared_error(y,y_poly_pred))
-r2 = r2_score(y,y_poly_pred)
-print('Root Mean Squared Error: ', rmse)
-print('R-square: ', r2)
+rmse = np.sqrt(mean_squared_error(mu_act,y_poly_pred))
+r2 = r2_score(mu_act,y_poly_pred)
+print('Root Mean Squared Error: {0:.3f}'.format(rmse))
+print('R-square: {0:.3f}'.format(r2))
 
-plt.scatter(x, y, s=10)
+#%% Plot Continuous Distribution - Polynomial Regression Predicted Mean
+
+def jitter(x, y):
+    
+    rx = np.random.rand(len(x));
+    posneg = (2*np.random.randint(0,2,size=(len(x)))-1);
+    #x = [rx*posneg][0] + x.reshape(1,-1)[0];
+    
+    ry = np.random.rand(len(y));
+    posneg = (2*np.random.randint(0,2,size=(len(y)))-1);
+    y = [ry*posneg][0] + y.reshape(1,-1)[0];
+    
+    return x, y;
+
+import seaborn as sns
+
+plt.figure(figsize=(8,12))
+#sns.set(style="whitegrid")
+
+plt.subplot(2, 1, 1)
+ax = sns.swarmplot(x='Hour', y='Connected', data=dfFitTrain)  
+ax.set(xticklabels=[], xlabel='')
+ax.set_title('Monday Data - Jitter')
+
+plt.subplot(2, 1, 2)
+x_jitter, y_jitter = jitter(x_scatter, y_scatter);
+plt.scatter(x_scatter, y_jitter, s=2, color='grey', label='data')
+plt.scatter(x, mu_act, s=20, color='k', label='mu_act')
 # sort the values of x before line plot
 sort_axis = operator.itemgetter(0)
 sorted_zip = sorted(zip(x,y_poly_pred), key=sort_axis)
 x, y_poly_pred = zip(*sorted_zip)
-plt.plot(x, y_poly_pred, color='m')
+plt.ylabel('Connected')
+plt.xlabel('Hour of Day')
+plt.xticks(np.arange(0,24))
+plt.plot(x, y_poly_pred, color='purple', label='mu_poly_predicted')
+plt.title('Monday - Polynomial Predicted Mean')
+plt.legend()
+plt.grid(False)
 plt.show()
 
 #%% --- Prior ---
 
-# Finite number of points
-Xpr = np.arange(0, 24, 2).reshape(-1, 1)
+# Finite number of points (12)
+Xpr = np.arange(0, 24, 1).reshape(-1, 1)
 
 # Mean and covariance of the prior
-#mu = np.array(quantDataTrain.mu.values).reshape(-1,1)
+mu_act = np.array(quantDataTrain.mu.values).reshape(-1,1)
 cov = kernel(Xpr, Xpr)
-
 
 # Mean calculated by linear regression model fit
 Xpr_poly = polynomial_features.fit_transform(Xpr)

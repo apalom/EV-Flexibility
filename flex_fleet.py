@@ -72,9 +72,9 @@ def filterPrep(df, string, fltr):
     df['StartHr'] = df['Start Date'].apply(lambda x: x.hour + x.minute/60) 
     df['StartHr'] = df['StartHr'].apply(lambda x: np.floor(x))  
     #df['StartHr'] = df['StartHr'].apply(lambda x: round(x * 4) / 4) 
-    df['EndHr'] = df['End Date'].apply(lambda x: x.hour + x.minute/60) 
-    #df['EndHr'] = df['EndHr'].apply(lambda x: round(x * 4) / 4) 
+    df['EndHr'] = df['End Date'].apply(lambda x: x.hour + x.minute/60)         
     df['EndHr'] = df['EndHr'].apply(lambda x: np.floor(x)) 
+    #df['EndHr'] = df['EndHr'].apply(lambda x: round(x * 4) / 4) 
     df['AvgPwr'] = df['Energy (kWh)']/df['Duration (h)']
     df['Date'] = df['Start Date'].apply(lambda x: str(x.year) + '-' + str(x.month) + '-' + str(x.day)) 
         
@@ -134,6 +134,8 @@ def testTrain(df, day, p):
 # Inputs (dfAll, Day of Week [Mon = 0, Sat = 5] ,percent Training Data)
 dfTrain, dfTest = testTrain(dfSLC, 0, 0.80)
 
+daysInTrn = len(list(set(list(dfTrain.DayofYr))))
+
 #%% Calculate Connected EVs per Day/Hr and Calculate Mean, 1st and 2nd Standard Deviation of Connected Vehicles
 
 def quants(dfs, weekday):
@@ -163,15 +165,16 @@ def quants(dfs, weekday):
             dfDays.loc[:,d] = dfDay.StartHr.value_counts()
             dfDays.loc[:,d] = np.nan_to_num(dfDays.loc[:,d])
         
-        quants = pd.DataFrame(np.zeros((24,5)), 
+        quants = pd.DataFrame(np.zeros((24,6)), 
                             index= np.arange(0,24,1), 
-                            columns=['-2_sigma','-1_sigma','mu','+1_sigma','+2_sigma'])
+                            columns=['-2_sigma','-1_sigma','mu','+1_sigma','+2_sigma','stddev'])
         
         quants['-2_sigma'] = dfDays.quantile(q=0.023, axis=1)
         quants['-1_sigma'] = dfDays.quantile(q=0.159, axis=1)
         quants['mu'] = dfDays.quantile(q=0.50, axis=1)
         quants['+1_sigma'] = dfDays.quantile(q=0.841, axis=1)
         quants['+2_sigma'] = dfDays.quantile(q=0.977, axis=1)
+        quants['stddev'] = np.std(dfDays, axis=1)
 
         dctQuant[i] = quants;
         dctDay[i] = dfDays;
@@ -179,7 +182,7 @@ def quants(dfs, weekday):
 
     return dctDay, dctQuant
 # quants(df, weekday = True/False)
-dfDays, dfQaunts = quants([dfTrain, dfTest], True)
+dfDays, dfQuants = quants([dfTrain, dfTest], True)
 
 #%% Create Fitting Data 
 
