@@ -229,18 +229,26 @@ plt.ylabel(r"EVs Connected")
 plt.title(r"Monday Posterior Prediction")
 plt.tight_layout()
 
-#%%
-l, sigma_f = 1.0, 1.0;
+#%% Krasserm-Chan-BPR
 
-X_train = np.arange(0,24,1).reshape(-1, 1)
-Y_train = np.array(dataFitTrain.Connected).reshape(-1, 1)
-Y_train = Y_train[(days-1)*24:(days)*24]
+l, sigma_f = 1.0, 12;
+
+#X_train = np.arange(0,24,1).reshape(-1, 1)
+#Y_train = np.array(dataFitTrain.Connected).reshape(-1, 1)
+X_train = np.array(dfCount.Hour).reshape(-1, 1)
+Y_train = np.array(dfCount.Connected).reshape(-1, 1)
+#Y_train = Y_train[(days-1)*24:(days)*24]
 
 Y_out = np.zeros((len(Xpr),1))
 i = 0;
 for h in Xpr.reshape(1,-1)[0]:
-    temp = dataFitTrain.loc[dataFitTrain.Hour == h]
-    Y_out[i] = np.mean(temp.Connected)
+    #temp = dataFitTrain.loc[dataFitTrain.Hour == h]
+    temp = dfCount.loc[dfCount.Hour == h]
+    if len(temp) == 0:
+        print('No Connects in Hr: ', h)
+        Y_out[i] = 0;
+    else:
+        Y_out[i] = np.mean(temp.Connected)
     i += 1;
 
 yNoise = 1/Y_out
@@ -258,7 +266,6 @@ K_s = kernel(Xpr, X_train, l, sigma_f) #K_s is all zeros?
 K_ss = kernel(X_train, X_train, l, sigma_f) + 1e-8 * np.eye(len(X_train))
 #K_ss[K_ss < 1e-8] = 0;
 
-
 # Equation (Kr4) to (Chan47)
 K_sigY = K + sigY
 K_sigY[K_sigY < 1e-8] = 0
@@ -267,25 +274,49 @@ K_sigY[K_sigY < 1e-8] = 0
 t = np.log(Y_out);
 t[t < 0] = 0;
 
+# Equation (Kr4)
 mu_s = K_s.T.dot(inv(K_sigY)).dot(t)
-mu_s[mu_s < 0] = 0;
+#mu_s[mu_s < 0] = 0;
 
 # Equation (Kr5) to (Chan48)
 cov_s = K_ss - K_s.T.dot(inv(K + sigY)).dot(K_s)
 
-samples_s = np.random.poisson(mu_s.ravel(), size = (4,24))
+#samples_s = np.random.poisson(mu_s.ravel(), size=(4,24))
+samples_s = np.random.poisson(mu_s.ravel(), size=(4,len(mu_s)))
 #samples_s = np.tile(samples_s, day)
+
+#%% Plot_GP
+
+X = dfCount.Hour
 
 plot_gp(mu_s, cov_s, X, X_train=X_train, Y_train=Y_train, samples=samples_s)
 plt.xlim(0, 24)
-plt.xticks(np.arange(0,26,2))
+plt.xticks(np.arange(0,24,2))
 plt.xlabel("Hour")
 #plt.ylim(0, 12)
 plt.ylabel(r"EVs Connected")
 plt.title(r"Monday Posterior Prediction")
 plt.tight_layout()
 
+#%% Plot
 
+import seaborn as sns
+sns.set(style="darkgrid")
 
+dfPlot = pd.DataFrame()
+dfPlot['Hour'] = dfCount.Hour
+dfPlot['X_train'] = X_train; dfPlot['Y_train'] = Y_train;
+dfPlot['mu'] = mu_s; dfPlot['cov'] = np.diag(cov_s);
+dfPlot['Sample1'] = np.array(samples_s[0,:]).reshape(-1, 1)
+dfPlot['Sample2'] = np.array(samples_s[1,:]).reshape(-1, 1)
+dfPlot['Sample3'] = np.array(samples_s[2,:]).reshape(-1, 1)
+dfPlot['Sample4'] = np.array(samples_s[3,:]).reshape(-1, 1)
 
+dfPlot = dfPlot.sort_values(by=['Hour'])
 
+# Plot the responses for different events and regions
+ax = sns.lineplot(x="Hour", y="Y_train", data=dfPlot)
+
+ax.set(xticks=np.arange(0,26,2), xlabel='Hour', ylabel='Connected')
+
+ax.set_title('Monday Data')
