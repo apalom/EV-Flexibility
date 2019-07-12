@@ -76,7 +76,7 @@ _ = plt.legend(['$\lambda$ = %s' % mu])
 print('Running on PyMC3 v{}'.format(pm.__version__))
 
 with pm.Model() as model:
-    mu = pm.Uniform('mu', lower=0, upper=60)
+    mu = pm.Uniform('mu', lower=0, upper=5)
     likelihood = pm.Poisson('likelihood', mu=mu, observed=y_obs)
     
     start = pm.find_MAP()
