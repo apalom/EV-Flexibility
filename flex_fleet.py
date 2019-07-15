@@ -26,7 +26,7 @@ data = pd.read_csv(filePath);
 #dataHead = data.head(100);
 #dataTypes = data.dtypes;
 
-allColumns = list(data);
+#allColumns = list(data);
 
 #%% Dataframe Preparation
 
@@ -55,8 +55,7 @@ def filterPrep(df, string, fltr):
     df = df.loc[~pd.isnull(df['End Date'])]
     yr = 2018
     df = df.loc[(df['Start Date'] > datetime.date(yr,1,1)) & (df['Start Date'] < datetime.date(yr+1,1,1))]
-    
-    
+        
     #update data types
     df['Duration (h)'] = df['Total Duration (hh:mm:ss)'].apply(lambda x: x.seconds/3600)
     df['Duration (h)'] = df['Duration (h)'].apply(lambda x: round(x * 2) / 4) 
@@ -67,13 +66,14 @@ def filterPrep(df, string, fltr):
     df['DayofYr'] = df['Start Date'].apply(lambda x: x.dayofyear) 
     # Monday is 0 and Sunday is 6
     df['DayofWk'] = df['Start Date'].apply(lambda x: x.weekday()) 
+    df['isWeekday'] = df['DayofWk'].apply(lambda x: 1 if x <=4 else 0) 
     df['Year'] = df['Start Date'].apply(lambda x: x.year) 
     df['StartHr'] = df['Start Date'].apply(lambda x: x.hour + x.minute/60) 
     df['StartHr'] = df['StartHr'].apply(lambda x: np.floor(x))  
     #df['StartHr'] = df['StartHr'].apply(lambda x: round(x * 4) / 4) 
-    df['EndHr'] = df['End Date'].apply(lambda x: x.hour + x.minute/60) 
-    #df['EndHr'] = df['EndHr'].apply(lambda x: round(x * 4) / 4) 
+    df['EndHr'] = df['End Date'].apply(lambda x: x.hour + x.minute/60)         
     df['EndHr'] = df['EndHr'].apply(lambda x: np.floor(x)) 
+    #df['EndHr'] = df['EndHr'].apply(lambda x: round(x * 4) / 4) 
     df['AvgPwr'] = df['Energy (kWh)']/df['Duration (h)']
     df['Date'] = df['Start Date'].apply(lambda x: str(x.year) + '-' + str(x.month) + '-' + str(x.day)) 
         
@@ -108,90 +108,126 @@ dfSLC, daysTot = filterPrep(data, "Salt Lake City", True)
 
 #%% Training and Testing for a Single Day
 
+import random
+
 def testTrain(df, day, p):
     
-    df = df.loc[df.DayofWk == day]
+    #df = df.loc[df.DayofWk == day]
     df = df.reset_index(drop=True)
+    daysIn = list(set(list(df.DayofYr)))
+    daysIn.sort()
+    
+    # Define list of days for training and testing
+    daysTrain = random.sample(daysIn, int(p*len(daysIn)))
+    daysTest = list(set(daysIn) - set(daysTrain))
     
     # Sample training data
-    dfTrain = df.sample(int(p*len(df)))
-    
-    # Indices of Training Data
-    idxTrain = list(dfTrain.index.values)
-    # Indices of All Data
-    idxdf = list(df.index.values)
-    # Indices of Test Data
-    idxTest = list(set(idxdf) - set(idxTrain))
-    
-    dfTest = df.iloc[idxTest]
+    dfTrain = df.loc[df.DayofYr.isin(daysTrain)]
+    dfTest = df.loc[df.DayofYr.isin(daysTest)]
     
     dfTrain = dfTrain.sort_values(by=['dayCount'])
     dfTest = dfTest.sort_values(by=['dayCount'])
     
-    return dfTrain, dfTest
+    return dfTrain, dfTest 
 
 # Inputs (dfAll, Day of Week [Mon = 0, Sat = 5] ,percent Training Data)
 dfTrain, dfTest = testTrain(dfSLC, 0, 0.80)
 
+dfTrain.to_csv('data\dfTrain_all.csv')
+dfTest.to_csv('data\dfTest_all.csv')
+
+daysInTrn = len(list(set(list(dfTrain.DayofYr))))
+
 #%% Calculate Connected EVs per Day/Hr and Calculate Mean, 1st and 2nd Standard Deviation of Connected Vehicles
 
-def quants(df, weekday):
+def quants(dfs, weekday):
 
     #allDays = list(set(df.dayCount))
     
-    if weekday:
-        df = df[df.DayofWk < 5]
-    else:
-        df = df[df.DayofWk >= 5]
-    
-    daysIn = list(set(df.dayCount))
-    daysIn.sort()
-    
-    dfDays = pd.DataFrame(np.zeros((24,len(set(df.dayCount)))), 
-                        index=np.arange(0,24,1), columns=daysIn)
+#    if weekday:
+#        df = df[df.DayofWk < 5]
+#    else:
+#        df = df[df.DayofWk >= 5]
+    i = 0;
+    dctQuant = {}; dctDay = {};
+    for frame in dfs:
+        df = frame;
+        daysIn = list(set(df.dayCount))
+        daysIn.sort()
         
-    for d in df.dayCount:
-        print('Day: ', d)
-        dfDay = df[df.dayCount == d]
-        cnct = dfDay.StartHr.value_counts()
-        cnct = cnct.sort_index()
+        dfDays = pd.DataFrame(np.zeros((24,len(set(df.dayCount)))), 
+                            index=np.arange(0,24,1), columns=daysIn)
+            
+        for d in df.dayCount:
+            print('Day: ', d)
+            dfDay = df[df.dayCount == d]
+            cnct = dfDay.StartHr.value_counts()
+            cnct = cnct.sort_index()
+            
+            dfDays.loc[:,d] = dfDay.StartHr.value_counts()
+            dfDays.loc[:,d] = np.nan_to_num(dfDays.loc[:,d])
         
-        dfDays.loc[:,d] = dfDay.StartHr.value_counts()
-        dfDays.loc[:,d] = np.nan_to_num(dfDays.loc[:,d])
-    
-    quants = pd.DataFrame(np.zeros((24,5)), 
-                        index= np.arange(0,24,1), 
-                        columns=['-2_sigma','-1_sigma','mu','+1_sigma','+2_sigma'])
-    
-    quants['-2_sigma'] = dfDays.quantile(q=0.023, axis=1)
-    quants['-1_sigma'] = dfDays.quantile(q=0.159, axis=1)
-    quants['mu'] = dfDays.quantile(q=0.50, axis=1)
-    quants['+1_sigma'] = dfDays.quantile(q=0.841, axis=1)
-    quants['+2_sigma'] = dfDays.quantile(q=0.977, axis=1)
+        quants = pd.DataFrame(np.zeros((24,6)), 
+                            index= np.arange(0,24,1), 
+                            columns=['-2_sigma','-1_sigma','mu','+1_sigma','+2_sigma','stddev'])
+        
+        quants['-2_sigma'] = dfDays.quantile(q=0.023, axis=1)
+        quants['-1_sigma'] = dfDays.quantile(q=0.159, axis=1)
+        quants['mu'] = dfDays.quantile(q=0.50, axis=1)
+        quants['+1_sigma'] = dfDays.quantile(q=0.841, axis=1)
+        quants['+2_sigma'] = dfDays.quantile(q=0.977, axis=1)
+        quants['stddev'] = np.std(dfDays, axis=1)
 
-    return dfDays, quants
+        dctQuant[i] = quants;
+        dctDay[i] = dfDays;
+        i += 1;
+
+    return dctDay, dctQuant
 # quants(df, weekday = True/False)
+<<<<<<< HEAD
 dfWkdyTrain, quantTrain = quants(dfTrain, True)
+=======
+dfDays, dfQuants = quants([dfTrain, dfTest], True)
+>>>>>>> 46ab6f8e8a5c9f135d194a15f4524c3709c7d146
 
 #%% Create Fitting Data 
 
-def dfFitting(df, dfWkdy):
+def dfFitting(dfs, dfDays):
     
-    dlen = 24*len(set(df.dayCount))
-    dfDays = pd.DataFrame(np.zeros((dlen,3)), columns=['Hour','Day','Connected'])
+    dfFits = {}
+    i = 0;
+    for frame in dfs:
     
-    for c in np.arange(0,dfWkdy.shape[1]):
-        print('Day: ', c);
+        dlen = 24*len(set(dfs[i].dayCount))        
+        dfDayCol = pd.DataFrame(np.zeros((dlen,6)), columns=['Hour','isWeekday','DayWk','DayYr','DayCnt','Connected'])
+        dayList = list(dfDays[i]);
         
-        for h in np.arange(0,24):
-            print('  Hr: ', h);
-            dfDays.Hour.at[(c*24)+h] = int(h);
-            dfDays.Day.at[(c*24)+h] = c;    
-            dfDays.Connected.at[(c*24)+h] = dfWkdy.iloc[h,c];
+        for c in np.arange(0,dfDays[i].shape[1]):
+            print('df: ', i, ' | Day: ', c);                        
+            isWkdy = 0;
+            
+            # Day of Week [Mon = 0, Sat = 5]
+            if np.mod(dayList[c],7) < 5:
+                isWkdy = 1;
+            
+            for h in np.arange(0,24):
+                #print('  Hr: ', h);
+                dfDayCol.Hour.at[(c*24)+h] = int(h);
+                dfDayCol.isWeekday.at[(c*24)+h] = isWkdy;    
+                dfDayCol.DayWk.at[(c*24)+h] = np.mod(dayList[c],7);    
+                dfDayCol.DayYr.at[(c*24)+h] = dayList[c];                    
+                dfDayCol.DayCnt.at[(c*24)+h] = c;    
+                dfDayCol.Connected.at[(c*24)+h] = dfDays[i].iloc[h,c];
+        
+        dfFits[i] = dfDayCol;
+        i += 1;
 
-    return dfDays
+    return dfFits
 
-dfFitTrain = dfFitting(dfTrain, dfWkdyTrain)
+dfFits = dfFitting([dfTrain, dfTest], dfDays)
+
+dfFits[0].to_excel('data\dfFitsTrain_all.xlsx')
+dfFits[1].to_excel('data\dfFitsTest_all.xlsx')
 
 #%% Scatterplot Fitting Data
 
@@ -318,14 +354,14 @@ dfMonday = dfMonday.reset_index(drop=True)
 
 #%% Remove data outside of 2nd standard deviation
 
-dim = 'Energy (kWh)' 
-stdDev2 = int(dfMonday[dim].quantile(q=0.977))
+dim = 'Duration (h)' 
+stdDev2 = int(dfSLC[dim].quantile(q=0.977))
 
-dfCln = dfMonday.loc[dfMonday[dim] < stdDev2]
+dfCln = dfSLC.loc[dfSLC[dim] < stdDev2]
 
 # Sturge’s Rule for Bin Count
 kBins = 1 + 3.22*np.log(len(dfCln))
-print('Number of Bins: ', kBins)
+print('Number of Bins: ', int(kBins))
 # results approximately in 1 kWh wide bins for Energy
 
 dfCln[dim].plot.hist(grid=True, bins=int(kBins), 
@@ -341,8 +377,8 @@ fig, axs = plt.subplots(4, 6, figsize=(10,8), sharex=True, sharey=True)
 r,c = 0,0;
 
 for hr in hrs:
-    mask = (dfMon['StartHr'] == hr)
-    df_hr = dfMon[mask]
+    mask = (dfCln['StartHr'] == hr)
+    df_hr = dfCln[mask]
     
     if len(df_hr) > 0:
         kBins = 1 + 3.22*np.log(len(df_hr)) #Sturge's Rule for Bin Count
@@ -364,11 +400,55 @@ for hr in hrs:
   
 fig.tight_layout()
 fig.suptitle('Hourly Histogram: '+ dim, y = 1.02)
-xM, bS = int(np.max(dfMon[dim])), 5
+xM, bS = int(np.max(dfCln[dim])), 2
 plt.xlim(0,xM)
 plt.xticks(np.arange(0,xM+bS,bS))
-plt.ylim(0,0.4)
+plt.ylim(0,1)
 plt.show()
+
+
+#%% Plot Fits
+
+import scipy
+import seaborn as sns
+from scipy import stats
+
+sns.set_color_codes()
+sns.set_style('darkgrid')
+plt.figure(figsize=(10,8))
+x = dfCln[dim]
+
+fit_q = stats.kstest(x, 'norm', args=stats.norm.fit(x), N=1000)
+ax = sns.distplot(x, fit=stats.norm, kde=False,  
+                  fit_kws={'color':'blue', 'label':'norm: KS =${0:.2g} | p =${1:.2g}'.format(fit_q[0], fit_q[1])})
+print('norm: ', fit_q)
+
+fit_q = stats.kstest(x, 'gamma', args=stats.gamma.fit(x), N=1000)
+ax = sns.distplot(x, fit=stats.gamma, hist=False, kde=False,  
+                  fit_kws={'color':'green', 'label':'gamma: KS =${0:.2g} | p =${1:.2g}'.format(fit_q[0], fit_q[1])})
+print('gamma: ', fit_q)
+
+fit_q = stats.kstest(x, 'beta', args=stats.beta.fit(x), N=1000)
+ax = sns.distplot(x, fit=stats.beta, hist=False, kde=False,  
+                  fit_kws={'color':'red', 'label':'beta: KS =${0:.2g} | p =${1:.2g}'.format(fit_q[0], fit_q[1])})
+print('beta: ', fit_q)
+
+
+fit_q = stats.kstest(x, 'skewnorm', args=stats.skewnorm.fit(x), N=1000)
+ax = sns.distplot(x, fit=stats.skewnorm, hist=False, kde=False,  
+                  fit_kws={'color':'grey', 'label':'skewnorm: KS =${0:.2g} | p =${1:.2g}'.format(fit_q[0], fit_q[1])})
+print('skewnorm: ', fit_q)
+
+ax.legend()
+
+# Gamma Params Duration: α, loc, β
+params_gamma = stats.gamma.fit(x);
+
+# Beta Params Energy: α, β, loc (lower limit), scale (upper limit - lower limit)
+params_beta = stats.beta.fit(x);
+
+# Beta Params Energy: α, loc, scale 
+params_skewnorm = stats.skewnorm.fit(x);
 
 #%% Margin Plots
 
@@ -391,66 +471,6 @@ filePath = 'data/train_connected_per_hr.csv';
 dfCnctd = pd.read_csv(filePath);
 dfCnctdT = dfCnctd.transpose();
 
-#%% Hourly Plot Histograms
-              
-hrs = np.arange(0,24)
-hists = {}
-
-fig, axs = plt.subplots(4, 6, figsize=(12, 8), sharex=True, sharey=True) 
-
-r,c = 0,0;
-#kBins = int(1 + 3.22*np.log(261)) #Sturge's Rule for Bin Count
-kBins = np.arange(0,10,1)
-
-for hr in hrs:   
-    
-    print('position', r, c)
-    axs[r,c].hist(dfCnctdT[hr], edgecolor='white', linewidth=0.5, bins=kBins, density=True) 
-    axs[r,c].set_title('Hr: ' + str(hr))
-    
-    # Subplot Spacing
-    c += 1
-    if c >= 6:
-        r += 1;
-        c = 0;
-        if r >= 4:
-            r=0;
-  
-fig.tight_layout()
-fig.suptitle('Hourly Histogram: Connected', y = 1.02)
-#xM, bS = int(np.max(np.max(dfCnctdT))), 5
-xM, bS = 10, 2
-plt.xlim(0,xM)
-plt.xticks(np.arange(0,xM+bS,bS))
-plt.ylim(0,1)
-plt.show()
-                         
-
-
-#%% Plot Fits
-
-import scipy
-import seaborn as sns
-from scipy import stats
-
-sns.set_color_codes()
-sns.set_style('darkgrid')
-plt.figure(figsize=(10,8))
-x = dfMon[dim]
-
-ax = sns.distplot(dfMon[dim], fit=stats.norm, kde=False,  
-                  fit_kws={'color':'blue', 'label':'norm'})
-
-ax = sns.distplot(dfMon[dim], fit=stats.gamma, hist=False, kde=False,  
-                  fit_kws={'color':'green', 'label':'gamma'})
-
-ax = sns.distplot(dfMon[dim], fit=stats.beta, hist=False, kde=False,  
-                  fit_kws={'color':'red', 'label':'beta'})
-
-ax = sns.distplot(dfMon[dim], fit=stats.skewnorm, hist=False, kde=False,  
-                  fit_kws={'color':'grey', 'label':'skewnorm'})
-
-ax.legend()
 
 #%% Normality Tests
 
