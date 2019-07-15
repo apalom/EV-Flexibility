@@ -15,7 +15,6 @@ import timeit
 import time
 import datetime
 
-
 #%% Import Data
 
 # Raw Data
@@ -185,7 +184,11 @@ def quants(dfs, weekday):
 
     return dctDay, dctQuant
 # quants(df, weekday = True/False)
+<<<<<<< HEAD
+dfWkdyTrain, quantTrain = quants(dfTrain, True)
+=======
 dfDays, dfQuants = quants([dfTrain, dfTest], True)
+>>>>>>> 46ab6f8e8a5c9f135d194a15f4524c3709c7d146
 
 #%% Create Fitting Data 
 
@@ -262,20 +265,21 @@ kernels = [1.0 * RBF(length_scale=1.0, length_scale_bounds=(1e-1, 10.0)),
                * (DotProduct(sigma_0=1.0, sigma_0_bounds=(0.1, 10.0)) ** 2),
            1.0 * Matern(length_scale=1.0, length_scale_bounds=(1e-1, 10.0), nu=1.5)]
 
-kernel = 5**2 * RBF(length_scale=24, length_scale_bounds=(0.1, 48)) + 2**2 * RationalQuadratic(length_scale=1.0, alpha=0.1)
+kernel = (5**2 * RBF(length_scale=24, length_scale_bounds=(0.1, 48)) 
+            + 2**2 * RationalQuadratic(length_scale=1.0, alpha=0.1))
 
 days = 10;
 
 # Training Data
-X = np.array(dfFitTrain.index.values.head(24*days)).reshape(-1, 1)
-y = np.array(dfFitTrain.Connected.head(24*days))
+X = np.array(dfFitTrain.head(24*days).index.values).reshape(-1, 1)
+y = np.array(dfFitTrain.head(24*days).Connected)
 
 # Fit GP to Training Data
 gp = GaussianProcessRegressor(kernel=kernel, alpha=0,
                               optimizer=None, normalize_y=True)
 
 # GPML Kernel on Prior (Initial Hyperparameters)
-gp.fit(X, y)
+gp.fit(X, np.log(y))
 
 print("\n GPML kernel: %s" % gp.kernel_)
 print("Log-marginal-likelihood: %.3f" % gp.log_marginal_likelihood(gp.kernel_.theta))
@@ -285,7 +289,7 @@ gp = GaussianProcessRegressor(kernel=kernel, alpha=0,
                               optimizer='fmin_l_bfgs_b', normalize_y=True)
 
 # GPML Kernel on Prior (Optimized Hyperparameters)
-gp.fit(X, y)
+gp.fit(X, np.log(y))
 
 print("\n Learned kernel: %s" % gp.kernel_)
 print("Log-marginal-likelihood: %.3f"
@@ -293,16 +297,19 @@ print("Log-marginal-likelihood: %.3f"
 
 #%% Plot
 
-X_ = np.linspace(X.min(), X.max() + 30, 1000)[:, np.newaxis]
+X_ = np.linspace(X.min(), X.max() - 24, 1000)[:, np.newaxis]
 y_pred, y_std = gp.predict(X_, return_std=True)
 
 # Illustration
+plt.figure(figsize=(16, 8))
 plt.scatter(X, y, c='k')
 plt.plot(X_, y_pred)
 plt.fill_between(X_[:, 0], y_pred - y_std, y_pred + y_std,
                  alpha=0.5, color='k')
+plt.xticks(np.arange(0,264,12))
 plt.xlim(X_.min(), X_.max())
 plt.xlabel("Year")
+plt.ylim(0,15)
 plt.ylabel(r"EVs Connected")
 plt.title(r"Monday Training Data")
 plt.tight_layout()
