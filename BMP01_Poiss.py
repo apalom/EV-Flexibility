@@ -4,6 +4,7 @@ Created on Tue Jul  9 14:40:43 2019
 
 @author: Alex
 https://github.com/markdregan/Bayesian-Modelling-in-Python
+https://nbviewer.jupyter.org/github/markdregan/Bayesian-Modelling-in-Python/blob/master/Section%201.%20Estimating%20model%20parameters.ipynb
 """
 
 import matplotlib.pyplot as plt
@@ -75,15 +76,15 @@ _ = plt.legend(['$\lambda$ = %s' % mu])
 
 print('Running on PyMC3 v{}'.format(pm.__version__))
 
-with pm.Model() as model:
-    mu = pm.Uniform('mu', lower=0, upper=5)
-    likelihood = pm.Poisson('likelihood', mu=mu, observed=y_obs)
-    
-    start = pm.find_MAP()
-    step = pm.Metropolis()
+if __name__ == '__main__':
 
-with model:    s
-    trace = pm.sample(10000, step, start=start, progressbar=True)
+    with pm.Model() as model:
+        mu = pm.Uniform('mu', lower=0, upper=5)
+        likelihood = pm.Poisson('likelihood', mu=mu, observed=y_obs)
+        
+        start = pm.find_MAP()
+        step = pm.Metropolis()
+        trace = pm.sample(10000, step, start=start, progressbar=True)
     
 #% Optimal Mu
     
