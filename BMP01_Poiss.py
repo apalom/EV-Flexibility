@@ -108,8 +108,8 @@ _ = plt.plot(trace.get_values('mu'))
 
 #%% Autocorrelation Test Plot
 # A measure of correlation between successive samples in the MCMC sampling chain.
-# When samples have low correlation with each other, they are adding more "
-# information" to the estimate of your parameter value than samples that are 
+# When samples have low correlation with each other, they are adding more 
+# "information" to the estimate of your parameter value than samples that are 
 # highly correlated.
 
 # Visually, you are looking for an autocorrelation plot that tapers off to zero 

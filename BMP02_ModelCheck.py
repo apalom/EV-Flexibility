@@ -25,14 +25,15 @@ import theano.tensor as tt
 if __name__ == '__main__':
     
     with pm.Model() as model:
-        mu = pm.Uniform('mu', lower=0, upper=100)
+        mu = pm.Uniform('mu', lower=0, upper=10)
     
         y_est = pm.Poisson('y_est', mu=mu, observed=data.Connected.values)
         y_pred = pm.Poisson('y_pred', mu=mu)
         
-        start = pm.find_MAP()
-        step = pm.Metropolis()
-        trace = pm.sample(10000, step, start=start, progressbar=True)
+        #start = pm.find_MAP()
+        #step = pm.Metropolis() # if Metroplis is comments, sample will use NUTS
+        #trace = pm.sample(10000, step, start=start, progressbar=True)
+        trace = pm.sample(10000, progressbar=True)
     
 #%% Plot Posterior Predictive vs. Observed Values
 x_lim = 16
