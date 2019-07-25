@@ -101,9 +101,7 @@ def filterPrep(df, string, fltr):
     
     return df, daysTot;
 
-
 #% Salt Lake City Sessions
-    
 dfSLC, daysTot = filterPrep(data, "Salt Lake City", True)
 
 #%% Training and Testing for a Single Day
@@ -184,11 +182,9 @@ def quants(dfs, weekday):
 
     return dctDay, dctQuant
 # quants(df, weekday = True/False)
-<<<<<<< HEAD
-dfWkdyTrain, quantTrain = quants(dfTrain, True)
-=======
+
 dfDays, dfQuants = quants([dfTrain, dfTest], True)
->>>>>>> 46ab6f8e8a5c9f135d194a15f4524c3709c7d146
+
 
 #%% Create Fitting Data 
 
@@ -344,8 +340,6 @@ gp.kernel_
 ## Testing Data Predicted from GP
 #x_pred = np.array(dfFitTest.Hour).reshape(-1, 1)
 #y_pred, sigma = gp.predict(x_pred, return_std=True)
-
-
 
 #%% 
 
