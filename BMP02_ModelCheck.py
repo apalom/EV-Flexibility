@@ -19,8 +19,10 @@ import pymc3 as pm
 import scipy
 import scipy.stats as stats
 import statsmodels.api as sm
+import scipy.optimize as so
 import theano.tensor as tt
 
+#%%
 # (1) Model Check 1: Posterior predictive check
 if __name__ == '__main__':
     
@@ -124,25 +126,24 @@ plt.tight_layout()
 # Conceptually, if the model is a good fit for the underlying data - then the 
 # generated data should resemble the original observed data. PyMC provides a 
 # convenient way to sample from the fitted model.    
-        
+
 
 x_lim = 16
+x = range(x_lim)
 fig = plt.figure(figsize=(8,4))
-
-for i in np.arange(x_lim):
-    plt.bar(i, stats.nbinom.pmf(i, n=get_n(3, 4), p=get_p(3, 4)), fill=True, 
-            edgecolor='lightgray',  facecolor='lightgrey')
-
-_ = plt.ylabel('Probability mass')
-_ = plt.title('Negative Binomial distribution')
+   
+_ = plt.bar(x, stats.nbinom.pmf(x, n=get_n(3, 4), p=get_p(3, 4)), 
+            facecolor='lightgrey', label='NegBino: mu=3, beta=4')
 
 _ = plt.hist(data.Connected, range=[0, x_lim], density=True, bins=x_lim, 
-             rwidth= 0.8, align='left', fill=False, edgecolor='blue')
+             rwidth= 0.8, align='left', fill=False, edgecolor='blue', label='Observed Data')
+
 _ = plt.xlabel('EVs Connected Over the Day')
 _ = plt.ylabel('Probability Mass')
 _ = plt.title('Observed Data vs. NegBino Distribution')
 
-_ = plt.legend(['NegBino: $\\mu = %s, \/ \\beta = %s$' % (3, 4)])
+_ = plt.legend()
+
 
 plt.tight_layout()
 
@@ -159,4 +160,5 @@ if __name__ == '__main__':
         
         #start = pm.find_MAP()
         #step = pm.Metropolis()
-        trace = pm.sample(10000, step, start=start, progressbar=True)
+        #trace = pm.sample(10000, step, start=start, progressbar=True)
+        trace = pm.sample(10000, progressbar=True)
