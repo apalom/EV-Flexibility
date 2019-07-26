@@ -74,24 +74,85 @@ for h in hours:
         
         indiv_traces[h] = trace
 
-#%% Plot Traces per Hour
+#%% Plot NegBino Traces per Hour
         
-fig, axs = plt.subplots(n_hours,2, figsize=(24, 6))
+fig, axs = plt.subplots(n_hours, 2, figsize=(10, 48))
 axs = axs.ravel()
+
+colLeft = np.arange(0,48,2)
+colRight = np.arange(1,48,2)
 
 x_lim = 16
 
-for i, j, h in zip(hours, hours, hours):
-    axs[j].set_title('Observed: %s' % p)
-    axs[j].hist(data[data.Hour==h]['Connected'].values,
-        range=[0, x_lim], bins=x_lim, histtype='stepfilled')
+for i, j, h in zip(colLeft, colRight, hours):
+    axs[i].set_title('Observed Data Hr: %s' % h)
+    axs[i].hist(data[data.Hour==h]['Connected'].values, range=[0, x_lim], 
+       density=True, bins=x_lim, histtype='bar', rwidth=0.8, color='blue')
+    axs[i].set_ylim([0, 1])
 
-for i, j, h in zip(hours, hours, hours):
-    axs[j].set_title('Posterior predictive distribution: %s' % p)
-    axs[j].hist(indiv_traces[hp].get_values('y_pred'), range=[0, x_lim], 
-       bins=x_lim, histtype='stepfilled', color='lightgrey')
-
-axs[4].set_xlabel('Response time (seconds)')
-axs[5].set_xlabel('Response time (seconds)')
+    axs[j].set_title('Posterior Predictive Distribution Hr: %s' % h)
+    axs[j].hist(indiv_traces[h].get_values('y_pred'), range=[0, x_lim], 
+       density=True, bins=x_lim, histtype='bar', rwidth=0.8, color='darkred')
+    axs[j].set_ylim([0, 1])
 
 plt.tight_layout()
+
+#%% If we ombine the posterior predictive distributions across these models, 
+# we would expect this to resemble the distribution of the overall dataset observed.
+
+combined_y_pred = np.concatenate([v.get_values('y_pred') for k, v in indiv_traces.items()])
+
+y_pred = trace.get_values('y_pred')
+
+fig = plt.figure(figsize=(12,6))
+fig.add_subplot(211)
+
+fig.add_subplot(211)
+
+_ = plt.hist(combined_y_pred, range=[0, x_lim], bins=x_lim, 
+             rwidth=0.8, density=True, histtype='bar', color='darkred')   
+#_ = plt.xlim(1, x_lim)
+#_ = plt.ylim(0, 20000)
+_ = plt.ylabel('Frequency')
+_ = plt.title('Pooled: Posterior predictive distribution')
+
+fig.add_subplot(212)
+
+_ = plt.hist(data.Connected.values, range=[0, x_lim], bins=x_lim, 
+             rwidth=0.8, density=True, histtype='bar', color='blue')  
+#_ = plt.xlim(0, x_lim)
+#_ = plt.xlabel('EVs Connected')
+#_ = plt.ylim(0, 20)
+_ = plt.ylabel('Frequency')
+_ = plt.title('Pooled: Distribution of observed data')
+
+plt.tight_layout()
+
+#%% Hierarchal Model with Hyperparameters
+
+with pm.Model() as model:
+    hyper_alpha_sd = pm.Uniform('hyper_alpha_sd', lower=0, upper=15)
+    hyper_alpha_mu = pm.Uniform('hyper_alpha_mu', lower=0, upper=5)
+    
+    hyper_mu_sd = pm.Uniform('hyper_mu_sd', lower=0, upper=10)
+    hyper_mu_mu = pm.Uniform('hyper_mu_mu', lower=0, upper=5)
+    
+    alpha = pm.Gamma('alpha', mu=hyper_alpha_mu, sd=hyper_alpha_sd, shape=n_hours)
+    mu = pm.Gamma('mu', mu=hyper_mu_mu, sd=hyper_mu_sd, shape=n_hours)
+    
+    y_est = pm.NegativeBinomial('y_est', 
+                                mu=mu[data_idx], 
+                                alpha=alpha[data_idx], 
+                                observed=data.Connected.values)
+    
+    y_pred = pm.NegativeBinomial('y_pred', 
+                                 mu=mu[data_idx], 
+                                 alpha=alpha[data_idx],
+                                 shape=data.Hour.shape)
+
+    hierarchical_trace = pm.sample(10000, progressbar=True)
+    
+_ = pm.traceplot(hierarchical_trace[6000:], 
+             varnames=['mu','alpha','hyper_mu_mu',
+                       'hyper_mu_sd','hyper_alpha_mu',
+                       'hyper_alpha_sd'])
