@@ -156,3 +156,14 @@ _ = pm.traceplot(hierarchical_trace[6000:],
              varnames=['mu','alpha','hyper_mu_mu',
                        'hyper_mu_sd','hyper_alpha_mu',
                        'hyper_alpha_sd'])
+
+pm.save_trace(trace, 'data/hierarch24.trace') 
+
+## later
+#with model:
+#   trace = pm.load_trace('data/hierarch24.trace') 
+    
+#%%
+    
+
+
