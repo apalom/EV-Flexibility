@@ -17,11 +17,8 @@ import datetime
 
 #%% Import Data
 
-# Raw Data
-filePath = 'data/Session-Details-Summary-20190404.csv';
-
 # Import Data
-data = pd.read_csv(filePath);
+dataRaw = pd.read_csv('data/Session-Details-Summary-20190404.csv');
 
 #dataHead = data.head(100);
 #dataTypes = data.dtypes;
@@ -101,8 +98,11 @@ def filterPrep(df, string, fltr):
     
     return df, daysTot;
 
-#% Salt Lake City Sessions
-dfSLC, daysTot = filterPrep(data, "Salt Lake City", True)
+# Salt Lake City Sessions
+dfSLC, daysTot = filterPrep(dataRaw, "Salt Lake City", True)
+
+# Save 
+# dfSLC.to_excel("data/dfSLC_2018.xlsx")
 
 #%% Training and Testing for a Single Day
 
