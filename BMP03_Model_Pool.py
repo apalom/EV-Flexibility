@@ -75,7 +75,10 @@ for h in hours:
         indiv_traces[h] = trace
 
 #%% Plot NegBino Traces per Hour
-        
+
+out_yPred = {};
+out_Obs = {};       
+ 
 fig, axs = plt.subplots(n_hours, 2, figsize=(10, 48))
 axs = axs.ravel()
 
@@ -94,6 +97,9 @@ for i, j, h in zip(colLeft, colRight, hours):
     axs[j].hist(indiv_traces[h].get_values('y_pred'), range=[0, x_lim], 
        density=True, bins=x_lim, histtype='bar', rwidth=0.8, color='darkred')
     axs[j].set_ylim([0, 1])
+    
+    out_yPred[h], _ = np.histogram(indiv_traces[h].get_values('y_pred'), bins=x_lim)
+    out_Obs[h], _ = np.histogram(data[data.Hour==h]['Connected'].values, bins=x_lim)
 
 plt.tight_layout()
 

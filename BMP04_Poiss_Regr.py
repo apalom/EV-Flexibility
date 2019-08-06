@@ -55,8 +55,6 @@ param_std['Hour'], param_std['DayWk'], param_std['isWeekday'] = np.std(X, axis=0
 # use a link function to transform your response range. For a Poisson distribution, 
 # the canonical link function used is the log link.          
 
-import theano.tensor as tt
-
 with pm.Model() as model:     
     
     # Priors for parameters
