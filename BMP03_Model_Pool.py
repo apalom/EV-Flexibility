@@ -74,10 +74,7 @@ for h in hours:
         
         indiv_traces[h] = trace
 
-#%% Plot NegBino Traces per Hour
-
-out_yPred = {};
-out_Obs = {};       
+#%% Plot NegBino Traces per Hour   
  
 fig, axs = plt.subplots(n_hours, 2, figsize=(10, 48))
 axs = axs.ravel()
@@ -86,6 +83,9 @@ colLeft = np.arange(0,48,2)
 colRight = np.arange(1,48,2)
 
 x_lim = 16
+
+out_yPred = pd.DataFrame(np.zeros((x_lim,len(hours))), columns=list(hours)) 
+out_yObs = pd.DataFrame(np.zeros((x_lim,len(hours))), columns=list(hours))       
 
 for i, j, h in zip(colLeft, colRight, hours):
     axs[i].set_title('Observed Data Hr: %s' % h)
@@ -98,10 +98,18 @@ for i, j, h in zip(colLeft, colRight, hours):
        density=True, bins=x_lim, histtype='bar', rwidth=0.8, color='darkred')
     axs[j].set_ylim([0, 1])
     
-    out_yPred[h], _ = np.histogram(indiv_traces[h].get_values('y_pred'), bins=x_lim)
-    out_Obs[h], _ = np.histogram(data[data.Hour==h]['Connected'].values, bins=x_lim)
+    out_yPred.loc[:,h], _ = np.histogram(indiv_traces[h].get_values('y_pred'), bins=x_lim)
+    out_yObs.loc[:,h], _ = np.histogram(data[data.Hour==h]['Connected'].values, bins=x_lim)
 
 plt.tight_layout()
+
+#for h in hours:
+#    out_yPred.loc[:,h], _ = np.histogram(indiv_traces[h].get_values('y_pred'), bins=x_lim)
+#    out_yObs.loc[:,h], _ = np.histogram(data[data.Hour==h]['Connected'].values, bins=x_lim)
+
+# Export Data
+out_yPred.to_csv('results/out_yPred.csv')
+out_yObs.to_csv('results/out_yObs.csv')
 
 #%% If we ombine the posterior predictive distributions across these models, 
 # we would expect this to resemble the distribution of the overall dataset observed.
@@ -173,12 +181,13 @@ pm.save_trace(trace, 'data/hierarch24.trace')
 
 # Convert categorical variables to integer
 h_trace24 = {};
+outTrace_h24 = {};
 le = preprocessing.LabelEncoder()
 data_idx = le.fit_transform(data.Hour) 
 hours = le.classes_
 n_hours = len(hours)
 
-for h in [8,9,10]:
+for h in hours:
     print('Hour: ', h)
     with pm.Model() as model:
         hyper_alpha_sd = pm.Uniform('hyper_alpha_sd', lower=0, upper=15)
@@ -202,6 +211,7 @@ for h in [8,9,10]:
     
         h_trace = pm.sample(1, progressbar=True)
         h_trace24[h] = h_trace;
+        outTrace_h24[h] = list(h_trace24);
         
 #%%        
     _ = pm.traceplot(h_trace[h][5:], 
