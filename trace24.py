@@ -39,11 +39,9 @@ _ = ax.set_ylabel('Hours With')
 _ = plt.xticks(rotation=0)
 _ = plt.legend()
 
-plt.savefig('observed.png')
+#plt.savefig('observed.png')
 
 #%% For each hour j and each EV connected i, we represent the model
-
-indiv_traces = {}
 
 # Convert categorical variables to integer
 le = preprocessing.LabelEncoder()
@@ -76,9 +74,8 @@ with pm.Model() as model:
     hierarchical_trace = pm.sample(10000, progressbar=True)
     
 _ = pm.traceplot(hierarchical_trace[6000:], 
-             varnames=['mu','alpha','hyper_mu_mu',
+             var_names=['mu','alpha','hyper_mu_mu',
                        'hyper_mu_sd','hyper_alpha_mu',
                        'hyper_alpha_sd'])
-
     
 pm.save_trace(hierarchical_trace, 'result/hierarch24.trace') 

@@ -169,7 +169,48 @@ pm.save_trace(trace, 'data/hierarch24.trace')
 #with model:
 #   trace = pm.load_trace('data/hierarch24.trace') 
     
-#%%
+#%% Hourly Hierarchal Model with Hyperparameters
+
+# Convert categorical variables to integer
+h_trace24 = {};
+le = preprocessing.LabelEncoder()
+data_idx = le.fit_transform(data.Hour) 
+hours = le.classes_
+n_hours = len(hours)
+
+for h in [8,9,10]:
+    print('Hour: ', h)
+    with pm.Model() as model:
+        hyper_alpha_sd = pm.Uniform('hyper_alpha_sd', lower=0, upper=15)
+        hyper_alpha_mu = pm.Uniform('hyper_alpha_mu', lower=0, upper=5)
+        
+        hyper_mu_sd = pm.Uniform('hyper_mu_sd', lower=0, upper=10)
+        hyper_mu_mu = pm.Uniform('hyper_mu_mu', lower=0, upper=5)
+        
+        alpha = pm.Gamma('alpha', mu=hyper_alpha_mu, sd=hyper_alpha_sd, shape=n_hours)
+        mu = pm.Gamma('mu', mu=hyper_mu_mu, sd=hyper_mu_sd, shape=n_hours)
+        
+        y_est = pm.NegativeBinomial('y_est', 
+                                    mu=mu[data_idx], 
+                                    alpha=alpha[data_idx], 
+                                    observed=data.Connected.values)
+        
+        y_pred = pm.NegativeBinomial('y_pred', 
+                                     mu=mu[data_idx], 
+                                     alpha=alpha[data_idx],
+                                     shape=data.Hour.shape)
+    
+        h_trace = pm.sample(1, progressbar=True)
+        h_trace24[h] = h_trace;
+        
+#%%        
+    _ = pm.traceplot(h_trace[h][5:], 
+                 varnames=['mu','alpha','hyper_mu_mu',
+                           'hyper_mu_sd','hyper_alpha_mu',
+                           'hyper_alpha_sd'])
+    
+    pm.save_trace(trace, 'data/hierarch24.trace') 
+
     
 
 
