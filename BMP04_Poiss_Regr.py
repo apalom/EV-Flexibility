@@ -71,8 +71,6 @@ with pm.Model() as model:
     
     y_est = pm.Poisson('y_est', mu=mu, observed=dataTrain['Connected'].values)
     
-    start = pm.find_MAP()
-    step = pm.Metropolis()
-    trace = pm.sample(100000, step, start=start, progressbar=True)
+    trace = pm.sample(100000, progressbar=True)
 
 _ = pm.traceplot(trace)
