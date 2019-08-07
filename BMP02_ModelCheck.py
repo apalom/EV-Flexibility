@@ -162,3 +162,6 @@ if __name__ == '__main__':
         #step = pm.Metropolis()
         #trace = pm.sample(10000, step, start=start, progressbar=True)
         trace = pm.sample(10000, progressbar=True)
+        
+        
+#%% Estimate the parameters for a Negative Binomial 
