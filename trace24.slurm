@@ -1,8 +1,6 @@
 #!/bin/bash -l
 
 #####################
-# job-array example #
-#####################
 
 # SBATCH Directives
 #SBATCH --job-name=trace24
@@ -12,11 +10,11 @@
 
 # run for five minutes
 #              d-hh:mm:ss
-#SBATCH --time=0-00:30:00
+#SBATCH --time=0-01:00:00
 
 # 500MB memory per core
 # this is a hard limit
-#SBATCH --mem-per-cpu=500MB
+# SBATCH --mem-per-cpu=500MB
 
 #SBATCH -o results/slurmjob-%j.out # output reporting (%j=jobnumber %N=node)
 #SBATCH -e results/slurmjob-%j.err # error reporting
@@ -45,7 +43,7 @@ cp ${SLURM_SUBMIT_DIR}/hr_day_cnctd.csv ${SCRATCH_DIRECTORY}
 
 # each job will see a different ${SLURM_ARRAY_TASK_ID}
 echo "Evaluating $SLURM_JOB_ID at `date`"
-echo "now processing task id:: " ${SLURM_ARRAY_TASK_ID}
+echo "now processing ..... " ${SLURM_ARRAY_TASK_ID}
 
 python trace24.py > output.txt
 
