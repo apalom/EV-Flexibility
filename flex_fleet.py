@@ -102,7 +102,7 @@ def filterPrep(df, string, fltr):
 dfSLC, daysTot = filterPrep(dataRaw, "Salt Lake City", True)
 
 # Save 
-# dfSLC.to_excel("data/dfSLC_2018.xlsx")
+dfSLC.to_excel("data/dfSLC_Wkdy_2018.xlsx")
 
 #%% Training and Testing for a Single Day
 
@@ -141,50 +141,72 @@ daysInTrn = len(list(set(list(dfTrain.DayofYr))))
 def quants(dfs, weekday):
 
     #allDays = list(set(df.dayCount))
+    df = dfs;
     
-#    if weekday:
-#        df = df[df.DayofWk < 5]
-#    else:
-#        df = df[df.DayofWk >= 5]
+    if weekday:
+        df = df[df.DayofWk < 5]
+    else:
+        df = df[df.DayofWk >= 5]
+        
     i = 0;
     dctQuant = {}; dctDay = {};
-    for frame in dfs:
-        df = frame;
-        daysIn = list(set(df.dayCount))
-        daysIn.sort()
-        
-        dfDays = pd.DataFrame(np.zeros((24,len(set(df.dayCount)))), 
-                            index=np.arange(0,24,1), columns=daysIn)
-            
-        for d in df.dayCount:
-            print('Day: ', d)
-            dfDay = df[df.dayCount == d]
-            cnct = dfDay.StartHr.value_counts()
-            cnct = cnct.sort_index()
-            
-            dfDays.loc[:,d] = dfDay.StartHr.value_counts()
-            dfDays.loc[:,d] = np.nan_to_num(dfDays.loc[:,d])
-        
-        quants = pd.DataFrame(np.zeros((24,6)), 
-                            index= np.arange(0,24,1), 
-                            columns=['-2_sigma','-1_sigma','mu','+1_sigma','+2_sigma','stddev'])
-        
-        quants['-2_sigma'] = dfDays.quantile(q=0.023, axis=1)
-        quants['-1_sigma'] = dfDays.quantile(q=0.159, axis=1)
-        quants['mu'] = dfDays.quantile(q=0.50, axis=1)
-        quants['+1_sigma'] = dfDays.quantile(q=0.841, axis=1)
-        quants['+2_sigma'] = dfDays.quantile(q=0.977, axis=1)
-        quants['stddev'] = np.std(dfDays, axis=1)
+    #for frame in dfs:
+    #df = frame;
 
-        dctQuant[i] = quants;
-        dctDay[i] = dfDays;
-        i += 1;
+    daysIn = list(set(df.dayCount))
+    daysIn.sort()
+    
+    dfDays = pd.DataFrame(np.zeros((24,len(set(df.dayCount)))), 
+                        index=np.arange(0,24,1), columns=daysIn)
+        
+    for d in df.dayCount:
+        print('Day: ', d)
+        dfDay = df[df.dayCount == d]
+        cnct = dfDay.StartHr.value_counts()
+        cnct = cnct.sort_index()
+        
+        dfDays.loc[:,d] = dfDay.StartHr.value_counts()
+        dfDays.loc[:,d] = np.nan_to_num(dfDays.loc[:,d])
+    
+    quants = pd.DataFrame(np.zeros((24,6)), 
+                        index= np.arange(0,24,1), 
+                        columns=['-2_sigma','-1_sigma','mu','+1_sigma','+2_sigma','stddev'])
+    
+    quants['-2_sigma'] = dfDays.quantile(q=0.023, axis=1)
+    quants['-1_sigma'] = dfDays.quantile(q=0.159, axis=1)
+    quants['mu'] = dfDays.quantile(q=0.50, axis=1)
+    quants['+1_sigma'] = dfDays.quantile(q=0.841, axis=1)
+    quants['+2_sigma'] = dfDays.quantile(q=0.977, axis=1)
+    quants['stddev'] = np.std(dfDays, axis=1)
+
+    dctQuant[i] = quants;
+    dctDay[i] = dfDays;
+    i += 1;
 
     return dctDay, dctQuant
+
 # quants(df, weekday = True/False)
+# dfDays, dfQuants = quants([dfTrain, dfTest], True)
+dfDays, dfQuants = quants(dfSLC, True)
 
-dfDays, dfQuants = quants([dfTrain, dfTest], True)
+#%% Create Hour_DayCnt_DayYr_Connected data
 
+dfHrCnctd = pd.DataFrame(np.zeros((24*len(daysIn),4)), columns=['Hour','DayCnt','DayYr','Connected'])
+
+r = 0;
+d = 0;
+
+for j in list(dfDays):
+    
+    dfHrCnctd.Hour.iloc[r:r+24] = np.linspace(0,23,24);
+    dfHrCnctd.DayCnt.iloc[r:r+24] = np.repeat(d, 24);
+    dfHrCnctd.DayYr.iloc[r:r+24] = j;
+    dfHrCnctd.Connected[r:r+24] = dfDays[j]
+    
+    d += 1;
+    r += 24;
+    
+dfHrCnctd.to_csv('data\hr_day_cncted_weekdays.csv')
 
 #%% Create Fitting Data 
 
