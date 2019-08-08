@@ -11,5 +11,7 @@ import XlsxWriter
 trace_data = pd.read_csv('results/out_trace.csv',  index_col='smplNo');
 
 writer = pd.ExcelWriter('out_trace.xlsx', engine='xlsxwriter')
+
 trace_data.to_excel(writer, sheet_name='trace_data01')
 
+writer.save()
