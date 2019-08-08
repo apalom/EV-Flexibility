@@ -18,19 +18,22 @@ import pandas as pd
 print('Running ', str(datetime.now()))
 
 # Import Data
-data = pd.read_csv('hr_day_cnctd.csv',  index_col='Index');
+data = pd.read_csv('hr_day_cnctd_wkdy.csv',  index_col='Idx');
 
 #%% Houry NegativeBinomial Modelings
 # For each hour j and each EV connected i, we represent the model
 indiv_traces = {};
 
 # Convert categorical variables to integer
-hours = np.linspace(0,23,24)
+hours = np.arange(0,24)
 n_hours = len(hours)
-bins16 = np.linspace(0,15,16)
+bins16 = np.arange(0,16)
 
-out_yPred = np.zeros((n_hours,len(bins16)))
-out_yObs = np.zeros((n_hours,len(bins16)))
+out_yPred = {};
+out_yObs = {};
+trace24 = {};
+
+writer = pd.ExcelWriter('out_trace.xlsx', engine='xlsxwriter')
 
 for h in hours:
     print('Hour: ', h)
@@ -44,20 +47,32 @@ for h in hours:
 
         y_pred = pm.NegativeBinomial('y_pred', mu=mu, alpha=alpha)
 
-        trace = pm.sample(500000, tune=2000, progressbar=True)
+        trace = pm.sample(200000, tune=10000, progressbar=False)
 
-        #indiv_traces[h] = trace
+        #trace24[h] = list(trace)
 
     print('--- Observed ---')
-    print(np.histogram(data[data.Hour==h]['Connected'].values, bins=bins16)[0])
+    print(np.histogram(data[data.Hour==h]['Connected'].values, bins=bins16, density=True)[0])
     print('--- Predictive ---')
-    print(np.histogram(trace.get_values('y_pred'), bins=bins16)[0])
+    print(np.histogram(trace.get_values('y_pred'), bins=bins16, density=True)[0])
+
+    out_trace = pd.DataFrame.from_dict(list(trace))
+    out_smry = pd.DataFrame(pm.summary(trace))
+    name = 'hour' + str(int(h))
+    out_trace.to_excel(writer, sheet_name=name)
+    name = 'hour' + str(int(h)) + '_smry'
+    out_smry.to_excel(writer, sheet_name=name)
+
 
     out_yPred[h] = np.histogram(trace.get_values('y_pred'), bins=bins16)[0]
     out_yObs[h] = np.histogram(data[data.Hour==h]['Connected'].values, bins=bins16)[0]
 
-# Export results
 out_yPred = pd.DataFrame(out_yPred)
 out_yObs = pd.DataFrame(out_yObs)
-out_yPred.to_csv('out_yPred.csv')
+
+# Export results
+#out_trace = pd.DataFrame(out_trace)
+#out_trace.to_csv('out_trace.csv')
+writer.save()
 out_yObs.to_csv('out_yObs.csv')
+out_yPred.to_csv('out_yPred.csv')
