@@ -1,0 +1,222 @@
+/uufs/chpc.utah.edu/common/home/u1141243/.bashrc: line 65: bind: warning: line editing not enabled
+[?1034h/uufs/chpc.utah.edu/common/home/u1141243/.bashrc: line 66: bind: warning: line editing not enabled
+/uufs/chpc.utah.edu/sys/installdir/python/3.6.3/lib/python3.6/site-packages/h5py-2.7.1-py3.6-linux-x86_64.egg/h5py/__init__.py:68: UserWarning: h5py is running against HDF5 1.8.17 when it was built against 1.8.4, this may cause problems
+  '{0}.{1}.{2}'.format(*version.hdf5_built_version_tuple)
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha]
+>Metropolis: [y_pred]
+The acceptance probability does not match the target. It is 0.97215401976, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.953401706971, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.944258999404, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.967549153117, but should be close to 0.8. Try to increase the number of tuning steps.
+The estimated number of effective samples is smaller than 200 for some parameters.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha]
+>Metropolis: [y_pred]
+The acceptance probability does not match the target. It is 0.940391623973, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.963249729236, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.948351866102, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.939036244184, but should be close to 0.8. Try to increase the number of tuning steps.
+The number of effective samples is smaller than 25% for some parameters.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha]
+>Metropolis: [y_pred]
+The acceptance probability does not match the target. It is 0.966211511857, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.96184046715, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.957634651273, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.972100294312, but should be close to 0.8. Try to increase the number of tuning steps.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha]
+>Metropolis: [y_pred]
+The acceptance probability does not match the target. It is 0.945154780541, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.950082604041, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.967672304448, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.947787664994, but should be close to 0.8. Try to increase the number of tuning steps.
+The number of effective samples is smaller than 25% for some parameters.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha]
+>Metropolis: [y_pred]
+The acceptance probability does not match the target. It is 0.970843158186, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.947158076788, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.951468739236, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.964337886793, but should be close to 0.8. Try to increase the number of tuning steps.
+The number of effective samples is smaller than 25% for some parameters.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha]
+>Metropolis: [y_pred]
+The acceptance probability does not match the target. It is 0.954126440834, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.941581083157, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.955842943212, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.881435337966, but should be close to 0.8. Try to increase the number of tuning steps.
+The number of effective samples is smaller than 25% for some parameters.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha]
+>Metropolis: [y_pred]
+The acceptance probability does not match the target. It is 0.967720143451, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.946408349124, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.957497743813, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.940798118716, but should be close to 0.8. Try to increase the number of tuning steps.
+The estimated number of effective samples is smaller than 200 for some parameters.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha]
+>Metropolis: [y_pred]
+The acceptance probability does not match the target. It is 0.95990828531, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.966211072842, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.944477154283, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.93797814613, but should be close to 0.8. Try to increase the number of tuning steps.
+The gelman-rubin statistic is larger than 1.05 for some parameters. This indicates slight problems during sampling.
+The estimated number of effective samples is smaller than 200 for some parameters.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha]
+>Metropolis: [y_pred]
+The acceptance probability does not match the target. It is 0.942087504555, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.920467264651, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.961632852339, but should be close to 0.8. Try to increase the number of tuning steps.
+The gelman-rubin statistic is larger than 1.05 for some parameters. This indicates slight problems during sampling.
+The estimated number of effective samples is smaller than 200 for some parameters.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha]
+>Metropolis: [y_pred]
+The acceptance probability does not match the target. It is 0.949338773782, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.957626165591, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.949039424732, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.966288258119, but should be close to 0.8. Try to increase the number of tuning steps.
+The estimated number of effective samples is smaller than 200 for some parameters.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha]
+>Metropolis: [y_pred]
+The acceptance probability does not match the target. It is 0.963129525767, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.965215560678, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.925793696142, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.928814431228, but should be close to 0.8. Try to increase the number of tuning steps.
+The estimated number of effective samples is smaller than 200 for some parameters.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha]
+>Metropolis: [y_pred]
+The acceptance probability does not match the target. It is 0.948536304613, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.957357429197, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.970773429977, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.9695313907, but should be close to 0.8. Try to increase the number of tuning steps.
+The estimated number of effective samples is smaller than 200 for some parameters.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha]
+>Metropolis: [y_pred]
+The acceptance probability does not match the target. It is 0.970469187976, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.948923063705, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.965299236522, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.930737195905, but should be close to 0.8. Try to increase the number of tuning steps.
+The gelman-rubin statistic is larger than 1.05 for some parameters. This indicates slight problems during sampling.
+The estimated number of effective samples is smaller than 200 for some parameters.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha]
+>Metropolis: [y_pred]
+The acceptance probability does not match the target. It is 0.94510854358, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.964389576975, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.966164141735, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.971543241492, but should be close to 0.8. Try to increase the number of tuning steps.
+The estimated number of effective samples is smaller than 200 for some parameters.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha]
+>Metropolis: [y_pred]
+The acceptance probability does not match the target. It is 0.953367573166, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.950866833905, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.961347635807, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.967886933349, but should be close to 0.8. Try to increase the number of tuning steps.
+The estimated number of effective samples is smaller than 200 for some parameters.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha]
+>Metropolis: [y_pred]
+The acceptance probability does not match the target. It is 0.96653705271, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.954711052882, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.965229850643, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.95381856837, but should be close to 0.8. Try to increase the number of tuning steps.
+The gelman-rubin statistic is larger than 1.05 for some parameters. This indicates slight problems during sampling.
+The estimated number of effective samples is smaller than 200 for some parameters.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha]
+>Metropolis: [y_pred]
+The acceptance probability does not match the target. It is 0.962247054559, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.941844763421, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.942223391203, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.972767642189, but should be close to 0.8. Try to increase the number of tuning steps.
+The estimated number of effective samples is smaller than 200 for some parameters.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha]
+>Metropolis: [y_pred]
+The acceptance probability does not match the target. It is 0.950503261332, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.94445303067, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.954491335887, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.949817368447, but should be close to 0.8. Try to increase the number of tuning steps.
+The estimated number of effective samples is smaller than 200 for some parameters.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha]
+>Metropolis: [y_pred]
+The acceptance probability does not match the target. It is 0.947422685323, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.951411052143, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.952289858924, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.962641847479, but should be close to 0.8. Try to increase the number of tuning steps.
+The estimated number of effective samples is smaller than 200 for some parameters.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha]
+>Metropolis: [y_pred]
+The acceptance probability does not match the target. It is 0.934230022797, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.943104987898, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.949282956006, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.958586532223, but should be close to 0.8. Try to increase the number of tuning steps.
+The estimated number of effective samples is smaller than 200 for some parameters.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha]
+>Metropolis: [y_pred]
+The acceptance probability does not match the target. It is 0.925017735588, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.950080642661, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.940096269816, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.949256319714, but should be close to 0.8. Try to increase the number of tuning steps.
+The estimated number of effective samples is smaller than 200 for some parameters.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha]
+>Metropolis: [y_pred]
+The acceptance probability does not match the target. It is 0.944431846114, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.95731857895, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.945198514152, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.940688537547, but should be close to 0.8. Try to increase the number of tuning steps.
+The estimated number of effective samples is smaller than 200 for some parameters.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha]
+>Metropolis: [y_pred]
+The acceptance probability does not match the target. It is 0.957561794059, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.948423999811, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.954817473117, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.949874347862, but should be close to 0.8. Try to increase the number of tuning steps.
+The estimated number of effective samples is smaller than 200 for some parameters.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha]
+>Metropolis: [y_pred]
+The acceptance probability does not match the target. It is 0.96443409715, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.93346352069, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.907761339476, but should be close to 0.8. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.938630503582, but should be close to 0.8. Try to increase the number of tuning steps.
+The estimated number of effective samples is smaller than 200 for some parameters.
