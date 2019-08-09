@@ -5,7 +5,6 @@
 # import os
 # sys.path.append(os.getcwd())
 
-import matplotlib.pyplot as plt
 from datetime import datetime
 import numpy as np
 import scipy.stats as stats
@@ -33,9 +32,10 @@ out_yPred = {};
 out_yObs = {};
 trace24 = {};
 
-writer = pd.ExcelWriter('out_trace.xlsx', engine='xlsxwriter')
+#writer = pd.ExcelWriter('out_trace.xlsx', engine='xlsxwriter')
 
 for h in hours:
+    print('= = = = = = = = = = = = = = = =')
     print('Hour: ', h)
     with pm.Model() as model:
         alpha = pm.Uniform('alpha', lower=0, upper=10)
@@ -47,22 +47,27 @@ for h in hours:
 
         y_pred = pm.NegativeBinomial('y_pred', mu=mu, alpha=alpha)
 
-        trace = pm.sample(200000, tune=10000, progressbar=False)
+        trace = pm.sample(10000, tune=500, chains=4, progressbar=False)
 
         #trace24[h] = list(trace)
+        ess = pm.diagnostics.effective_n(trace)
 
-    print('--- Observed ---')
-    print(np.histogram(data[data.Hour==h]['Connected'].values, bins=bins16, density=True)[0])
-    print('--- Predictive ---')
-    print(np.histogram(trace.get_values('y_pred'), bins=bins16, density=True)[0])
+    print('- ESS: ', ess)
+    obs = np.mean(data[data.Hour==h]['Connected'].values)
+    print('- Observed: ', obs)
+    #print(np.histogram(data[data.Hour==h]['Connected'].values, bins=bins16, density=True)[0])
+    pred = np.mean(trace.get_values('y_pred'))
+    print('- Predictive: ', np.mean(trace.get_values('y_pred')))
+    #print(np.histogram(trace.get_values('y_pred'), bins=bins16, density=True)[0])
+    print('Error: ', np.abs(pred-obs)/obs )
 
     out_trace = pd.DataFrame.from_dict(list(trace))
-    out_smry = pd.DataFrame(pm.summary(trace))
-    name = 'hour' + str(int(h))
-    out_trace.to_excel(writer, sheet_name=name)
-    name = 'hour' + str(int(h)) + '_smry'
-    out_smry.to_excel(writer, sheet_name=name)
+    name = 'out_hr' + str(int(h)) + '.csv'
+    out_trace.to_csv(name)
 
+    out_smry = pd.DataFrame(pm.summary(trace))
+    name = 'out_hr' + str(int(h)) + '_smry.csv'
+    out_smry.to_csv(name)
 
     out_yPred[h] = np.histogram(trace.get_values('y_pred'), bins=bins16)[0]
     out_yObs[h] = np.histogram(data[data.Hour==h]['Connected'].values, bins=bins16)[0]
@@ -73,6 +78,6 @@ out_yObs = pd.DataFrame(out_yObs)
 # Export results
 #out_trace = pd.DataFrame(out_trace)
 #out_trace.to_csv('out_trace.csv')
-writer.save()
+#writer.save()
 out_yObs.to_csv('out_yObs.csv')
 out_yPred.to_csv('out_yPred.csv')
