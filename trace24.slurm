@@ -6,7 +6,7 @@
 #SBATCH --job-name=trace24
 
 # n jobs will run in this array at the same time
-# ----SBATCH --array=1-8
+# #SBATCH --array=1-8
 
 # run for n minutes
 #              d-hh:mm:ss
@@ -34,6 +34,7 @@ module load intel impi
 # define and create a unique scratch directory
 SCRATCH_DIRECTORY=/scratch/general/lustre/${USER}/${SLURM_JOBID}
 # rm -rf /scratch/general/lustre/${USER}
+mkdir -p ${SLURM_SUBMIT_DIR}/results/${SLURM_JOBID}/
 mkdir -p ${SCRATCH_DIRECTORY}
 cd ${SCRATCH_DIRECTORY}
 
@@ -50,10 +51,11 @@ python trace24.py > output.txt
 echo "Finished $SLURM_JOB_ID at `date`"
 
 # after the job is done we copy our output back to $SLURM_SUBMIT_DIR
-cp output.txt ${SLURM_SUBMIT_DIR}/results
-cp out_trace.xlsx ${SLURM_SUBMIT_DIR}/results
-cp out_yObs.csv ${SLURM_SUBMIT_DIR}/results
-cp out_yPred.csv ${SLURM_SUBMIT_DIR}/results
+#cp output.txt ${SLURM_SUBMIT_DIR}/results
+#cp out_trace.xlsx ${SLURM_SUBMIT_DIR}/results
+#cp out_yObs.csv ${SLURM_SUBMIT_DIR}/results
+#cp out_yPred.csv ${SLURM_SUBMIT_DIR}/results
+cp -r ${SCRATCH_DIRECTORY}/out* ${SLURM_SUBMIT_DIR}/results/${SLURM_JOBID}/
 
 # we step out of the scratch directory and remove it
 cd ${SLURM_SUBMIT_DIR}
