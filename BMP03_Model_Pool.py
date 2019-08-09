@@ -119,7 +119,6 @@ combined_y_pred = np.concatenate([v.get_values('y_pred') for k, v in indiv_trace
 y_pred = trace.get_values('y_pred')
 
 fig = plt.figure(figsize=(12,6))
-fig.add_subplot(211)
 
 fig.add_subplot(211)
 

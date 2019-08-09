@@ -7,23 +7,26 @@ Created on Thu Aug  8 11:53:36 2019
 
 import numpy as np
 import pandas as pd
-import matplotlib as plt
-import seaborns as sns
+import matplotlib.pyplot as plt
+import seaborn as sns
 import scipy.stats as stats
 from scipy.stats import nbinom, gamma, poisson
 
 # Read in trace data, hourly data seperated by sheet
-hours = np.linspace(0,23,24)
+
+path = 'results/1188820_trace_smry_xlsx_500smpl/out_trace.xlsx'
+
+hours = np.arange(0,24)
 
 trace24_dict = {}
 trace24_smry_dict = {}
 
 for h in hours:
-    sheet = 'hour'+str(int(h))+'.0'
-    trace24_dict[h] = pd.read_excel('results/1188783_trace_xlsx_500smpl_25tune/out_trace.xlsx',  index_col=[0], sheetname=sheet)
+    sheet = 'hour'+str(h)
+    trace24_dict[h] = pd.read_excel(path, index_col=[0], sheetname=sheet)
     
-    #sheet = 'hour'+str(int(h))+'.0_smry'
-    #trace24_smry_dict[h] = pd.read_excel('results/1188783_trace_xlsx_500smpl_25tune/out_trace.xlsx',  index_col=[0], sheetname=sheet)
+    sheet = 'hour'+str(h)+'_smry'
+    trace24_smry_dict[h] = pd.read_excel(path, index_col=[0], sheetname=sheet)
     
 #%% Plot Hourly Value Distributions
 # https://docs.pymc.io/notebooks/GLM-negative-binomial-regression.html
@@ -43,7 +46,47 @@ plt.hist(get_nb_vals(mu, alpha, 1000), bins=np.arange(0,16), density=True, edgec
 #plt.set(xticks=np.arange(0,26,2), xlim=[-1, 25])
 plt.title('NegBino Trace')
 
+#%% Effective Sample Size 
+
+dctData = {}
+dctSmry = {}
+
+allMu = pd.DataFrame(np.zeros((0,0)))
+allYpred = pd.DataFrame(np.zeros((0,0)))
+
+for h in hours:
+    
+    # Read in ALL TRACE data
+    name = 'results/1190449_15000smpl_1000tune/out_hr'+str(h)+'.csv'
+    dctData[h] = pd.read_csv(name, index_col=[0])
+    allMu = pd.concat([allMu, dctData[h].mu], ignore_index=True)    
+    allYpred = pd.concat([allYpred, dctData[h].y_pred], ignore_index=True)    
+    
+    # Read in summary trace data
+    name = 'results/1190449_15000smpl_1000tune/out_hr'+str(h)+'_smry.csv'
+    dctSmry[h] = pd.read_csv(name, index_col=[0])
+
+ess = np.var(allYpred.values)/np.var(allMu.values)
+print('Effective Sample Size: ', ess)
+
 #%%
+
+fig = plt.figure(figsize=(10,6))
+
+fig.add_subplot(211)
+binsCnt = np.arange(0,np.max(allMu.values))
+plt.hist(allMu.values, bins=binsCnt, edgecolor='white')
+plt.title('All Mean Value Histogram')
+
+fig.add_subplot(212)
+bins = np.arange(0,np.max(allYpred.values))
+plt.hist(allYpred.values, bins=binsCnt, color='red', edgecolor='white')
+plt.title('All y_pred Value Histogram')
+
+plt.tight_layout()
+
+
+#%% 
 
 import XlsxWriter
 
