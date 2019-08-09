@@ -64,6 +64,7 @@ def filterPrep(df, string, fltr):
     # Monday is 0 and Sunday is 6
     df['DayofWk'] = df['Start Date'].apply(lambda x: x.weekday()) 
     df['isWeekday'] = df['DayofWk'].apply(lambda x: 1 if x <=4 else 0) 
+    df = df.loc[df['isWeekday'] == 1]
     df['Year'] = df['Start Date'].apply(lambda x: x.year) 
     df['StartHr'] = df['Start Date'].apply(lambda x: x.hour + x.minute/60) 
     df['StartHr'] = df['StartHr'].apply(lambda x: np.floor(x))  
@@ -87,8 +88,7 @@ def filterPrep(df, string, fltr):
     daysSet = sorted(set(days), key=days.index)
     
     c = 0;
-    for d in daysSet:
-        
+    for d in daysSet:        
         dateTest = [df['Date'] == d]
         trueIdx = list(dateTest[0][dateTest[0]].index)
         df.at[trueIdx,'dayCount'] = c
@@ -102,7 +102,7 @@ def filterPrep(df, string, fltr):
 dfSLC, daysTot = filterPrep(dataRaw, "Salt Lake City", True)
 
 # Save 
-dfSLC.to_excel("data/dfSLC_Wkdy_2018.xlsx")
+#dfSLC.to_excel("data/dfSLC_Wkdy_2018.xlsx")
 
 #%% Training and Testing for a Single Day
 
