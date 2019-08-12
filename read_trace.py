@@ -22,10 +22,10 @@ trace24_dict = {}
 trace24_smry_dict = {}
 
 for h in hours:
-    sheet = 'hour'+str(h)
+    sheet = 'hr'+str(h)
     trace24_dict[h] = pd.read_excel(path, index_col=[0], sheetname=sheet)
     
-    sheet = 'hour'+str(h)+'_smry'
+    sheet = 'hr'+str(h)+'_smry'
     trace24_smry_dict[h] = pd.read_excel(path, index_col=[0], sheetname=sheet)
     
 #%% Plot Hourly Value Distributions
@@ -137,8 +137,26 @@ esx = effectiveSampleSize(dataX)
 
 print("Effective Size for x: ", esx, " of ", len(dataX), " samples, rate of", esx/len(dataX)*100, "%.")
 
-#%% 
+#%% Read CSVs
 
+# Read in hourly data seperated by CSV sheet
+
+path = 'results/1190583_200k_10ktune/'
+
+hours = np.arange(0,24)
+
+trace24_dict = {}
+trace24_smry_dict = {}
+
+fig = plt.figure(figsize=(6,4))
+
+for h in hours:    
+    trace24_dict[h] = pd.read_csv(path + 'out_hr' + str(h) + '.csv', index_col=[0])    
+    trace24_smry_dict[h] = pd.read_csv(path + 'out_hr' + str(h) + '_smry.csv', index_col=[0])
+    plt.scatter(h, trace24_smry_dict[h]['Rhat']['y_pred'])
+
+
+#%%
 import XlsxWriter
 
 writer = pd.ExcelWriter('out_trace.xlsx', engine='xlsxwriter')

@@ -193,26 +193,27 @@ dfDays, dfQuants = quants([dfTrain, dfTest], True)
 
 #%% Create Hour_DayCnt_DayYr_Connected data
 
-dfHrCnctd = {};
+#dfHrCnctd = {};
 
-daysIn = dfDays['Trn'].shape[1]
+tt = 'Test'
+daysIn = dfDays[tt].shape[1]
 
 r = 0;
 d = 0;
 
-for j in list(dfDays['Trn']):
+for j in list(dfDays[tt]):
     
-    dfHrCnctd = pd.DataFrame(np.zeros((24*len(daysIn),4)), columns=['Hour','DayCnt','DayYr','Connected'])
+    dfHrCnctd[tt] = pd.DataFrame(np.zeros((24*daysIn,4)), columns=['Hour','DayCnt','DayYr','Connected'])
     
-    dfHrCnctd.Hour.iloc[r:r+24] = np.linspace(0,23,24);
-    dfHrCnctd.DayCnt.iloc[r:r+24] = np.repeat(d, 24);
-    dfHrCnctd.DayYr.iloc[r:r+24] = j;
-    dfHrCnctd.Connected[r:r+24] = dfDays[j]
+    dfHrCnctd[tt].Hour.iloc[r:r+24] = np.linspace(0,23,24);
+    dfHrCnctd[tt].DayCnt.iloc[r:r+24] = np.repeat(d, 24);
+    dfHrCnctd[tt].DayYr.iloc[r:r+24] = j;
+    dfHrCnctd[tt].Connected[r:r+24] = dfDays[tt][j]
     
     d += 1;
     r += 24;
     
-#dfHrCnctd.to_csv('data\hr_day_cncted_weekdays.csv')
+dfHrCnctd['Test'].to_csv('data\hr_day_cncted_wkdy_TEST.csv')
 
 #%% Create Fitting Data 
 
