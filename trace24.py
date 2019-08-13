@@ -34,7 +34,7 @@ trace24 = {};
 
 #writer = pd.ExcelWriter('out_trace.xlsx', engine='xlsxwriter')
 
-for h in [8,9]:
+for h in hours:
     print('= = = = = = = = = = = = = = = =')
     print('Hour: ', h)
     with pm.Model() as model:    
