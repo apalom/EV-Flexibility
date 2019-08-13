@@ -11,7 +11,6 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import scipy.stats as stats
 from scipy.stats import nbinom, gamma, poisson
-
     
 #%% Plot Hourly Value Distributions
 # https://docs.pymc.io/notebooks/GLM-negative-binomial-regression.html
@@ -68,7 +67,7 @@ plt.title('All y_pred Value Histogram')
 plt.tight_layout()
 
 
-#%% Read CSVs
+#%% Plot Gelman-Rubin Stat
 
 # Read in hourly data seperated by CSV sheet
 hours = np.arange(0,24)
@@ -81,6 +80,8 @@ for h in hours:
 plt.xticks(np.arange(0,24,2))
 #plt.title('Gelman Rubin Statistic: Rhat')
 plt.title(r'Gelman-Rubin Statistic $\hat{R}$')
+
+#%% Plot Gelman-Rubin Stat
 
 #%% Effective Sample Size Function
 # http://iacs-courses.seas.harvard.edu/courses/am207/blog/lecture-9.html
