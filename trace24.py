@@ -17,7 +17,7 @@ import pandas as pd
 print('Running ', str(datetime.now()))
 
 # Import Data
-data = pd.read_csv('hr_day_cnctd_wkdy.csv',  index_col='Idx');
+data = pd.read_csv('hdc_wkdy_TRAIN20.csv',  index_col='Idx');
 
 #%% Houry NegativeBinomial Modelings
 # For each hour j and each EV connected i, we represent the model
@@ -47,7 +47,7 @@ for h in hours:
 
         y_pred = pm.NegativeBinomial('y_pred', mu=mu, alpha=alpha)
 
-        trace = pm.sample(10000, tune=500, chains=4, progressbar=False)
+        trace = pm.sample(200000, tune=10000, chains=4, progressbar=False, nuts={"target_accept": 0.9})
 
         #trace24[h] = list(trace)
         ess = pm.diagnostics.effective_n(trace)

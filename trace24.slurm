@@ -10,7 +10,7 @@
 
 # run for n minutes
 #              d-hh:mm:ss
-#SBATCH --time=0-04:00:00
+#SBATCH --time=0-06:00:00
 
 # 500MB memory per core
 # this is a hard limit
@@ -20,7 +20,7 @@
 #SBATCH -e results/slurmjob-%j.err # error reporting
 
 #SBATCH --mail-user=alejandro.palomino@utah.edu
-#SBATCH --mail-type=FAIL,BEGIN,END
+#SBATCH --mail-type=FlAIL,BEGIN,END
 
 #SBATCH --account=parvania
 #SBATCH --partition=lonepeak
@@ -40,7 +40,7 @@ cd ${SCRATCH_DIRECTORY}
 
 # SLURM_SUBMIT_DIR=~/Documents/firstSlurm
 cp ${SLURM_SUBMIT_DIR}/trace24.py ${SCRATCH_DIRECTORY}
-cp ${SLURM_SUBMIT_DIR}/hr_day_cnctd_wkdy.csv ${SCRATCH_DIRECTORY}
+cp ${SLURM_SUBMIT_DIR}/hdc_wkdy_TRAIN20.csv ${SCRATCH_DIRECTORY}
 
 # each job will see a different ${SLURM_ARRAY_TASK_ID}
 echo "Evaluating $SLURM_JOB_ID at `date`"
