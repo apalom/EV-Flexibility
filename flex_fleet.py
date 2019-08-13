@@ -195,15 +195,14 @@ dfDays, dfQuants = quants([dfTrain, dfTest], True)
 
 #dfHrCnctd = {};
 
-tt = 'Train'
+tt = 'Test'
 daysIn = dfDays[tt].shape[1]
+dfHrCnctd[tt] = pd.DataFrame(np.zeros((24*daysIn,4)), columns=['Hour','DayCnt','DayYr','Connected'])
 
 r = 0;
 d = 0;
 
-for j in list(dfDays[tt]):
-    
-    dfHrCnctd[tt] = pd.DataFrame(np.zeros((24*daysIn,4)), columns=['Hour','DayCnt','DayYr','Connected'])
+for j in list(dfDays[tt]):   
     
     dfHrCnctd[tt].Hour.iloc[r:r+24] = np.linspace(0,23,24);
     dfHrCnctd[tt].DayCnt.iloc[r:r+24] = np.repeat(d, 24);
@@ -213,7 +212,7 @@ for j in list(dfDays[tt]):
     d += 1;
     r += 24;
     
-dfHrCnctd[tt].to_csv('data\hdc_wkdy_TRAIN.csv')
+dfHrCnctd[tt].to_csv('data\hdc_wkdy_TEST.csv')
 #dfHrCnctd['Train'].to_csv('data\hdc_wkdy_TRAIN.csv')
 
 #%% Create Fitting Data 

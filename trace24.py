@@ -17,7 +17,7 @@ import pandas as pd
 print('Running ', str(datetime.now()))
 
 # Import Data
-data = pd.read_csv('hdc_wkdy_TRAIN20.csv',  index_col='Idx');
+data = pd.read_csv('data/hdc_wkdy_TRAIN.csv',  index_col='Idx');
 
 #%% Houry NegativeBinomial Modelings
 # For each hour j and each EV connected i, we represent the model
@@ -34,12 +34,18 @@ trace24 = {};
 
 #writer = pd.ExcelWriter('out_trace.xlsx', engine='xlsxwriter')
 
-for h in hours:
+for h in [8,9]:
     print('= = = = = = = = = = = = = = = =')
     print('Hour: ', h)
-    with pm.Model() as model:
-        alpha = pm.Uniform('alpha', lower=0, upper=10)
-        mu = pm.Uniform('mu', lower=0, upper=10)
+    with pm.Model() as model:    
+        hyper_alpha_sd = pm.Uniform('hyper_alpha_sd', lower=0, upper=5)
+        hyper_alpha_mu = pm.Uniform('hyper_alpha_mu', lower=0, upper=10)
+        
+        hyper_mu_sd = pm.Uniform('hyper_mu_sd', lower=0, upper=5)
+        hyper_mu_mu = pm.Uniform('hyper_mu_mu', lower=0, upper=10)
+        
+        alpha = pm.Gamma('alpha', mu=hyper_alpha_mu, sd=hyper_alpha_sd)
+        mu = pm.Gamma('mu', mu=hyper_mu_mu, sd=hyper_mu_sd)
 
         y_obs = data[data.Hour==h]['Connected'].values
 
@@ -47,7 +53,7 @@ for h in hours:
 
         y_pred = pm.NegativeBinomial('y_pred', mu=mu, alpha=alpha)
 
-        trace = pm.sample(200000, tune=10000, chains=4, progressbar=False, nuts={"target_accept": 0.9})
+        trace = pm.sample(20, tune=1, chains=4, progressbar=False, nuts={"target_accept": 0.9})
 
         #trace24[h] = list(trace)
         ess = pm.diagnostics.effective_n(trace)
