@@ -12,21 +12,6 @@ import seaborn as sns
 import scipy.stats as stats
 from scipy.stats import nbinom, gamma, poisson
 
-# Read in trace data, hourly data seperated by sheet
-
-path = 'results/1188820_trace_smry_xlsx_500smpl/out_trace.xlsx'
-
-hours = np.arange(0,24)
-
-trace24_dict = {}
-trace24_smry_dict = {}
-
-for h in hours:
-    sheet = 'hr'+str(h)
-    trace24_dict[h] = pd.read_excel(path, index_col=[0], sheetname=sheet)
-    
-    sheet = 'hr'+str(h)+'_smry'
-    trace24_smry_dict[h] = pd.read_excel(path, index_col=[0], sheetname=sheet)
     
 #%% Plot Hourly Value Distributions
 # https://docs.pymc.io/notebooks/GLM-negative-binomial-regression.html
@@ -46,39 +31,56 @@ plt.hist(get_nb_vals(mu, alpha, 1000), bins=np.arange(0,16), density=True, edgec
 #plt.set(xticks=np.arange(0,26,2), xlim=[-1, 25])
 plt.title('NegBino Trace')
 
-#%% Effective Sample Size 
+#%% Read Trace Plot Mu
 
 dctData = {}
 dctSmry = {}
+hours = np.arange(0,24)
 
 allMu = pd.DataFrame(np.zeros((0,0)))
 allYpred = pd.DataFrame(np.zeros((0,0)))
+path = 'results/1191993_200k_10ktune_Train20/out_hr'
 
 for h in hours:
     
     # Read in ALL TRACE data
-    name = 'results/1190449_15000smpl_1000tune/out_hr'+str(h)+'.csv'
+    name = path+str(h)+'.csv'
     dctData[h] = pd.read_csv(name, index_col=[0])
     allMu = pd.concat([allMu, dctData[h].mu], ignore_index=True)    
     allYpred = pd.concat([allYpred, dctData[h].y_pred], ignore_index=True)    
     
     # Read in summary trace data
-    name = 'results/1190449_15000smpl_1000tune/out_hr'+str(h)+'_smry.csv'
+    name = path+str(h)+'_smry.csv'
     dctSmry[h] = pd.read_csv(name, index_col=[0])
 
 fig = plt.figure(figsize=(10,6))
 
 fig.add_subplot(211)
 binsCnt = np.arange(0,np.max(allMu.values)+1)
-plt.hist(allMu.values, bins=binsCnt, edgecolor='white')
+plt.hist(allMu.values, bins=binsCnt, density=True, edgecolor='white')
 plt.title('All Mean Value Histogram')
 
 fig.add_subplot(212)
 bins = np.arange(0,np.max(allYpred.values)+1)
-plt.hist(allYpred.values, bins=binsCnt, color='red', edgecolor='white')
+plt.hist(allYpred.values, bins=binsCnt, density=True,color='red', edgecolor='white')
 plt.title('All y_pred Value Histogram')
 
 plt.tight_layout()
+
+
+#%% Read CSVs
+
+# Read in hourly data seperated by CSV sheet
+hours = np.arange(0,24)
+
+fig = plt.figure(figsize=(6,4))
+
+for h in hours:        
+    plt.scatter(h, dctSmry[h]['Rhat']['y_pred'])
+
+plt.xticks(np.arange(0,24,2))
+#plt.title('Gelman Rubin Statistic: Rhat')
+plt.title(r'Gelman-Rubin Statistic $\hat{R}$')
 
 #%% Effective Sample Size Function
 # http://iacs-courses.seas.harvard.edu/courses/am207/blog/lecture-9.html
@@ -136,25 +138,6 @@ def effectiveSampleSize(data, stepSize = 1) :
 esx = effectiveSampleSize(dataX)
 
 print("Effective Size for x: ", esx, " of ", len(dataX), " samples, rate of", esx/len(dataX)*100, "%.")
-
-#%% Read CSVs
-
-# Read in hourly data seperated by CSV sheet
-
-path = 'results/1190583_200k_10ktune/'
-
-hours = np.arange(0,24)
-
-trace24_dict = {}
-trace24_smry_dict = {}
-
-fig = plt.figure(figsize=(6,4))
-
-for h in hours:    
-    trace24_dict[h] = pd.read_csv(path + 'out_hr' + str(h) + '.csv', index_col=[0])    
-    trace24_smry_dict[h] = pd.read_csv(path + 'out_hr' + str(h) + '_smry.csv', index_col=[0])
-    plt.scatter(h, trace24_smry_dict[h]['Rhat']['y_pred'])
-
 
 #%%
 import XlsxWriter
