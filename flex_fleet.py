@@ -129,10 +129,10 @@ def testTrain(df, day, p):
     return dfTrain, dfTest 
 
 # Inputs (dfAll, Day of Week [Mon = 0, Sat = 5] ,percent Training Data)
-dfTrain, dfTest = testTrain(dfSLC, 0, 0.80)
+dfTrain, dfTest = testTrain(dfSLC, 0, 0.20)
 
-dfTrain.to_csv('data\dfTrain_all.csv')
-dfTest.to_csv('data\dfTest_all.csv')
+#dfTrain.to_csv('data\dfTrain_all.csv')
+#dfTest.to_csv('data\dfTest_all.csv')
 
 daysInTrn = len(list(set(list(dfTrain.DayofYr))))
 
@@ -160,7 +160,7 @@ def quants(dfs, weekday):
         dfDays = pd.DataFrame(np.zeros((24,len(set(df.dayCount)))), 
                             index=np.arange(0,24,1), columns=daysIn)
         
-        dfNames = ['Trn', 'Test']
+        dfNames = ['Train', 'Test']
         for d in df.dayCount:
             print('Day: ', d)
             dfDay = df[df.dayCount == d]
@@ -195,7 +195,7 @@ dfDays, dfQuants = quants([dfTrain, dfTest], True)
 
 #dfHrCnctd = {};
 
-tt = 'Test'
+tt = 'Train'
 daysIn = dfDays[tt].shape[1]
 
 r = 0;
@@ -213,7 +213,8 @@ for j in list(dfDays[tt]):
     d += 1;
     r += 24;
     
-dfHrCnctd['Test'].to_csv('data\hr_day_cncted_wkdy_TEST.csv')
+dfHrCnctd[tt].to_csv('data\hdc_wkdy_TRAIN.csv')
+#dfHrCnctd['Train'].to_csv('data\hdc_wkdy_TRAIN.csv')
 
 #%% Create Fitting Data 
 

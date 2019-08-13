@@ -18,7 +18,7 @@ import datetime
 
 # Raw Data
 #filePath = 'PackSize-Session-Details-Meter-with-Summary-20181211.csv';
-filePath = 'data/Session-Details-Summary-20190404.csv';
+filePath = 'data/Session-Details-Summary-20190812.csv';
 #filePath = 'data/Lifetime-UniqueDrivers-vs-Time.csv';
 
 # Import Data
@@ -349,6 +349,47 @@ plt.xlabel('Hours')
 plt.xticks(np.arange(0, 24, 2))
 plt.ylabel('EVs')
 plt.title('Arrivals Per Hour Quartiles')
+
+#%% Unique Drivers per Port
+
+colNames = ['Start Date', 'EVSE ID', 'Port Number', 'Port Type',
+            'User ID', 'Driver Postal Code', 'DayofYr']
+            
+#firstDate = data.iloc[0]
+dataUnique = pd.DataFrame(data, index=np.arange(len(data)), columns=colNames)
+
+dataUnique['Date'] = dataUnique['Start Date'].apply(lambda x: x.date())
+dataUnique['EVSE ID'] = dataUnique['EVSE ID'].map(str) + '-' + dataUnique['Port Number'].map(str)
+
+dataUnique = dataUnique.drop(['Start Date', 'Port Number'], axis=1)
+
+#%%
+
+dfUnique = pd.DataFrame(np.zeros((len(date_generated),3)), columns=['Date','Drivers', 'Ports'])
+
+for i in range(len(date_generated)): 
+    
+    d = date_generated[i]
+    print(i,d)
+        
+    dfTemp = dataUnique.loc[dataUnique.Date <= d]
+        
+    if len(dfTemp) > 0:
+        dfUnique.iloc[i].Drivers = len(set(dfTemp['User ID'].values)) 
+        dfUnique.iloc[i].Ports = len(set(dfTemp['EVSE ID'].values))    
+        
+dfUnique.Date = date_generated    
+
+#%% Create List of Dates
+
+import datetime
+
+start = datetime.datetime.strptime("2013-01-01", "%Y-%m-%d")
+end = datetime.datetime.strptime("2019-08-13", "%Y-%m-%d")
+#date_generated = [start + datetime.timedelta(days=x) for x in range(0, (end-start).days)]
+date_generated = [start + datetime.timedelta(days=x) for x in range(0, (end-start).days)]
+date_generated =[x.date() for x in date_generated]
+#date_generated =[x.date().strftime('%Y-%m-%d') for x in date_generated]
 
 #%% Unique Drivers per Port
 
