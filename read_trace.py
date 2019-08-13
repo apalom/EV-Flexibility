@@ -81,7 +81,52 @@ plt.xticks(np.arange(0,24,2))
 #plt.title('Gelman Rubin Statistic: Rhat')
 plt.title(r'Gelman-Rubin Statistic $\hat{R}$')
 
-#%% Plot Gelman-Rubin Stat
+#%% Scatter-Plot All Data
+
+for h in hours:
+    
+    fig = plt.subplots(figsize=(6,6))
+    
+    g = sns.PairGrid(dctData[h], vars=["y_pred", "mu", "alpha"])
+    g.map_diag(sns.kdeplot)
+    g.map_offdiag(sns.kdeplot, n_levels=6)
+
+#%% Hourly Plot Histograms
+              
+hours = np.arange(0,24)
+hists = {}
+dim = 'y_pred'
+
+fig, axs = plt.subplots(4, 6, figsize=(12,8), sharex=True, sharey=True) 
+
+r,c = 0,0;
+
+for hr in hours:     
+
+    #kBins = 1 + 3.22*np.log(len(dctData[hr][dim])) #Sturge's Rule for Bin Count
+    hists[hr] = np.histogram(dctData[hr][dim].values, bins=np.arange(16))        
+    
+    print('position', r, c)
+    axs[r,c].hist(dctData[hr][dim].values, edgecolor='white', linewidth=0.5, bins=np.arange(16), density=True) 
+    axs[r,c].set_title('Hr: ' + str(hr))
+    
+    # Subplot Spacing
+    c += 1
+    if c >= 6:
+        r += 1;
+        c = 0;
+        if r >= 4:
+            r=0;
+  
+fig.tight_layout()
+fig.suptitle('Hourly Histogram: '+ dim, y = 1.02)
+#xM, bS = int(np.max(dctData[hr][dim])), 4
+xM, bS = 20, 4
+plt.xlim(0,xM)
+plt.xticks(np.arange(0,xM+bS,bS))
+plt.ylim(0,0.5)
+plt.show()
+
 
 #%% Effective Sample Size Function
 # http://iacs-courses.seas.harvard.edu/courses/am207/blog/lecture-9.html
