@@ -73,17 +73,20 @@ plt.tight_layout()
 hours = np.arange(0,24)
 
 fig = plt.figure(figsize=(6,4))
+plt.grid(color='lightgrey', linewidth=0.30)
 
 for h in hours:        
     plt.scatter(h, dctSmry[h]['Rhat']['y_pred'])
 
-plt.xticks(np.arange(0,24,2))
+plt.xticks(np.arange(0,26,2))
 #plt.title('Gelman Rubin Statistic: Rhat')
 plt.title(r'Gelman-Rubin Statistic $\hat{R}$')
+plt.xlabel('Hour')
 
-#%% Scatter-Plot All Data
 
-for h in hours:
+#%% Pair Grid Data
+
+for h in [0, 4, 8, 12, 16, 18, 20]:
     
     fig = plt.subplots(figsize=(6,6))
     
