@@ -1,0 +1,191 @@
+/uufs/chpc.utah.edu/common/home/u1141243/.bashrc: line 65: bind: warning: line editing not enabled
+[?1034h/uufs/chpc.utah.edu/common/home/u1141243/.bashrc: line 66: bind: warning: line editing not enabled
+/uufs/chpc.utah.edu/sys/installdir/python/3.6.3/lib/python3.6/site-packages/h5py-2.7.1-py3.6-linux-x86_64.egg/h5py/__init__.py:68: UserWarning: h5py is running against HDF5 1.8.17 when it was built against 1.8.4, this may cause problems
+  '{0}.{1}.{2}'.format(*version.hdf5_built_version_tuple)
+Only 20 samples in chain.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+/uufs/chpc.utah.edu/common/home/u1141243/VENV3.6.3/lib/python3.6/site-packages/pymc3/sampling.py:464: UserWarning: The number of samples is too small to check convergence reliably.
+  warnings.warn("The number of samples is too small to check convergence reliably.")
+The acceptance probability does not match the target. It is 0.759304355526, but should be close to 0.9. Try to increase the number of tuning steps.
+There was 1 divergence after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.426396794415, but should be close to 0.9. Try to increase the number of tuning steps.
+Only 20 samples in chain.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+/uufs/chpc.utah.edu/common/home/u1141243/VENV3.6.3/lib/python3.6/site-packages/pymc3/sampling.py:464: UserWarning: The number of samples is too small to check convergence reliably.
+  warnings.warn("The number of samples is too small to check convergence reliably.")
+The acceptance probability does not match the target. It is 0.721835595361, but should be close to 0.9. Try to increase the number of tuning steps.
+There was 1 divergence after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.645654534544, but should be close to 0.9. Try to increase the number of tuning steps.
+Only 20 samples in chain.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+There was 1 divergence after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.628519784953, but should be close to 0.9. Try to increase the number of tuning steps.
+There was 1 divergence after tuning. Increase `target_accept` or reparameterize.
+There was 1 divergence after tuning. Increase `target_accept` or reparameterize.
+There were 3 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.540727340293, but should be close to 0.9. Try to increase the number of tuning steps.
+Only 20 samples in chain.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+/uufs/chpc.utah.edu/common/home/u1141243/VENV3.6.3/lib/python3.6/site-packages/pymc3/sampling.py:464: UserWarning: The number of samples is too small to check convergence reliably.
+  warnings.warn("The number of samples is too small to check convergence reliably.")
+There was 1 divergence after tuning. Increase `target_accept` or reparameterize.
+There were 2 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.418544103924, but should be close to 0.9. Try to increase the number of tuning steps.
+Only 20 samples in chain.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+There were 8 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.418657506593, but should be close to 0.9. Try to increase the number of tuning steps.
+There were 4 divergences after tuning. Increase `target_accept` or reparameterize.
+There was 1 divergence after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.642882949019, but should be close to 0.9. Try to increase the number of tuning steps.
+Only 20 samples in chain.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+There were 2 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 3 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.364432634021, but should be close to 0.9. Try to increase the number of tuning steps.
+There was 1 divergence after tuning. Increase `target_accept` or reparameterize.
+Only 20 samples in chain.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+Only 20 samples in chain.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+Only 20 samples in chain.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+There was 1 divergence after tuning. Increase `target_accept` or reparameterize.
+There was 1 divergence after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.701029165099, but should be close to 0.9. Try to increase the number of tuning steps.
+Only 20 samples in chain.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+There were 6 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.412910058115, but should be close to 0.9. Try to increase the number of tuning steps.
+Only 20 samples in chain.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+There were 2 divergences after tuning. Increase `target_accept` or reparameterize.
+Only 20 samples in chain.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+There was 1 divergence after tuning. Increase `target_accept` or reparameterize.
+There was 1 divergence after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.504117263981, but should be close to 0.9. Try to increase the number of tuning steps.
+Only 20 samples in chain.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+/uufs/chpc.utah.edu/common/home/u1141243/VENV3.6.3/lib/python3.6/site-packages/pymc3/sampling.py:464: UserWarning: The number of samples is too small to check convergence reliably.
+  warnings.warn("The number of samples is too small to check convergence reliably.")
+There was 1 divergence after tuning. Increase `target_accept` or reparameterize.
+There was 1 divergence after tuning. Increase `target_accept` or reparameterize.
+There was 1 divergence after tuning. Increase `target_accept` or reparameterize.
+Only 20 samples in chain.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+There was 1 divergence after tuning. Increase `target_accept` or reparameterize.
+Only 20 samples in chain.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+Only 20 samples in chain.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+Only 20 samples in chain.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+There was 1 divergence after tuning. Increase `target_accept` or reparameterize.
+There were 2 divergences after tuning. Increase `target_accept` or reparameterize.
+Only 20 samples in chain.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+There was 1 divergence after tuning. Increase `target_accept` or reparameterize.
+There was 1 divergence after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.631082985822, but should be close to 0.9. Try to increase the number of tuning steps.
+Only 20 samples in chain.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+There was 1 divergence after tuning. Increase `target_accept` or reparameterize.
+Only 20 samples in chain.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+There were 2 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.609797574045, but should be close to 0.9. Try to increase the number of tuning steps.
+Only 20 samples in chain.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+There were 3 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.755026229123, but should be close to 0.9. Try to increase the number of tuning steps.
+There were 2 divergences after tuning. Increase `target_accept` or reparameterize.
+Only 20 samples in chain.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+There was 1 divergence after tuning. Increase `target_accept` or reparameterize.
+There were 3 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.365040915965, but should be close to 0.9. Try to increase the number of tuning steps.
+Only 20 samples in chain.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+There were 2 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.724744577546, but should be close to 0.9. Try to increase the number of tuning steps.
+There were 2 divergences after tuning. Increase `target_accept` or reparameterize.
+There was 1 divergence after tuning. Increase `target_accept` or reparameterize.
+Only 20 samples in chain.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+There were 2 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.41412861119, but should be close to 0.9. Try to increase the number of tuning steps.
+The acceptance probability does not match the target. It is 0.711335874391, but should be close to 0.9. Try to increase the number of tuning steps.
+There were 2 divergences after tuning. Increase `target_accept` or reparameterize.
