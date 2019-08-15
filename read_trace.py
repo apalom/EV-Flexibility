@@ -86,9 +86,7 @@ plt.xlabel('Hour')
 
 #%% Pair Grid Data
 
-for h in [0, 4, 8, 12, 16, 18, 20]:
-    
-    fig = plt.subplots(figsize=(6,6))
+for h in [8]:   
     
     g = sns.PairGrid(dctData[h], vars=["y_pred", "mu", "alpha"])
     g.map_diag(sns.kdeplot)

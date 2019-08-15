@@ -17,7 +17,7 @@ import pandas as pd
 print('Running ', str(datetime.now()))
 
 # Import Data
-data = pd.read_csv('data/hdc_wkdy_TRAIN.csv',  index_col='Idx');
+data = pd.read_csv('data/hdc_wkdy_TRAIN20.csv',  index_col='Idx');
 
 #%% Houry NegativeBinomial Modelings
 # For each hour j and each EV connected i, we represent the model

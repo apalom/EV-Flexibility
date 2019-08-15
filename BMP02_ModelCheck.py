@@ -22,6 +22,8 @@ import statsmodels.api as sm
 import scipy.optimize as so
 import theano.tensor as tt
 
+data = pd.read_csv('data/hdc_wkdy_TRAIN20.csv')
+
 #%%
 # (1) Model Check 1: Posterior predictive check
 if __name__ == '__main__':
