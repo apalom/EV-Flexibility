@@ -22,7 +22,7 @@ bins16 = np.arange(0,16)
 out_yPred = {};
 out_yObs = {};
 trace24 = {};
-smpls = 5000; tunes = 500; target = 0.9;
+smpls = 10000; tunes = 500; target = 0.9;
 print('Params: samples = ', smpls, ' | tune = ', tunes, ' | target = ', target)
 
 #%% Houry NegativeBinomial Modeling
@@ -41,9 +41,9 @@ for h in hours:
 
         y_obs = data[data.Hour==h]['Connected'].values
 
-        y_est = pm.Poisson('y_est', mu=mu, observed=y_obs)
+        y_est = pm.NegativeBinomial('y_est', mu=mu, alpha=alpha, observed=y_obs)
 
-        y_pred = pm.Poisson('y_pred', mu=mu)
+        y_pred = pm.NegativeBinomial('y_pred', mu=mu, alpha=alpha)
 
         trace = pm.sample(smpls, tune=tunes, chains=4, progressbar=False, nuts={"target_accept": 0.9})
 
