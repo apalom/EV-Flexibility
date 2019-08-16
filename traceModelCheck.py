@@ -23,10 +23,10 @@ import scipy.optimize as so
 import theano.tensor as tt
 
 data = pd.read_csv('data/hdc_wkdy_TRAIN20.csv', index_col=0)
-smpls = 10000
         
 #%% Model Check II: Bayes Factor... Poisson vs. NegBino
 
+smpls = 1000
 with pm.Model() as model:
     
     # Index to true model
@@ -59,14 +59,17 @@ with pm.Model() as model:
     #step2 = pm.ElemwiseCategorical(vars=[tau], values=[0,1])
     #trace = pm.sample(10000, step=[step1, step2], start=start)
     trace = pm.sample(1000, progressbar=True)
-    
-    ess = pm.diagnostics.effective_n(trace)
 
-    print('- ESS: ', ess)
+_ = pm.traceplot(trace[100:], varnames=['tau'])
+
+check_smry = pd.DataFrame(pm.summary(trace))
+    
+ess = pm.diagnostics.effective_n(trace)
+print('- ESS: ', ess)
 
 # Compute the Bayes factor
-prob_pois = trace[0.25*smpls:]['tau'].mean()
+prob_pois = trace[int(0.25*smpls):]['tau'].mean()
 prob_nb = 1 - prob_pois
 BF = (prob_nb/prob_pois)*(prior_model_prob/(1-prior_model_prob))
-print("Bayes Factor: %s" % BF)
+print("\n Bayes Factor: %s" % BF)
 
