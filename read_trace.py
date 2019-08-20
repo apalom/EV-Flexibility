@@ -38,6 +38,7 @@ hours = np.arange(0,24)
 
 allMu = pd.DataFrame(np.zeros((0,0)))
 allYpred = pd.DataFrame(np.zeros((0,0)))
+# NegBino Data Results
 path = 'results/1191993_200k_10ktune_Train20/out_hr'
 
 for h in hours:
@@ -45,12 +46,19 @@ for h in hours:
     # Read in ALL TRACE data
     name = path+str(h)+'.csv'
     dctData[h] = pd.read_csv(name, index_col=[0])
+    dctData[h]['hr'] = h
     allMu = pd.concat([allMu, dctData[h].mu], ignore_index=True)    
     allYpred = pd.concat([allYpred, dctData[h].y_pred], ignore_index=True)    
     
     # Read in summary trace data
     name = path+str(h)+'_smry.csv'
     dctSmry[h] = pd.read_csv(name, index_col=[0])
+
+dctData_All = pd.DataFrame(columns=list(dctData[0]))
+dctSmry_yPred = pd.DataFrame(columns=list(dctSmry[0]))
+for h in hours:
+    dctData_All = dctData_All.append(dctData[h])
+    dctSmry_yPred.loc[h] = dctSmry[h].loc['y_pred']
 
 fig = plt.figure(figsize=(10,6))
 
@@ -66,6 +74,45 @@ plt.title('All y_pred Value Histogram')
 
 plt.tight_layout()
 
+#%% Read-In Test80 Data
+
+dataTest = pd.read_csv('data/hdc_wkdy_TEST80.csv', index_col=[0])
+
+#%% Plot Test Data
+
+daysTest = np.random.choice(int(np.max(dataTest.DayCnt)), 10)
+dfTempTest = dataTest.loc[dataTest.DayCnt.isin(daysTest)]
+
+#%%
+
+fig = plt.figure(figsize=(6,4))
+plt.grid(color='lightgrey', linewidth=0.30)
+
+for d in daysTest:
+    plt.plot(hours,dfTempTest.loc[dfTempTest.DayCnt == d].Connected, '.')
+
+#dataTrnSmpl = dctData_All.sample(240);
+#plt.plot(dataTrnSmpl.hr, dataTrnSmpl['y_pred'])
+
+plt.xticks(hours)    
+plt.tight_layout()
+
+#%% Hourly Scatterplot Jitter
+     
+lm = sns.stripplot(x='Hr', y='y_pred', data=dctData_All.sample(4800),   
+          size=4, alpha=.25, jitter=True, edgecolor='none')
+
+axes = lm.axes
+axes.set_ylim(0,25)
+axes.set_title('Scatter Plot System')
+
+#%% Line Plt from Summary
+
+fig = plt.figure(figsize=(6,4))
+plt.grid(color='lightgrey', linewidth=0.30)
+plt.plot(dctSmry_yPred['mean'])
+plt.plot(dctSmry_yPred['hpd_2.5'])
+plt.plot(dctSmry_yPred['hpd_97.5'])
 
 #%% Plot Gelman-Rubin Stat
 
@@ -90,7 +137,7 @@ for h in [8]:
     
     g = sns.PairGrid(dctData[h], vars=["y_pred", "mu", "alpha"])
     g.map_diag(sns.kdeplot)
-    g.map_offdiag(sns.kdeplot, n_levels=6)
+    g.map_offdiag(sns.kdeplot, n_levels=3)
 
 #%% Hourly Plot Histograms
               
