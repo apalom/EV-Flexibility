@@ -39,7 +39,7 @@ hours = np.arange(0,24)
 allMu = pd.DataFrame(np.zeros((0,0)))
 allYpred = pd.DataFrame(np.zeros((0,0)))
 # NegBino Data Results
-path = 'results/1191993_200k_10ktune_Train20/out_hr'
+#path = 'results/1191993_200k_10ktune_Train20/out_hr'
 
 for h in hours:
     
@@ -91,8 +91,7 @@ plt.grid(color='lightgrey', linewidth=0.30)
 for d in daysTest:
     plt.plot(hours,dfTempTest.loc[dfTempTest.DayCnt == d].Connected, '.')
 
-#dataTrnSmpl = dctData_All.sample(240);
-#plt.plot(dataTrnSmpl.hr, dataTrnSmpl['y_pred'])
+plt.plot(dctSmry_yPred['mean'])
 
 plt.xticks(hours)    
 plt.tight_layout()
