@@ -12,29 +12,28 @@ import pymc3 as pm
 # understand the effects of these factors.
 print('Running ', str(datetime.now()))
 # Import Data
-data = pd.read_csv('hdc_wkdy_TRAIN20.csv',  index_col='Idx');
+data = pd.read_csv('hdc_wkdy80.csv',  index_col='Idx');
 
 # Convert categorical variables to integer
 hours = np.arange(0,24)
-n_hours = len(hours)
 bins16 = np.arange(0,16)
 
-out_yPred = {};
-out_yObs = {};
-trace24 = {};
-smpls = 5000; tunes = 500; target = 0.9;
-print('Params: samples = ', smpls, ' | tune = ', tunes, ' | target = ', target)
+out_trace = {}; out_yPred = {}; out_yObs = {}; trace24 = {};
 
-#%% Houry NegativeBinomial Modeling
+smpls = 10000; tunes = 500; target = 0.9;
+print('hdc_wkdy80.csv | Poisson')
+print('Params: samples = ', smpls, ' | tune = ', tunes, ' | target = ', target, '\n')
+
+#%% Houry Modeling
 for h in hours:
-    print('= = = = = = = = = = = = = = = =l')
+    print('= = = = = = = = = = = = = = = =')
     print('Hour: ', h)
     with pm.Model() as model:
-        hyper_alpha_sd = pm.Uniform('hyper_alpha_sd', lower=0, upper=10)
-        hyper_alpha_mu = pm.Uniform('hyper_alpha_mu', lower=0, upper=25)
+        hyper_alpha_sd = pm.Uniform('hyper_alpha_sd', lower=0, upper=20)
+        hyper_alpha_mu = pm.Uniform('hyper_alpha_mu', lower=0, upper=20)
 
-        hyper_mu_sd = pm.Uniform('hyper_mu_sd', lower=0, upper=10)
-        hyper_mu_mu = pm.Uniform('hyper_mu_mu', lower=0, upper=25)
+        hyper_mu_sd = pm.Uniform('hyper_mu_sd', lower=0, upper=20)
+        hyper_mu_mu = pm.Uniform('hyper_mu_mu', lower=0, upper=20)
 
         alpha = pm.Gamma('alpha', mu=hyper_alpha_mu, sd=hyper_alpha_sd)
         mu = pm.Gamma('mu', mu=hyper_mu_mu, sd=hyper_mu_sd)
@@ -42,10 +41,12 @@ for h in hours:
         y_obs = data[data.Hour==h]['Connected'].values
 
         y_est = pm.Poisson('y_est', mu=mu, observed=y_obs)
-
         y_pred = pm.Poisson('y_pred', mu=mu)
 
-        trace = pm.sample(smpls, tune=tunes, chains=4, progressbar=False, nuts={"target_accept": 0.9})
+        #y_est = pm.NegativeBinomial('y_est', mu=mu, alpha=alpha, observed=y_obs)
+        #y_pred = pm.NegativeBinomial('y_pred', mu=mu, alpha=alpha)
+
+        trace = pm.sample(smpls, tune=tunes, chains=4, progressbar=False, nuts={"target_accept": target})
 
         # Export traceplot
         #trarr = pm.traceplot()
