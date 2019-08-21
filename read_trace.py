@@ -32,14 +32,17 @@ plt.title('NegBino Trace')
 
 #%% Read Trace Plot Mu
 
+dataIN = pd.read_csv('data/hdc_wkdy.csv', index_col=[0])
+
 dctData = {}
 dctSmry = {}
 hours = np.arange(0,24)
 
 allMu = pd.DataFrame(np.zeros((0,0)))
+allAlpha = pd.DataFrame(np.zeros((0,0)))
 allYpred = pd.DataFrame(np.zeros((0,0)))
 # NegBino Data Results
-#path = 'results/1191993_200k_10ktune_Train20/out_hr'
+path = 'results/1198024_100ksmpl_10ktune_NB/out_hr'
 
 for h in hours:
     
@@ -48,6 +51,7 @@ for h in hours:
     dctData[h] = pd.read_csv(name, index_col=[0])
     dctData[h]['hr'] = h
     allMu = pd.concat([allMu, dctData[h].mu], ignore_index=True)    
+    allAlpha = pd.concat([allAlpha, dctData[h].alpha], ignore_index=True)  
     allYpred = pd.concat([allYpred, dctData[h].y_pred], ignore_index=True)    
     
     # Read in summary trace data
@@ -60,17 +64,25 @@ for h in hours:
     dctData_All = dctData_All.append(dctData[h])
     dctSmry_yPred.loc[h] = dctSmry[h].loc['y_pred']
 
+#%% Histogram Plots
+
 fig = plt.figure(figsize=(10,6))
 
 fig.add_subplot(211)
 binsCnt = np.arange(0,np.max(allMu.values)+1)
-plt.hist(allMu.values, bins=binsCnt, density=True, edgecolor='white')
-plt.title('All Mean Value Histogram')
+plt.hist(allMu.values, bins=binsCnt, histtype='step', density=True, edgecolor='blue', lw=1.5, label=r'$ \mu $')
+plt.hist(allAlpha.values, bins=binsCnt, histtype='step', density=True, edgecolor='grey', lw=1.5, label=r'$ \alpha $')
+#plt.xlim(0,25)
+plt.legend()
+plt.title('All Hour NegBino Distribution Parameters')
 
 fig.add_subplot(212)
 bins = np.arange(0,np.max(allYpred.values)+1)
-plt.hist(allYpred.values, bins=binsCnt, density=True,color='red', edgecolor='white')
-plt.title('All y_pred Value Histogram')
+plt.hist(allYpred.values, bins=binsCnt, density=True, color='lightblue', edgecolor='white', label='Predicted')
+plt.hist(dataIN.Connected, bins=binsCnt, histtype='step', density=True, color='blue', lw=1.5, label='Observed')
+plt.xlim(0,16)
+plt.legend()
+plt.title('All Hour NegBino Prediction vs. Observed')
 
 plt.tight_layout()
 
@@ -98,7 +110,7 @@ plt.tight_layout()
 
 #%% Hourly Scatterplot Jitter
      
-lm = sns.stripplot(x='Hr', y='y_pred', data=dctData_All.sample(4800),   
+lm = sns.stripplot(x='hr', y='y_pred', data=dctData_All.sample(4800),   
           size=4, alpha=.25, jitter=True, edgecolor='none')
 
 axes = lm.axes
