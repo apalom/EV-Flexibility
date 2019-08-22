@@ -1,0 +1,282 @@
+/uufs/chpc.utah.edu/common/home/u1141243/.bashrc: line 65: bind: warning: line editing not enabled
+[?1034h/uufs/chpc.utah.edu/common/home/u1141243/.bashrc: line 66: bind: warning: line editing not enabled
+/uufs/chpc.utah.edu/sys/installdir/python/3.6.3/lib/python3.6/site-packages/h5py-2.7.1-py3.6-linux-x86_64.egg/h5py/__init__.py:36: FutureWarning: Conversion of the second argument of issubdtype from `float` to `np.floating` is deprecated. In future, it will be treated as `np.float64 == np.dtype(float).type`.
+  from ._conv import register_converters as _register_converters
+/uufs/chpc.utah.edu/sys/installdir/python/3.6.3/lib/python3.6/site-packages/h5py-2.7.1-py3.6-linux-x86_64.egg/h5py/__init__.py:68: UserWarning: h5py is running against HDF5 1.8.17 when it was built against 1.8.4, this may cause problems
+  '{0}.{1}.{2}'.format(*version.hdf5_built_version_tuple)
+INFO (theano.gof.compilelock): Waiting for existing lock by unknown process (I am process '29518')
+INFO (theano.gof.compilelock): To manually release the lock, delete /uufs/chpc.utah.edu/common/home/u1141243/.theano/compiledir_Linux-3.10-el7.x86_64-x86_64-with-centos-7.6.1810-Core-x86_64-3.6.3-64/lock_dir
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+There were 6470 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.2684008391982247, but should be close to 0.8. Try to increase the number of tuning steps.
+There were 1005 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.6975695289350963, but should be close to 0.8. Try to increase the number of tuning steps.
+There were 1106 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 812 divergences after tuning. Increase `target_accept` or reparameterize.
+The number of effective samples is smaller than 10% for some parameters.
+INFO (theano.gof.compilelock): Waiting for existing lock by unknown process (I am process '29518')
+INFO (theano.gof.compilelock): To manually release the lock, delete /uufs/chpc.utah.edu/common/home/u1141243/.theano/compiledir_Linux-3.10-el7.x86_64-x86_64-with-centos-7.6.1810-Core-x86_64-3.6.3-64/lock_dir
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+There were 490 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 1121 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.6739251330495476, but should be close to 0.8. Try to increase the number of tuning steps.
+There were 9603 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.1964528146129374, but should be close to 0.8. Try to increase the number of tuning steps.
+There were 527 divergences after tuning. Increase `target_accept` or reparameterize.
+The gelman-rubin statistic is larger than 1.05 for some parameters. This indicates slight problems during sampling.
+The estimated number of effective samples is smaller than 200 for some parameters.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+There were 2581 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.5463916077116195, but should be close to 0.8. Try to increase the number of tuning steps.
+There were 1287 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 1240 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.7083539607787039, but should be close to 0.8. Try to increase the number of tuning steps.
+There were 919 divergences after tuning. Increase `target_accept` or reparameterize.
+The estimated number of effective samples is smaller than 200 for some parameters.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+There were 798 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 3788 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.3935386367279337, but should be close to 0.8. Try to increase the number of tuning steps.
+There were 1658 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.6353773085100948, but should be close to 0.8. Try to increase the number of tuning steps.
+There were 515 divergences after tuning. Increase `target_accept` or reparameterize.
+The number of effective samples is smaller than 10% for some parameters.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+There were 2653 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.5065094775508516, but should be close to 0.8. Try to increase the number of tuning steps.
+There were 1776 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.6191480832699686, but should be close to 0.8. Try to increase the number of tuning steps.
+There were 1358 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.6920957318545315, but should be close to 0.8. Try to increase the number of tuning steps.
+There were 391 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.8966524797677256, but should be close to 0.8. Try to increase the number of tuning steps.
+The number of effective samples is smaller than 10% for some parameters.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+There were 603 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 2867 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.47734327352059147, but should be close to 0.8. Try to increase the number of tuning steps.
+There were 6835 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.3376081712680219, but should be close to 0.8. Try to increase the number of tuning steps.
+There were 239 divergences after tuning. Increase `target_accept` or reparameterize.
+The estimated number of effective samples is smaller than 200 for some parameters.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+There were 488 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 3794 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.46736989834972553, but should be close to 0.8. Try to increase the number of tuning steps.
+There were 1189 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 2264 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.5699583177178682, but should be close to 0.8. Try to increase the number of tuning steps.
+The estimated number of effective samples is smaller than 200 for some parameters.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+There were 647 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 573 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 7626 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.21870931321076342, but should be close to 0.8. Try to increase the number of tuning steps.
+There were 808 divergences after tuning. Increase `target_accept` or reparameterize.
+The estimated number of effective samples is smaller than 200 for some parameters.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+There were 1767 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.6514671802119402, but should be close to 0.8. Try to increase the number of tuning steps.
+There were 1271 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.6997785892017387, but should be close to 0.8. Try to increase the number of tuning steps.
+There were 607 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 860 divergences after tuning. Increase `target_accept` or reparameterize.
+The number of effective samples is smaller than 10% for some parameters.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+There were 1050 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.7085125609374797, but should be close to 0.8. Try to increase the number of tuning steps.
+There were 1329 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.6075082599168852, but should be close to 0.8. Try to increase the number of tuning steps.
+There were 646 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 1170 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.6854304216338011, but should be close to 0.8. Try to increase the number of tuning steps.
+The number of effective samples is smaller than 10% for some parameters.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+There were 5116 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.37524758950452985, but should be close to 0.8. Try to increase the number of tuning steps.
+There were 1712 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.6384565948128982, but should be close to 0.8. Try to increase the number of tuning steps.
+There were 899 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 2191 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.5633825576501915, but should be close to 0.8. Try to increase the number of tuning steps.
+The estimated number of effective samples is smaller than 200 for some parameters.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+There were 4663 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.31073063634364045, but should be close to 0.8. Try to increase the number of tuning steps.
+There were 964 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 2041 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.5406167852256581, but should be close to 0.8. Try to increase the number of tuning steps.
+There were 840 divergences after tuning. Increase `target_accept` or reparameterize.
+The number of effective samples is smaller than 10% for some parameters.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+There were 705 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 1875 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.5915556874727826, but should be close to 0.8. Try to increase the number of tuning steps.
+There were 5949 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.3923632076301901, but should be close to 0.8. Try to increase the number of tuning steps.
+There were 3909 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.3873502134412008, but should be close to 0.8. Try to increase the number of tuning steps.
+The estimated number of effective samples is smaller than 200 for some parameters.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+There were 4020 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.34427172612841456, but should be close to 0.8. Try to increase the number of tuning steps.
+There were 894 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 1001 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 9573 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.0017440653082363546, but should be close to 0.8. Try to increase the number of tuning steps.
+The gelman-rubin statistic is larger than 1.2 for some parameters.
+The estimated number of effective samples is smaller than 200 for some parameters.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+There were 1501 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.6009773603449612, but should be close to 0.8. Try to increase the number of tuning steps.
+There were 567 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 623 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 1699 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.6421889248913971, but should be close to 0.8. Try to increase the number of tuning steps.
+The number of effective samples is smaller than 10% for some parameters.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+There were 1943 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.518505439585112, but should be close to 0.8. Try to increase the number of tuning steps.
+There were 1331 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.6001228651799336, but should be close to 0.8. Try to increase the number of tuning steps.
+There were 635 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 1831 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.653602269195418, but should be close to 0.8. Try to increase the number of tuning steps.
+The number of effective samples is smaller than 10% for some parameters.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+There were 884 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 1025 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.6404339297446682, but should be close to 0.8. Try to increase the number of tuning steps.
+There were 5643 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.33810644077121793, but should be close to 0.8. Try to increase the number of tuning steps.
+There were 1489 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.6837512965775433, but should be close to 0.8. Try to increase the number of tuning steps.
+The estimated number of effective samples is smaller than 200 for some parameters.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+There were 762 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 1550 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.6175312904026002, but should be close to 0.8. Try to increase the number of tuning steps.
+There were 797 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 2538 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.5072639903052372, but should be close to 0.8. Try to increase the number of tuning steps.
+The number of effective samples is smaller than 10% for some parameters.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+There were 624 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 3328 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.43017097580165714, but should be close to 0.8. Try to increase the number of tuning steps.
+There were 542 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 770 divergences after tuning. Increase `target_accept` or reparameterize.
+The number of effective samples is smaller than 10% for some parameters.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+There were 3053 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.4719166637940747, but should be close to 0.8. Try to increase the number of tuning steps.
+There were 1123 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 770 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 2004 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.6344961013921008, but should be close to 0.8. Try to increase the number of tuning steps.
+The estimated number of effective samples is smaller than 200 for some parameters.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+There were 1692 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.5619966804040892, but should be close to 0.8. Try to increase the number of tuning steps.
+There were 939 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 769 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 2313 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.49485986004089033, but should be close to 0.8. Try to increase the number of tuning steps.
+The number of effective samples is smaller than 10% for some parameters.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+There were 9621 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.30673544674899184, but should be close to 0.8. Try to increase the number of tuning steps.
+There were 800 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 1017 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 1719 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.568692437280335, but should be close to 0.8. Try to increase the number of tuning steps.
+The gelman-rubin statistic is larger than 1.2 for some parameters.
+The estimated number of effective samples is smaller than 200 for some parameters.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+There were 1686 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.5868533983136489, but should be close to 0.8. Try to increase the number of tuning steps.
+There were 670 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 1835 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.588987264755826, but should be close to 0.8. Try to increase the number of tuning steps.
+There were 550 divergences after tuning. Increase `target_accept` or reparameterize.
+The number of effective samples is smaller than 10% for some parameters.
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+There were 1103 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 1698 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.5644701786838191, but should be close to 0.8. Try to increase the number of tuning steps.
+There were 1451 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.671718543592988, but should be close to 0.8. Try to increase the number of tuning steps.
+There were 818 divergences after tuning. Increase `target_accept` or reparameterize.
+The number of effective samples is smaller than 10% for some parameters.

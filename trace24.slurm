@@ -10,14 +10,14 @@
 
 # run for n minutes
 #              d-hh:mm:ss
-#SBATCH --time=0-06:00:00
+#SBATCH --time=1-00:00:00
 
 # 500MB memory per core
 # this is a hard limit
 # SBATCH --mem-per-cpu=500MB
 
-#SBATCH -o results/slurmjob-%j.out # output reporting (%j=jobnumber %N=node)
-#SBATCH -e results/slurmjob-%j.err # error reporting
+#SBATCH -o results/trace_job-%j.out # output reporting (%j=jobnumber %N=node)
+#SBATCH -e results/trace_job-%j.err # error reporting
 
 #SBATCH --mail-user=alejandro.palomino@utah.edu
 #SBATCH --mail-type=FlAIL,BEGIN,END
@@ -40,7 +40,7 @@ cd ${SCRATCH_DIRECTORY}
 
 # SLURM_SUBMIT_DIR=~/Documents/firstSlurm
 cp ${SLURM_SUBMIT_DIR}/trace24.py ${SCRATCH_DIRECTORY}
-cp ${SLURM_SUBMIT_DIR}/hdc_wkdy_TRAIN20.csv ${SCRATCH_DIRECTORY}
+cp ${SLURM_SUBMIT_DIR}/hdc_wkdy80.csv ${SCRATCH_DIRECTORY}
 
 # each job will see a different ${SLURM_ARRAY_TASK_ID}
 echo "Evaluating $SLURM_JOB_ID at `date`"
@@ -51,10 +51,6 @@ python trace24.py > output.txt
 echo "Finished $SLURM_JOB_ID at `date`"
 
 # after the job is done we copy our output back to $SLURM_SUBMIT_DIR
-#cp output.txt ${SLURM_SUBMIT_DIR}/results
-#cp out_trace.xlsx ${SLURM_SUBMIT_DIR}/results
-#cp out_yObs.csv ${SLURM_SUBMIT_DIR}/results
-#cp out_yPred.csv ${SLURM_SUBMIT_DIR}/results
 cp -r ${SCRATCH_DIRECTORY}/out* ${SLURM_SUBMIT_DIR}/results/${SLURM_JOBID}/
 
 # we step out of the scratch directory and remove it
