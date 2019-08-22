@@ -11,28 +11,16 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import scipy.stats as stats
 from scipy.stats import nbinom, gamma, poisson
-    
-#%% Plot Hourly Value Distributions
-# https://docs.pymc.io/notebooks/GLM-negative-binomial-regression.html
 
-def get_nb_vals(mu, alpha, size):
-    """Generate negative binomially distributed samples by drawing a sample from a gamma 
-    distribution with mean `mu` and shape parameter `alpha', then drawing from a Poisson
-    distribution whose rate parameter is given by the sampled gamma variable."""    
-
-    g = stats.gamma.rvs(alpha, scale=mu / alpha, size=size)
-    return stats.poisson.rvs(g)
-
-mu = trace_smry['mean']['mu']
-alpha = trace_smry['mean']['alpha']
-
-plt.hist(get_nb_vals(mu, alpha, 1000), bins=np.arange(0,16), density=True, edgecolor='white', linewidth=1.2, label='Connected')
-#plt.set(xticks=np.arange(0,26,2), xlim=[-1, 25])
-plt.title('NegBino Trace')
-
-#%% Read Trace Plot Mu
+#%% Read-In Observed and Test80 Data
 
 dataIN = pd.read_csv('data/hdc_wkdy.csv', index_col=[0])
+dataTest = pd.read_csv('data/hdc_wkdy_TEST80.csv', index_col=[0])
+
+daysTest = np.random.choice(int(np.max(dataTest.DayCnt)), 10)
+dfTempTest = dataTest.loc[dataTest.DayCnt.isin(daysTest)]
+
+#%% Read Trace Plot Mu
 
 dctData = {}
 dctSmry = {}
@@ -42,6 +30,7 @@ allMu = pd.DataFrame(np.zeros((0,0)))
 allAlpha = pd.DataFrame(np.zeros((0,0)))
 allYpred = pd.DataFrame(np.zeros((0,0)))
 # NegBino Data Results
+path = 'results/1191993_200k_10ktune_Train20/out_hr'
 path = 'results/1198024_100ksmpl_10ktune_NB/out_hr'
 
 for h in hours:
@@ -77,23 +66,14 @@ plt.legend()
 plt.title('All Hour NegBino Distribution Parameters')
 
 fig.add_subplot(212)
-bins = np.arange(0,np.max(allYpred.values)+1)
-plt.hist(allYpred.values, bins=binsCnt, density=True, color='lightblue', edgecolor='white', label='Predicted')
-plt.hist(dataIN.Connected, bins=binsCnt, histtype='step', density=True, color='blue', lw=1.5, label='Observed')
+binsCnt = np.arange(0,16)
+plt.hist(dataTest.Connected, bins=binsCnt, density=True, color='lightblue', edgecolor='white', label='Observed')
+plt.hist(allYpred.values, bins=binsCnt, histtype='step', density=True, color='blue', lw=1.5, label='Predicted')
 plt.xlim(0,16)
 plt.legend()
 plt.title('All Hour NegBino Prediction vs. Observed')
 
 plt.tight_layout()
-
-#%% Read-In Test80 Data
-
-dataTest = pd.read_csv('data/hdc_wkdy_TEST80.csv', index_col=[0])
-
-#%% Plot Test Data
-
-daysTest = np.random.choice(int(np.max(dataTest.DayCnt)), 10)
-dfTempTest = dataTest.loc[dataTest.DayCnt.isin(daysTest)]
 
 #%%
 
@@ -107,6 +87,54 @@ plt.plot(dctSmry_yPred['mean'])
 
 plt.xticks(hours)    
 plt.tight_layout()
+
+#%% Hourly Plot Histograms
+              
+hours = np.arange(0,24)
+hists = {}
+dim = 'y_pred'
+
+fig, axs = plt.subplots(4, 6, figsize=(12,8), sharex=True, sharey=True) 
+
+r,c = 0,0;
+
+for hr in hours:     
+
+    #kBins = 1 + 3.22*np.log(len(dctData[hr][dim])) #Sturge's Rule for Bin Count
+    hists[hr] = np.histogram(dctData[hr][dim].values, bins=np.arange(16))        
+    
+    print('position', r, c)    
+    axs[r,c].hist(dataIN.loc[dataIN.Hour == hr].Connected, ec='white', fc='lightblue', bins=np.arange(16), density=True) 
+    axs[r,c].hist(dctData[hr][dim].values, histtype='step', ec='blue', lw=1.2, bins=np.arange(16), density=True) 
+    axs[r,c].set_title('Hr: ' + str(hr))
+    
+    # Subplot Spacing
+    c += 1
+    if c >= 6:
+        r += 1;
+        c = 0;
+        if r >= 4:
+            r=0;
+  
+fig.tight_layout()
+fig.suptitle('Hourly Histogram: '+ dim, y = 1.02)
+#xM, bS = int(np.max(dctData[hr][dim])), 4
+xM, bS = 20, 4
+plt.xlim(0,xM)
+plt.xticks(np.arange(0,xM+bS,bS))
+plt.ylim(0,0.4)
+plt.legend(['observed', 'y_pred'])
+plt.show()
+
+#%% Calculate Errors
+
+errHr = pd.DataFrame(index=hours,columns=['Err']);
+for hr in hours:
+    obs = np.histogram(dataIN.loc[dataIN.Hour == hr].Connected, bins=np.arange(16), density=True)[0]
+    pred = np.histogram(dctData[hr][dim].values, bins=np.arange(16), density=True)[0] 
+    errHr.iloc[hr].Err = np.abs(obs-pred)/obs
+
+errHr = errHr[~errHr.isin([np.nan, np.inf, -np.inf]).any(1)]
 
 #%% Hourly Scatterplot Jitter
      
@@ -149,42 +177,6 @@ for h in [8]:
     g = sns.PairGrid(dctData[h], vars=["y_pred", "mu", "alpha"])
     g.map_diag(sns.kdeplot)
     g.map_offdiag(sns.kdeplot, n_levels=3)
-
-#%% Hourly Plot Histograms
-              
-hours = np.arange(0,24)
-hists = {}
-dim = 'y_pred'
-
-fig, axs = plt.subplots(4, 6, figsize=(12,8), sharex=True, sharey=True) 
-
-r,c = 0,0;
-
-for hr in hours:     
-
-    #kBins = 1 + 3.22*np.log(len(dctData[hr][dim])) #Sturge's Rule for Bin Count
-    hists[hr] = np.histogram(dctData[hr][dim].values, bins=np.arange(16))        
-    
-    print('position', r, c)
-    axs[r,c].hist(dctData[hr][dim].values, edgecolor='white', linewidth=0.5, bins=np.arange(16), density=True) 
-    axs[r,c].set_title('Hr: ' + str(hr))
-    
-    # Subplot Spacing
-    c += 1
-    if c >= 6:
-        r += 1;
-        c = 0;
-        if r >= 4:
-            r=0;
-  
-fig.tight_layout()
-fig.suptitle('Hourly Histogram: '+ dim, y = 1.02)
-#xM, bS = int(np.max(dctData[hr][dim])), 4
-xM, bS = 20, 4
-plt.xlim(0,xM)
-plt.xticks(np.arange(0,xM+bS,bS))
-plt.ylim(0,0.5)
-plt.show()
 
 
 #%% Effective Sample Size Function
@@ -243,6 +235,33 @@ def effectiveSampleSize(data, stepSize = 1) :
 esx = effectiveSampleSize(dataX)
 
 print("Effective Size for x: ", esx, " of ", len(dataX), " samples, rate of", esx/len(dataX)*100, "%.")
+
+    
+#%% Plot Hourly Value Distributions
+# https://docs.pymc.io/notebooks/GLM-negative-binomial-regression.html
+
+def get_nb_vals(mu, alpha, size):
+    """Generate negative binomially distributed samples by drawing a sample from a gamma 
+    distribution with mean `mu` and shape parameter `alpha', then drawing from a Poisson
+    distribution whose rate parameter is given by the sampled gamma variable."""    
+
+    g = stats.gamma.rvs(alpha, scale=mu / alpha, size=size)
+    return stats.poisson.rvs(g)
+
+#%%
+#mu = trace_smry['mean']['mu']
+#alpha = trace_smry['mean']['alpha']
+hr = 8
+alpha = dctSmry[hr-1]['mean']['alpha']
+mu = dctSmry[hr-1]['mean']['mu']
+
+plt.hist(dataTest.Connected.loc[dataTest.Hour == hr], ec='white', fc='lightblue', bins=np.arange(16), density=True, label='Observed') 
+plt.hist(get_nb_vals(mu, alpha, 1000), histtype='step', ec='black', bins=np.arange(16), density=True, lw=1.2, label='NB Dist')
+plt.hist(dctData[hr][dim].values, histtype='step', ec='blue', lw=1.2, bins=np.arange(16), density=True, label='Predicted') 
+#plt.set(xticks=np.arange(0,26,2), xlim=[-1, 25])
+plt.ylim(0,0.4)
+plt.legend()
+plt.title('NegBino Trace Hr ' + str(hr))
 
 #%%
 import XlsxWriter

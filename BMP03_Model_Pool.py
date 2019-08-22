@@ -22,8 +22,8 @@ from sklearn import preprocessing
 # "time of day," etc. We can use GLM (generalized linear models) to better 
 # understand the effects of these factors.
 
-# Import Data
-data = pd.read_excel('data/hr_day_cnctd.xlsx',  index_col='Index');
+#%% Import Data
+data = pd.read_csv('data/hdc_wkdy.csv',  index_col='Idx');
 dataNoZero = data.loc[data.Connected>0];
 dataTrain = pd.read_excel(r'data/dfFitsTrain_all.xlsx',  index_col='Index');
 dataTest = pd.read_excel(r'data/dfFitsTest_all.xlsx',  index_col='Index');
@@ -59,18 +59,19 @@ data_idx = le.fit_transform(data.Hour)
 hours = le.classes_
 n_hours = len(hours)
 
-for h in hours:
+for h in [8]:
     print('Hour: ', h)
     with pm.Model() as model:
-        alpha = pm.Uniform('alpha', lower=0, upper=10)
-        mu = pm.Uniform('mu', lower=0, upper=10)
+        alpha = pm.Uniform('alpha', lower=0, upper=20)
+        mu = pm.Uniform('mu', lower=0, upper=20)
         
         y_obs = data[data.Hour==h]['Connected'].values
+        
         y_est = pm.NegativeBinomial('y_est', mu=mu, alpha=alpha, observed=y_obs)
 
         y_pred = pm.NegativeBinomial('y_pred', mu=mu, alpha=alpha)
         
-        trace = pm.sample(10000, progressbar=True)
+        trace = pm.sample(25, progressbar=True)
         
         indiv_traces[h] = trace
 
