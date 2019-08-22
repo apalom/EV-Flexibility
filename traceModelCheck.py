@@ -21,8 +21,8 @@ import statsmodels.api as sm
 import scipy.optimize as so
 import theano.tensor as tt
 
-data = pd.read_csv('hdc_wkdy_TRAIN20.csv', index_col=0)
-smpls = 10000; tunes = 500; target = 0.9;
+data = pd.read_csv('data/hdc_wkdy.csv', index_col=0)
+smpls = 100; tunes = 50; target = 0.9;
 print('Params: samples = ', smpls, ' | tune = ', tunes, ' | target = ', target)
 #%% Model Check II: Bayes Factor... Poisson vs. NegBino
 

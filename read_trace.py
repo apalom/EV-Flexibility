@@ -14,8 +14,8 @@ from scipy.stats import nbinom, gamma, poisson
 
 #%% Read-In Observed and Test80 Data
 
-dataIN = pd.read_csv('data/hdc_wkdy.csv', index_col=[0])
-dataTest = pd.read_csv('data/hdc_wkdy_TEST80.csv', index_col=[0])
+dataIN = pd.read_csv('data/hdc_wkdy20.csv', index_col=[0])
+#dataTest = pd.read_csv('data/hdc_wkdy_TEST80.csv', index_col=[0])
 
 daysTest = np.random.choice(int(np.max(dataTest.DayCnt)), 10)
 dfTempTest = dataTest.loc[dataTest.DayCnt.isin(daysTest)]
@@ -30,8 +30,7 @@ allMu = pd.DataFrame(np.zeros((0,0)))
 allAlpha = pd.DataFrame(np.zeros((0,0)))
 allYpred = pd.DataFrame(np.zeros((0,0)))
 # NegBino Data Results
-path = 'results/1191993_200k_10ktune_Train20/out_hr'
-path = 'results/1198024_100ksmpl_10ktune_NB/out_hr'
+path = 'results/1198114_10k_Poiss_hdc-wkdy80/out_hr'
 
 for h in hours:
     
@@ -92,6 +91,7 @@ plt.tight_layout()
               
 hours = np.arange(0,24)
 hists = {}
+params = pd.DataFrame(index=hours, columns=['mu'])#, 'alpha'])
 dim = 'y_pred'
 
 fig, axs = plt.subplots(4, 6, figsize=(12,8), sharex=True, sharey=True) 
@@ -104,8 +104,14 @@ for hr in hours:
     hists[hr] = np.histogram(dctData[hr][dim].values, bins=np.arange(16))        
     
     print('position', r, c)    
-    axs[r,c].hist(dataIN.loc[dataIN.Hour == hr].Connected, ec='white', fc='lightblue', bins=np.arange(16), density=True) 
-    axs[r,c].hist(dctData[hr][dim].values, histtype='step', ec='blue', lw=1.2, bins=np.arange(16), density=True) 
+    #alpha = dctSmry[hr]['mean']['alpha']
+    mu = dctSmry[hr]['mean']['mu']
+    params.iloc[hr].mu = mu; params.iloc[hr].alpha = alpha; 
+
+    axs[r,c].hist(dataIN.loc[dataIN.Hour == hr].Connected, ec='white', fc='lightblue', bins=np.arange(16), density=True, label='Observed')  
+    #axs[r,c].hist(get_nb_vals(mu, alpha, 1000), histtype='step', ec='black', bins=np.arange(16), density=True, lw=1.2, label='NB Dist')    
+    axs[r,c].hist(get_poiss_vals(mu, 1000), histtype='step', ec='black', bins=np.arange(16), density=True, lw=1.2, label='Poiss Dist')    
+    axs[r,c].hist(dctData[hr][dim].values, histtype='step', ec='blue', lw=1.2, bins=np.arange(16), density=True, label='Predicted') 
     axs[r,c].set_title('Hr: ' + str(hr))
     
     # Subplot Spacing
@@ -123,18 +129,19 @@ xM, bS = 20, 4
 plt.xlim(0,xM)
 plt.xticks(np.arange(0,xM+bS,bS))
 plt.ylim(0,0.4)
-plt.legend(['observed', 'y_pred'])
+plt.legend()
 plt.show()
 
-#%% Calculate Errors
+# Calculate Errors
 
 errHr = pd.DataFrame(index=hours,columns=['Err']);
 for hr in hours:
     obs = np.histogram(dataIN.loc[dataIN.Hour == hr].Connected, bins=np.arange(16), density=True)[0]
     pred = np.histogram(dctData[hr][dim].values, bins=np.arange(16), density=True)[0] 
-    errHr.iloc[hr].Err = np.abs(obs-pred)/obs
-
-errHr = errHr[~errHr.isin([np.nan, np.inf, -np.inf]).any(1)]
+    errHr.iloc[hr].Err = np.abs(obs-pred)
+    errHr.iloc[hr].Err = errHr.iloc[hr].Err[~np.isnan(errHr.iloc[hr].Err)]
+    errHr.iloc[hr].Err = errHr.iloc[hr].Err[~np.isinf(errHr.iloc[hr].Err)]
+    errHr.iloc[hr].Err = np.mean(errHr.iloc[hr].Err)
 
 #%% Hourly Scatterplot Jitter
      
@@ -244,9 +251,13 @@ def get_nb_vals(mu, alpha, size):
     """Generate negative binomially distributed samples by drawing a sample from a gamma 
     distribution with mean `mu` and shape parameter `alpha', then drawing from a Poisson
     distribution whose rate parameter is given by the sampled gamma variable."""    
-
     g = stats.gamma.rvs(alpha, scale=mu / alpha, size=size)
     return stats.poisson.rvs(g)
+
+def get_poiss_vals(mu, size):
+    """Generate poisson distributed samples."""    
+    return stats.gamma.rvs(mu, size=size)
+
 
 #%%
 #mu = trace_smry['mean']['mu']
