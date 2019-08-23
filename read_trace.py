@@ -39,7 +39,7 @@ for h in hours:
     dctData[h] = pd.read_csv(name, index_col=[0])
     dctData[h]['hr'] = h
     allMu = pd.concat([allMu, dctData[h].mu], ignore_index=True)    
-    allAlpha = pd.concat([allAlpha, dctData[h].alpha], ignore_index=True)  
+    #allAlpha = pd.concat([allAlpha, dctData[h].alpha], ignore_index=True)  
     allYpred = pd.concat([allYpred, dctData[h].y_pred], ignore_index=True)    
     
     # Read in summary trace data
@@ -91,7 +91,7 @@ plt.tight_layout()
               
 hours = np.arange(0,24)
 hists = {}
-params = pd.DataFrame(index=hours, columns=['mu', 'alpha'])
+params = pd.DataFrame(index=hours, columns=['mu'])#, 'alpha'])
 dim = 'y_pred'
 
 fig, axs = plt.subplots(4, 6, figsize=(12,8), sharex=True, sharey=True) 
@@ -101,16 +101,16 @@ r,c = 0,0;
 for hr in hours:     
 
     #kBins = 1 + 3.22*np.log(len(dctData[hr][dim])) #Sturge's Rule for Bin Count
-    hists[hr] = np.histogram(dctData[hr][dim].values, bins=np.arange(16))        
+    hists[hr] = np.histogram(dctData[hr][dim].values)#, bins=np.arange(16))        
     
     print('position', r, c)    
-    alpha = dctSmry[hr]['mean']['alpha']
+    #alpha = dctSmry[hr]['mean']['alpha']
     mu = dctSmry[hr]['mean']['mu']
-    params.iloc[hr].mu = mu; params.iloc[hr].alpha = alpha; 
+    params.iloc[hr].mu = mu; #params.iloc[hr].alpha = alpha; 
 
     axs[r,c].hist(dataIN.loc[dataIN.Hour == hr].Connected, ec='white', fc='lightblue', bins=np.arange(16), density=True, label='Observed')  
-    axs[r,c].hist(get_nb_vals(mu, alpha, 1000), histtype='step', ec='black', bins=np.arange(16), density=True, lw=1.2, label='NB Dist')    
-    #axs[r,c].hist(get_poiss_vals(mu, 1000), histtype='step', ec='black', bins=np.arange(16), density=True, lw=1.2, label='Poiss Dist')    
+    #axs[r,c].hist(get_nb_vals(mu, alpha, 1000), histtype='step', ec='black', bins=np.arange(16), density=True, lw=1.2, label='NB Dist')    
+    axs[r,c].hist(get_poiss_vals(mu, 1000), histtype='step', ec='black', bins=np.arange(16), density=True, lw=1.2, label='Poiss Dist')    
     axs[r,c].hist(dctData[hr][dim].values, histtype='step', ec='blue', lw=1.2, bins=np.arange(16), density=True, label='Predicted') 
     axs[r,c].set_title('Hr: ' + str(hr))
     

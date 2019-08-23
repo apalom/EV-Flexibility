@@ -37,14 +37,17 @@ with pm.Model() as model:
     mu_p = pm.Uniform('mu_p', lower=0, upper=16)
 
     # Negative Binomial parameters
-    hyper_alpha_sd = pm.Uniform('hyper_alpha_sd', lower=0, upper=100)
-    hyper_alpha_mu = pm.Uniform('hyper_alpha_mu', lower=0, upper=200)
+    #hyper_alpha_sd = pm.Uniform('hyper_alpha_sd', lower=0, upper=100)
+    #hyper_alpha_mu = pm.Uniform('hyper_alpha_mu', lower=0, upper=200)
 
-    hyper_mu_sd = pm.Uniform('hyper_mu_sd', lower=0, upper=100)
-    hyper_mu_mu = pm.Uniform('hyper_mu_mu', lower=0, upper=200)
+    #hyper_mu_sd = pm.Uniform('hyper_mu_sd', lower=0, upper=100)
+    #hyper_mu_mu = pm.Uniform('hyper_mu_mu', lower=0, upper=200)
 
-    alpha = pm.Gamma('alpha', mu=hyper_alpha_mu, sd=hyper_alpha_sd)
-    mu_nb = pm.Gamma('mu', mu=hyper_mu_mu, sd=hyper_mu_sd)
+    #alpha = pm.Gamma('alpha', mu=hyper_alpha_mu, sd=hyper_alpha_sd)
+    #mu_nb = pm.Gamma('mu', mu=hyper_mu_mu, sd=hyper_mu_sd)
+    
+    alpha = pm.Gamma('alpha', mu=4.50, sd=0.65)
+    mu_nb = pm.Gamma('mu', mu=3.20, sd=1.25)
 
     y_like = pm.DensityDist('y_like',
              lambda value: pm.math.switch(tau,

@@ -66,3 +66,24 @@ for alpha, beta in priors:
 #%%        
 BF_smc = models[1].marginal_likelihood / models[0].marginal_likelihood
 print((BF_smc))
+
+#%% Read Trace from traceModelCheck.py
+
+#path = 'results/1199637_traceCheck/out_hr8_trace.csv'
+
+dataCheck = pd.read_csv('results/1199637_traceCheck/out_hr8_trace.csv', index_col=[0])
+
+with pm.Model() as model:
+
+    # Index to true model
+    prior_model_prob = 0.5
+    #tau = pm.DiscreteUniform('tau', lower=0, upper=1)
+    tau = pm.Bernoulli('tau', prior_model_prob)
+    trace = pm.sample(100, progressbar=True) 
+
+
+
+
+
+
+
