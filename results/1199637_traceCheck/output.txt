@@ -1,0 +1,7 @@
+Params: samples =  1000  | tune =  50  | target =  0.9
+= = = = = = = = = = = = = = = =
+Hour:  8
+prob_pois: 0.0
+prior_model_prob:  0.5
+sum trace tau:  0
+Bayes Factor: inf
