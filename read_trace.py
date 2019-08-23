@@ -14,7 +14,7 @@ from scipy.stats import nbinom, gamma, poisson
 
 #%% Read-In Observed and Test80 Data
 
-dataIN = pd.read_csv('data/hdc_wkdy20.csv', index_col=[0])
+dataIN = pd.read_csv('data/hdc_wkdy80.csv', index_col=[0])
 #dataTest = pd.read_csv('data/hdc_wkdy_TEST80.csv', index_col=[0])
 
 daysTest = np.random.choice(int(np.max(dataTest.DayCnt)), 10)
@@ -30,12 +30,12 @@ allMu = pd.DataFrame(np.zeros((0,0)))
 allAlpha = pd.DataFrame(np.zeros((0,0)))
 allYpred = pd.DataFrame(np.zeros((0,0)))
 # NegBino Data Results
-path = 'results/1198114_10k_Poiss_hdc-wkdy80/out_hr'
+path = 'results/1199600_10k_Poiss_hdc-wkdy20/out_hr'
 
 for h in hours:
     
     # Read in ALL TRACE data
-    name = path+str(h)+'.csv'
+    name = path+str(h)+'_trace.csv'
     dctData[h] = pd.read_csv(name, index_col=[0])
     dctData[h]['hr'] = h
     allMu = pd.concat([allMu, dctData[h].mu], ignore_index=True)    
@@ -91,7 +91,7 @@ plt.tight_layout()
               
 hours = np.arange(0,24)
 hists = {}
-params = pd.DataFrame(index=hours, columns=['mu'])#, 'alpha'])
+params = pd.DataFrame(index=hours, columns=['mu', 'alpha'])
 dim = 'y_pred'
 
 fig, axs = plt.subplots(4, 6, figsize=(12,8), sharex=True, sharey=True) 
@@ -104,13 +104,13 @@ for hr in hours:
     hists[hr] = np.histogram(dctData[hr][dim].values, bins=np.arange(16))        
     
     print('position', r, c)    
-    #alpha = dctSmry[hr]['mean']['alpha']
+    alpha = dctSmry[hr]['mean']['alpha']
     mu = dctSmry[hr]['mean']['mu']
     params.iloc[hr].mu = mu; params.iloc[hr].alpha = alpha; 
 
     axs[r,c].hist(dataIN.loc[dataIN.Hour == hr].Connected, ec='white', fc='lightblue', bins=np.arange(16), density=True, label='Observed')  
-    #axs[r,c].hist(get_nb_vals(mu, alpha, 1000), histtype='step', ec='black', bins=np.arange(16), density=True, lw=1.2, label='NB Dist')    
-    axs[r,c].hist(get_poiss_vals(mu, 1000), histtype='step', ec='black', bins=np.arange(16), density=True, lw=1.2, label='Poiss Dist')    
+    axs[r,c].hist(get_nb_vals(mu, alpha, 1000), histtype='step', ec='black', bins=np.arange(16), density=True, lw=1.2, label='NB Dist')    
+    #axs[r,c].hist(get_poiss_vals(mu, 1000), histtype='step', ec='black', bins=np.arange(16), density=True, lw=1.2, label='Poiss Dist')    
     axs[r,c].hist(dctData[hr][dim].values, histtype='step', ec='blue', lw=1.2, bins=np.arange(16), density=True, label='Predicted') 
     axs[r,c].set_title('Hr: ' + str(hr))
     

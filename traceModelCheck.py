@@ -22,7 +22,7 @@ import scipy.optimize as so
 import theano.tensor as tt
 
 data = pd.read_csv('data/hdc_wkdy.csv', index_col=0)
-smpls = 100; tunes = 50; target = 0.9;
+smpls = 100; tunes = 5; target = 0.9;
 print('Params: samples = ', smpls, ' | tune = ', tunes, ' | target = ', target)
 #%% Model Check II: Bayes Factor... Poisson vs. NegBino
 
@@ -55,9 +55,8 @@ with pm.Model() as model:
 
     trace = pm.sample(smpls, tune=tunes, progressbar=False, nuts={"target_accept":target})
 
-    ess = pm.diagnostics.effective_n(trace)
-
-    print('- ESS: ', ess)
+    #ess = pm.diagnostics.effective_n(trace)
+    #print('- ESS: ', ess)
 
 # Compute the Bayes factor
 prob_pois = trace[int(0.25*smpls):]['tau'].mean()
