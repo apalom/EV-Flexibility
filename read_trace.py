@@ -74,6 +74,30 @@ plt.title('All Hour NegBino Prediction vs. Observed')
 
 plt.tight_layout()
 
+#%% 24 Hour Histogram Plots
+
+fig = plt.figure(figsize=(10,6))
+
+fig.add_subplot(211)
+binsCnt = np.arange(0,np.max(allMu.values)+1)
+plt.hist(allMu.values, bins=binsCnt, histtype='step', density=True, edgecolor='blue', lw=1.5, label=r'$ \mu $')
+#plt.hist(allAlpha.values, bins=binsCnt, histtype='step', density=True, edgecolor='grey', lw=1.5, label=r'$ \alpha $')
+plt.xlim(0,12)
+plt.legend()
+plt.title('All Hour Poisson Distribution Parameters')
+
+fig.add_subplot(212)
+mu = np.mean(allMu)
+binsCnt = np.arange(0,16)
+plt.hist(dataTest.Connected, bins=binsCnt, density=True, color='lightblue', edgecolor='white', label='Observed')
+plt.hist(allYpred.values, bins=binsCnt, histtype='step', density=True, color='blue', lw=1.5, label='Predicted')
+plt.hist(get_poiss_vals(mu, 1000), histtype='step', ec='black', bins=np.arange(16), density=True, lw=1.2, label='Poiss Dist')    
+plt.xlim(0,12)
+plt.legend()
+plt.title('All Hour Poisson Prediction vs. Observed')
+
+plt.tight_layout()
+
 #%%
 
 fig = plt.figure(figsize=(6,4))
@@ -94,7 +118,7 @@ hists = {}
 params = pd.DataFrame(index=hours, columns=['mu'])#, 'alpha'])
 dim = 'y_pred'
 
-fig, axs = plt.subplots(4, 6, figsize=(12,8), sharex=True, sharey=True) 
+fig, axs = plt.subplots(4, 6, figsize=(20,12), sharex=True, sharey=True) 
 
 r,c = 0,0;
 
@@ -258,21 +282,21 @@ def get_poiss_vals(mu, size):
     """Generate poisson distributed samples."""    
     return stats.gamma.rvs(mu, size=size)
 
+#%% Single Hour Plot
+ 
+#alpha = dctSmry[hr]['mean']['alpha']
+mu = dctSmry[hr]['mean']['mu']
+params.iloc[hr].mu = mu; #params.iloc[hr].alpha = alpha; 
 
-#%%
-#mu = trace_smry['mean']['mu']
-#alpha = trace_smry['mean']['alpha']
-hr = 8
-alpha = dctSmry[hr-1]['mean']['alpha']
-mu = dctSmry[hr-1]['mean']['mu']
-
-plt.hist(dataTest.Connected.loc[dataTest.Hour == hr], ec='white', fc='lightblue', bins=np.arange(16), density=True, label='Observed') 
-plt.hist(get_nb_vals(mu, alpha, 1000), histtype='step', ec='black', bins=np.arange(16), density=True, lw=1.2, label='NB Dist')
+plt.hist(dataIN.loc[dataIN.Hour == hr].Connected, ec='white', fc='lightblue', bins=np.arange(16), density=True, label='Observed')  
+#plt.hist(get_nb_vals(mu, alpha, 1000), histtype='step', ec='black', bins=np.arange(16), density=True, lw=1.2, label='NB Dist')    
+plt.hist(get_poiss_vals(mu, 1000), histtype='step', ec='black', bins=np.arange(16), density=True, lw=1.2, label='Poiss Dist')    
 plt.hist(dctData[hr][dim].values, histtype='step', ec='blue', lw=1.2, bins=np.arange(16), density=True, label='Predicted') 
-#plt.set(xticks=np.arange(0,26,2), xlim=[-1, 25])
-plt.ylim(0,0.4)
+plt.title('Hr: ' + str(hr))
+
+plt.ylim(0,0.25)
 plt.legend()
-plt.title('NegBino Trace Hr ' + str(hr))
+plt.title('Poisson Trace Hr ' + str(hr))
 
 #%%
 import XlsxWriter
