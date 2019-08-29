@@ -27,9 +27,12 @@
 
 #load necessary modules
 module purge
-module load python/3.6.3
-export PYTHONPATH=/uufs/chpc.utah.edu/common/home/u1141243/VENV3.6.3/lib/python3.6/site-packages:$PYTHONPATH
-module load intel impi
+module use $HOME/MyModules
+module load miniconda3/latest
+# module load python/3.6.3
+# export PYTHONPATH=/uufs/chpc.utah.edu/common/home/u1141243/VENV3.6.3/lib/python3.6/site-packages:$PYTHONPATH
+# export PYTHONPATH=/uufs/chpc.utah.edu/common/home/u1141243/software/pkg/miniconda3/lib/python3.7/site-packages/:$PYTHONPATH
+# module load intel impi
 
 # define and create a unique scratch directory
 SCRATCH_DIRECTORY=/scratch/general/lustre/${USER}/${SLURM_JOBID}
@@ -40,7 +43,7 @@ cd ${SCRATCH_DIRECTORY}
 
 # SLURM_SUBMIT_DIR=~/Documents/firstSlurm
 cp ${SLURM_SUBMIT_DIR}/trace24.py ${SCRATCH_DIRECTORY}
-cp ${SLURM_SUBMIT_DIR}/hdc_wkdy80.csv ${SCRATCH_DIRECTORY}
+cp ${SLURM_SUBMIT_DIR}/hdc_wkdy20.csv ${SCRATCH_DIRECTORY}
 
 # each job will see a different ${SLURM_ARRAY_TASK_ID}
 echo "Evaluating $SLURM_JOB_ID at `date`"
