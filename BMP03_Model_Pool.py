@@ -9,6 +9,7 @@ https://github.com/markdregan/Bayesian-Modelling-in-Python
 import itertools
 import matplotlib.pyplot as plt
 import numpy as np
+from scipy.stats import norm
 import pandas as pd
 import pymc3 as pm
 import scipy
@@ -23,14 +24,14 @@ from sklearn import preprocessing
 # understand the effects of these factors.
 
 #%% Import Data
-data = pd.read_csv('data/hdc_wkdy.csv',  index_col='Idx');
-dataNoZero = data.loc[data.Connected>0];
-dataTrain = pd.read_excel(r'data/dfFitsTrain_all.xlsx',  index_col='Index');
-dataTest = pd.read_excel(r'data/dfFitsTest_all.xlsx',  index_col='Index');
+data = pd.read_csv('data/hdc_wkdy20.csv',  index_col='Idx');
+#dataNoZero = data.loc[data.Connected>0];
+#dataTrain = pd.read_excel(r'data/dfFitsTrain_all.xlsx',  index_col='Index');
+#dataTest = pd.read_excel(r'data/dfFitsTest_all.xlsx',  index_col='Index');
           
 # Define independent parameters
-X = dataTrain[['Hour','DayWk','isWeekday']].values
-_, num_X = X.shape
+#X = dataTrain[['Hour','DayWk','isWeekday']].values
+#_, num_X = X.shape
 
 #%% Model Pooling
 
@@ -48,6 +49,17 @@ _ = ax.set_ylabel('Hours With')
 
 _ = plt.xticks(rotation=0)
 _ = plt.legend()
+
+#%% Calculate 24 hour normal distributions
+
+hours = np.arange(24)
+paramsNorm = pd.DataFrame(columns=['mu','stddev'])
+
+for h in hours:
+    dfTemp = data.loc[data.Hour == h]
+    paramsNorm.loc[h] = [np.mean(dfTemp.Connected), np.std(dfTemp.Connected)]
+    #paramsNorm.loc[h] = norm.fit(dfTemp.Connected)
+    
 
 #%% For each hour j and each EV connected i, we represent the model
 
@@ -144,7 +156,8 @@ plt.tight_layout()
 
 #%% Hierarchal Model with Hyperparameters
 
-with pm.Model() as model:
+with pm.Model() as model:  
+    
     hyper_alpha_sd = pm.Uniform('hyper_alpha_sd', lower=0, upper=15)
     hyper_alpha_mu = pm.Uniform('hyper_alpha_mu', lower=0, upper=5)
     
@@ -182,19 +195,24 @@ pm.save_trace(trace, 'data/hierarch24.trace')
 # Convert categorical variables to integer
 h_trace24 = {};
 outTrace_h24 = {};
-le = preprocessing.LabelEncoder()
-data_idx = le.fit_transform(data.Hour) 
-hours = le.classes_
-n_hours = len(hours)
+
+hours = np.arange(24)
+hours = [8]
 
 for h in hours:
     print('Hour: ', h)
     with pm.Model() as model:
-        hyper_alpha_sd = pm.Uniform('hyper_alpha_sd', lower=0, upper=15)
-        hyper_alpha_mu = pm.Uniform('hyper_alpha_mu', lower=0, upper=5)
+#        hyper_alpha_sd = pm.Uniform('hyper_alpha_sd', lower=0, upper=15)
+#        hyper_alpha_mu = pm.Uniform('hyper_alpha_mu', lower=0, upper=5)
+#        
+#        hyper_mu_sd = pm.Uniform('hyper_mu_sd', lower=0, upper=10)
+#        hyper_mu_mu = pm.Uniform('hyper_mu_mu', lower=0, upper=5)
         
-        hyper_mu_sd = pm.Uniform('hyper_mu_sd', lower=0, upper=10)
-        hyper_mu_mu = pm.Uniform('hyper_mu_mu', lower=0, upper=5)
+        hyper_alpha_sd = pm.Normal('hyper_alpha_sd', mu=2*paramsNorm.loc[h].stddev)
+        hyper_alpha_mu = pm.Normal('hyper_alpha_mu', mu=paramsNorm.loc[h].stddev)
+        
+        hyper_mu_sd = pm.Normal('hyper_mu_sd', mu=paramsNorm.loc[h].stddev)
+        hyper_mu_mu = pm.Normal('hyper_mu_mu', mu=paramsNorm.loc[h].mu)#, sigma=paramsNorm.loc[h].stddev)
         
         alpha = pm.Gamma('alpha', mu=hyper_alpha_mu, sd=hyper_alpha_sd, shape=n_hours)
         mu = pm.Gamma('mu', mu=hyper_mu_mu, sd=hyper_mu_sd, shape=n_hours)
@@ -209,9 +227,9 @@ for h in hours:
                                      alpha=alpha[data_idx],
                                      shape=data.Hour.shape)
     
-        h_trace = pm.sample(1, progressbar=True)
+        h_trace = pm.sample(1000, tune=50, progressbar=True)
         h_trace24[h] = h_trace;
-        outTrace_h24[h] = list(h_trace24);
+        outTrace_h24[h] = list(h_trace24[h]);
         
 #%%        
     _ = pm.traceplot(h_trace[h][5:], 
