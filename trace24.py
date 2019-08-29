@@ -12,22 +12,22 @@ import pymc3 as pm
 # understand the effects of these factors.
 print('Running ', str(datetime.now()))
 # Import Data
-data = pd.read_csv('hdc_wkdy80.csv',  index_col='Idx');
+data = pd.read_csv('hdc_wkdy20.csv',  index_col='Idx');
 
-# Convert categorical variables to integer
+# Setup vars
 hours = np.arange(0,24)
-bins16 = np.arange(0,16)
-
 out_trace = {}; out_yPred = {}; out_yObs = {}; trace24 = {};
-
 smpls = 10000; tunes = 500; target = 0.9;
-print('hdc_wkdy80.csv | Poisson')
+
+# Print Header
+print('hdc_wkdy20.csv | Poiss')
 print('Params: samples = ', smpls, ' | tune = ', tunes, ' | target = ', target, '\n')
 
 #%% Houry Modeling
 for h in hours:
     print('= = = = = = = = = = = = = = = =')
     print('Hour: ', h)
+
     with pm.Model() as model:
         hyper_alpha_sd = pm.Uniform('hyper_alpha_sd', lower=0, upper=20)
         hyper_alpha_mu = pm.Uniform('hyper_alpha_mu', lower=0, upper=20)
@@ -48,13 +48,15 @@ for h in hours:
 
         trace = pm.sample(smpls, tune=tunes, chains=4, progressbar=False, nuts={"target_accept": target})
 
-        # Export traceplot
-        #trarr = pm.traceplot()
+        # Export traceplotstr(int(h)) +
+        #trarr = pm.traceplot(trace[tunes:])
         #fig = plt.gcf()
-        #fig.savefig("out_tracePlt"+ str(int(h)) +".png")
+        #fig.savefig("out_hr" + str(int(h)) + "_tracePlt" + ".png")
+
+        pm.save_trace(trace, 'out_hr' + str(int(h)) + '.trace')
 
         #trace24[h] = list(trace)
-        trace24[h] = pm.save_trace(trace)
+        #trace24[h] = pm.save_trace(trace)
         ess = pm.diagnostics.effective_n(trace)
 
     print('- ESS: ', ess)
@@ -65,15 +67,15 @@ for h in hours:
     print('Error: ', np.abs(pred-obs)/obs )
 
     out_trace = pd.DataFrame.from_dict(list(trace))
-    name = 'out_hr' + str(int(h)) + '.csv'
+    name = 'out_hr' + str(int(h)) + '_trace.csv'
     out_trace.to_csv(name)
 
     out_smry = pd.DataFrame(pm.summary(trace))
     name = 'out_hr' + str(int(h)) + '_smry.csv'
     out_smry.to_csv(name)
 
-    out_yPred[h] = np.histogram(trace.get_values('y_pred'), bins=bins16)[0]
-    out_yObs[h] = np.histogram(data[data.Hour==h]['Connected'].values, bins=bins16)[0]
+    out_yPred[h] = np.histogram(trace.get_values('y_pred'), bins=np.arange(0,16))[0]
+    out_yObs[h] = np.histogram(data[data.Hour==h]['Connected'].values, bins=np.arange(0,16))[0]
 
 out_yPred = pd.DataFrame(out_yPred)
 out_yObs = pd.DataFrame(out_yObs)
