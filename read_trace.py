@@ -12,6 +12,31 @@ import seaborn as sns
 import scipy.stats as stats
 from scipy.stats import nbinom, gamma, poisson
 
+dataRaw = pd.read_csv('data/hdc_wkdy.csv')
+
+#%% Overdispersion of Data
+
+hours = np.arange(24)
+ratio = []; m = []; v = [];
+
+for h in hours:
+    dfTemp = data.loc[data.Hour==h];
+    ratio.append(np.var(dfTemp.Connected)/np.mean(dfTemp.Connected))
+    m.append(np.mean(dfTemp.Connected))
+    v.append(np.var(dfTemp.Connected))
+    
+#%%plt.plot(hours, ratio)
+ml = 14;    
+plt.rcParams['font.family'] = "Times New Roman"
+plt.figure(figsize=(4,4))
+plt.scatter(m, v, s=12, label='Data')
+plt.plot(np.arange(ml+1),np.arange(ml+1), lw=1, ls='dashed', c='grey', label='Poisson')
+plt.legend()
+plt.grid()
+plt.xlim((0,ml)); plt.ylim((0,ml))
+plt.xlabel('Mean'); plt.ylabel('Variance')
+plt.title('Overdispersion of Data')
+
 #%% Read-In Observed and Test80 Data
 
 dataIN = pd.read_csv('data/hdc_wkdy80.csv', index_col=[0])
