@@ -22,7 +22,7 @@ import statsmodels.api as sm
 import scipy.optimize as so
 import theano.tensor as tt
 
-data = pd.read_csv('data/hdc_wkdy_TRAIN20.csv')
+data = pd.read_csv('data/hdc_wkdy.csv')
 
 #%%
 # (1) Model Check 1: Posterior predictive check
@@ -123,12 +123,14 @@ _ = plt.legend(['$\\mu = %s, \/ \\beta = %s$' % (mu[0], a[0]),
 
 plt.tight_layout()
 
+#%% Overdispersion
+
+
 #%% Plot NegBino Distribution vs. Observed Values
         
 # Conceptually, if the model is a good fit for the underlying data - then the 
 # generated data should resemble the original observed data. PyMC provides a 
 # convenient way to sample from the fitted model.    
-
 
 x_lim = 16
 x = range(x_lim)
