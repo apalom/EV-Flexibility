@@ -37,6 +37,14 @@ plt.xlim((0,ml)); plt.ylim((0,ml))
 plt.xlabel('Mean'); plt.ylabel('Variance')
 plt.title('Overdispersion of Data')
 
+#%% Get 24 hour usage to show temporal stochasticity
+
+usage24hr = {}
+
+for h in hours:
+    totSesh = np.sum(dataRaw.loc[dataRaw.Hour == h].Connected)
+    usage24hr[h] = totSesh   
+
 #%% Read-In Observed and Test80 Data
 
 dataIN = pd.read_csv('data/hdc_wkdy80.csv', index_col=[0])
