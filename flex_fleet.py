@@ -460,33 +460,34 @@ plt.show()
 import scipy
 import seaborn as sns
 from scipy import stats
+plt.rcParams['text.usetex'] = True
 
 #sns.set_color_codes()
 #sns.set_style('darkgrid')
 plt.figure(figsize=(10,8))
 x = dfCln[dim]
-xN = (x - agg_mu)/agg_sigma
+#xN = (x - agg_mu)/agg_sigma
 
-fit_q = stats.kstest(xN, 'norm', args=stats.norm.fit(xN), N=1000)
+fit_q = stats.kstest(x, 'norm', args=stats.norm.fit(x), N=1000)
 ax = sns.distplot(x, fit=stats.norm, kde=False,  
-                  fit_kws={'color':'blue', 'label':'norm: $\chi^2$ =${0:.2g} | p =${1:.2g}'.format(resultsChi['norm'])}) 
+                  fit_kws={'color':'blue', 'label':'norm: $\chi^2$ =${0:.2g}'.format(resultsChi.loc['norm']['chi_square'])}) 
 print('norm: ', fit_q)
 
 fit_q = stats.kstest(x, 'gamma', args=stats.gamma.fit(x), N=1000)
 ax = sns.distplot(x, fit=stats.gamma, hist=False, kde=False,  
-                  fit_kws={'color':'green', 'label':'gamma: $\chi^2$ =${0:.2g} | p =${1:.2g}'.format(resultsChi['gamma'])}
+                  fit_kws={'color':'green', 'label':'gamma: $\chi^2$ =${0:.2g}'.format(resultsChi.loc['gamma']['chi_square'])})
 print('gamma: ', fit_q)
 
 fit_q = stats.kstest(x, 'beta', args=stats.beta.fit(x), N=1000)
 ax = sns.distplot(x, fit=stats.beta, hist=False, kde=False,  
-                  fit_kws={'color':'red', 'label':'beta: $\chi^2$ =${0:.2g} | p =${1:.2g}'.format(resultsChi['beta'])}
+                  fit_kws={'color':'red', 'label':'beta: $\chi^2$ =${0:.2g}'.format(resultsChi.loc['beta']['chi_square'])})
 print('beta: ', fit_q)
 
 
-fit_q = stats.kstest(x, 'skewnorm', args=stats.skewnorm.fit(x), N=1000)
-ax = sns.distplot(x, fit=stats.skewnorm, hist=False, kde=False,  
-                  fit_kws={'color':'grey', 'label':'exp: $\chi^2$ =${0:.2g} | p =${1:.2g}'.format(resultsChi['skewnorm'])}
-print('skewnorm: ', fit_q)
+fit_q = stats.kstest(x, 'expon', args=stats.expon.fit(x), N=1000)
+ax = sns.distplot(x, fit=stats.expon, hist=False, kde=False,  
+                  fit_kws={'color':'grey', 'label':'expon: $\chi^2$ =${0:.2g}'.format(resultsChi.loc['expon']['chi_square'])})
+print('expon: ', fit_q)
 
 ax.legend()
 
