@@ -377,8 +377,9 @@ dfMonday = dfMonday.reset_index(drop=True)
 
 #%% Remove data outside of 2nd standard deviation
 
-dim = 'Duration (h)' 
-stdDev2 = int(dfSLC[dim].quantile(q=0.977))
+#dim = 'Duration (h)' 
+dim = 'Energy (kWh)'
+stdDev2 = np.round((dfSLC[dim].quantile(q=0.977)),0)
 
 dfCln = dfSLC.loc[dfSLC[dim] < stdDev2]
 
@@ -387,15 +388,25 @@ kBins = 1 + 3.22*np.log(len(dfCln))
 print('Number of Bins: ', int(kBins))
 # results approximately in 1 kWh wide bins for Energy
 
-dfCln[dim].plot.hist(grid=True, bins=int(kBins), 
+plt.style.use('ggplot')
+plt.figure(figsize=(12,6))
+
+font = {'family': 'Times New Roman', 'weight': 'light', 'size': 16}
+plt.rc('font', **font)
+
+dfCln[dim].plot.hist(grid=True, bins=np.arange(0,(kBins)), 
                      density=True, rwidth=0.9, color='#607c8e')
+plt.xlabel(dim)
+plt.ylabel('Density')
 
 #%% Hourly Plot Histograms
               
 hrs = np.arange(0,24)
 hists = {}
 
-fig, axs = plt.subplots(4, 6, figsize=(10,8), sharex=True, sharey=True) 
+fig, axs = plt.subplots(4, 6, figsize=(16,12), sharex=True, sharey=True) 
+font = {'family': 'Times New Roman', 'weight': 'normal', 'size': 12}
+plt.rc('font', **font)
 
 r,c = 0,0;
 
@@ -410,8 +421,11 @@ for hr in hrs:
         hists[hr] = np.histogram(0)
     
     print('position', r, c)
-    axs[r,c].hist(df_hr[dim], edgecolor='white', linewidth=0.5, bins=int(kBins), density=True) 
+    axs[r,c].hist(df_hr[dim], edgecolor='white', color='#607c8e', linewidth=0.5, bins=int(kBins), density=True) 
     axs[r,c].set_title('Hr: ' + str(hr))
+    axs[r,c].text(9, 0.35,  str(len(df_hr)) + ' samples')#, ha='center', va='center',)
+    #axs[r,c].set_xlim(0,22)
+    #axs[r,c].set_xticks(np.arange(0,22+4,4))
     
     # Subplot Spacing
     c += 1
@@ -421,12 +435,18 @@ for hr in hrs:
         if r >= 4:
             r=0;
   
-fig.tight_layout()
-fig.suptitle('Hourly Histogram: '+ dim, y = 1.02)
-xM, bS = int(np.max(dfCln[dim])), 2
-plt.xlim(0,xM)
+
+fig.text(0.5, 0.0, 'Energy (kWh)', ha='center')
+fig.text(0.0, 0.5, 'Density', va='center', rotation='vertical')
+
+#fig.suptitle('Hourly Histogram: '+ dim, y = 1.02)
+xM, bS = int(np.max(dfCln[dim])), 4
+#plt.xlim(0,xM)
+#plt.xlim(0,22)
 plt.xticks(np.arange(0,xM+bS,bS))
-plt.ylim(0,1)
+plt.ylim(0,0.4)
+
+fig.tight_layout()
 plt.show()
 
 
