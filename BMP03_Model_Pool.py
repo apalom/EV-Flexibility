@@ -199,40 +199,34 @@ outTrace_h24 = {};
 hours = np.arange(24)
 hours = [8]
 
+n_hours = len(hours)
+
 for h in hours:
     print('Hour: ', h)
     with pm.Model() as model:
-#        hyper_alpha_sd = pm.Uniform('hyper_alpha_sd', lower=0, upper=15)
+        hyper_alpha_sd = pm.Uniform('hyper_alpha_sd', lower=0, upper=15)
 #        hyper_alpha_mu = pm.Uniform('hyper_alpha_mu', lower=0, upper=5)
-#        
-#        hyper_mu_sd = pm.Uniform('hyper_mu_sd', lower=0, upper=10)
-#        hyper_mu_mu = pm.Uniform('hyper_mu_mu', lower=0, upper=5)
-        
-        hyper_alpha_sd = pm.Normal('hyper_alpha_sd', mu=2*paramsNorm.loc[h].stddev)
         hyper_alpha_mu = pm.Normal('hyper_alpha_mu', mu=paramsNorm.loc[h].stddev)
         
-        hyper_mu_sd = pm.Normal('hyper_mu_sd', mu=paramsNorm.loc[h].stddev)
+        hyper_mu_sd = pm.Uniform('hyper_mu_sd', lower=0, upper=10)
+#        hyper_mu_mu = pm.Uniform('hyper_mu_mu', lower=0, upper=5)             
         hyper_mu_mu = pm.Normal('hyper_mu_mu', mu=paramsNorm.loc[h].mu)#, sigma=paramsNorm.loc[h].stddev)
         
-        alpha = pm.Gamma('alpha', mu=hyper_alpha_mu, sd=hyper_alpha_sd, shape=n_hours)
-        mu = pm.Gamma('mu', mu=hyper_mu_mu, sd=hyper_mu_sd, shape=n_hours)
+        alpha1 = pm.Gamma('alpha', mu=hyper_alpha_mu, sd=hyper_alpha_sd)
+        mu1 = pm.Gamma('mu', mu=hyper_mu_mu, sd=hyper_mu_sd) 
         
-        y_est = pm.NegativeBinomial('y_est', 
-                                    mu=mu[data_idx], 
-                                    alpha=alpha[data_idx], 
+        y_est = pm.NegativeBinomial('y_est', mu=mu1, alpha=alpha1, 
                                     observed=data.Connected.values)
         
-        y_pred = pm.NegativeBinomial('y_pred', 
-                                     mu=mu[data_idx], 
-                                     alpha=alpha[data_idx],
-                                     shape=data.Hour.shape)
+        y_pred = pm.NegativeBinomial('y_pred', mu=mu1, alpha=alpha1)
+                                     
     
         h_trace = pm.sample(1000, tune=50, progressbar=True)
         h_trace24[h] = h_trace;
         outTrace_h24[h] = list(h_trace24[h]);
         
-#%%        
-    _ = pm.traceplot(h_trace[h][5:], 
+#%%      
+    _ = pm.traceplot(h_trace[8][5:], 
                  varnames=['mu','alpha','hyper_mu_mu',
                            'hyper_mu_sd','hyper_alpha_mu',
                            'hyper_alpha_sd'])

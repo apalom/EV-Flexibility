@@ -377,25 +377,41 @@ dfMonday = dfMonday.reset_index(drop=True)
 
 #%% Remove data outside of 2nd standard deviation
 
-dim = 'Duration (h)' 
-stdDev2 = int(dfSLC[dim].quantile(q=0.977))
+#dim = 'Duration (h)' 
+dim = 'Energy (kWh)'
+stdDev2 = np.round((dfSLC[dim].quantile(q=0.977)),0)
 
 dfCln = dfSLC.loc[dfSLC[dim] < stdDev2]
+
+agg_mu = np.mean(dfCln[dim].values)
+agg_sigma = np.std(dfCln[dim].values)
 
 # Sturge’s Rule for Bin Count
 kBins = 1 + 3.22*np.log(len(dfCln))
 print('Number of Bins: ', int(kBins))
 # results approximately in 1 kWh wide bins for Energy
 
-dfCln[dim].plot.hist(grid=True, bins=int(kBins), 
+plt.style.use('ggplot')
+plt.figure(figsize=(12,6))
+
+font = {'family': 'Times New Roman', 'weight': 'light', 'size': 16}
+plt.rc('font', **font)
+
+dfCln[dim].plot.hist(grid=True, bins=np.arange(0,(kBins)), 
                      density=True, rwidth=0.9, color='#607c8e')
+                     
+                     
+plt.xlabel(dim)
+plt.ylabel('Density')
 
 #%% Hourly Plot Histograms
               
 hrs = np.arange(0,24)
 hists = {}
 
-fig, axs = plt.subplots(4, 6, figsize=(10,8), sharex=True, sharey=True) 
+fig, axs = plt.subplots(4, 6, figsize=(16,12), sharex=True, sharey=True) 
+font = {'family': 'Times New Roman', 'weight': 'normal', 'size': 12}
+plt.rc('font', **font)
 
 r,c = 0,0;
 
@@ -410,8 +426,11 @@ for hr in hrs:
         hists[hr] = np.histogram(0)
     
     print('position', r, c)
-    axs[r,c].hist(df_hr[dim], edgecolor='white', linewidth=0.5, bins=int(kBins), density=True) 
+    axs[r,c].hist(df_hr[dim], edgecolor='white', color='#E3A79D', linewidth=0.5, bins=int(kBins), density=True) 
     axs[r,c].set_title('Hr: ' + str(hr))
+    axs[r,c].text(9, 0.35,  str(len(df_hr)) + ' samples')#, ha='center', va='center',)
+    #axs[r,c].set_xlim(0,22)
+    #axs[r,c].set_xticks(np.arange(0,22+4,4))
     
     # Subplot Spacing
     c += 1
@@ -421,12 +440,18 @@ for hr in hrs:
         if r >= 4:
             r=0;
   
-fig.tight_layout()
-fig.suptitle('Hourly Histogram: '+ dim, y = 1.02)
-xM, bS = int(np.max(dfCln[dim])), 2
-plt.xlim(0,xM)
+
+fig.text(0.5, 0.0, 'Energy (kWh)', ha='center')
+fig.text(0.0, 0.5, 'Density', va='center', rotation='vertical')
+
+#fig.suptitle('Hourly Histogram: '+ dim, y = 1.02)
+xM, bS = int(np.max(dfCln[dim])), 4
+#plt.xlim(0,xM)
+#plt.xlim(0,22)
 plt.xticks(np.arange(0,xM+bS,bS))
-plt.ylim(0,1)
+plt.ylim(0,0.4)
+
+fig.tight_layout()
 plt.show()
 
 
@@ -435,32 +460,34 @@ plt.show()
 import scipy
 import seaborn as sns
 from scipy import stats
+plt.rcParams['text.usetex'] = True
 
-sns.set_color_codes()
-sns.set_style('darkgrid')
+#sns.set_color_codes()
+#sns.set_style('darkgrid')
 plt.figure(figsize=(10,8))
 x = dfCln[dim]
+#xN = (x - agg_mu)/agg_sigma
 
 fit_q = stats.kstest(x, 'norm', args=stats.norm.fit(x), N=1000)
 ax = sns.distplot(x, fit=stats.norm, kde=False,  
-                  fit_kws={'color':'blue', 'label':'norm: KS =${0:.2g} | p =${1:.2g}'.format(fit_q[0], fit_q[1])})
+                  fit_kws={'color':'blue', 'label':'norm: $\chi^2$ =${0:.2g}'.format(resultsChi.loc['norm']['chi_square'])}) 
 print('norm: ', fit_q)
 
 fit_q = stats.kstest(x, 'gamma', args=stats.gamma.fit(x), N=1000)
 ax = sns.distplot(x, fit=stats.gamma, hist=False, kde=False,  
-                  fit_kws={'color':'green', 'label':'gamma: KS =${0:.2g} | p =${1:.2g}'.format(fit_q[0], fit_q[1])})
+                  fit_kws={'color':'green', 'label':'gamma: $\chi^2$ =${0:.2g}'.format(resultsChi.loc['gamma']['chi_square'])})
 print('gamma: ', fit_q)
 
 fit_q = stats.kstest(x, 'beta', args=stats.beta.fit(x), N=1000)
 ax = sns.distplot(x, fit=stats.beta, hist=False, kde=False,  
-                  fit_kws={'color':'red', 'label':'beta: KS =${0:.2g} | p =${1:.2g}'.format(fit_q[0], fit_q[1])})
+                  fit_kws={'color':'red', 'label':'beta: $\chi^2$ =${0:.2g}'.format(resultsChi.loc['beta']['chi_square'])})
 print('beta: ', fit_q)
 
 
-fit_q = stats.kstest(x, 'skewnorm', args=stats.skewnorm.fit(x), N=1000)
-ax = sns.distplot(x, fit=stats.skewnorm, hist=False, kde=False,  
-                  fit_kws={'color':'grey', 'label':'skewnorm: KS =${0:.2g} | p =${1:.2g}'.format(fit_q[0], fit_q[1])})
-print('skewnorm: ', fit_q)
+fit_q = stats.kstest(x, 'expon', args=stats.expon.fit(x), N=1000)
+ax = sns.distplot(x, fit=stats.expon, hist=False, kde=False,  
+                  fit_kws={'color':'grey', 'label':'expon: $\chi^2$ =${0:.2g}'.format(resultsChi.loc['expon']['chi_square'])})
+print('expon: ', fit_q)
 
 ax.legend()
 
@@ -472,6 +499,101 @@ params_beta = stats.beta.fit(x);
 
 # Beta Params Energy: α, loc, scale 
 params_skewnorm = stats.skewnorm.fit(x);
+
+#%% Test Chi-Square
+# https://pythonhealthcare.org/2018/05/03/81-distribution-fitting-to-data/
+
+import pandas as pd
+import numpy as np
+import scipy
+from sklearn.preprocessing import StandardScaler
+import scipy.stats
+import matplotlib.pyplot as plt
+%matplotlib inline
+# Load data and select first column
+
+from sklearn import datasets
+y=dfCln[dim].values
+
+# Create an index array (x) for data
+x = np.arange(len(y))
+size = len(y)
+
+#plt.hist(y)
+#plt.show()
+
+sc=StandardScaler() 
+yy = y.reshape (-1,1)
+sc.fit(yy)
+y_std =sc.transform(yy)
+y_std = y_std.flatten()
+y_std
+del yy
+
+# Turn off code warnings (this is not recommended for routine use)
+import warnings
+warnings.filterwarnings("ignore")
+
+# Set up list of candidate distributions to use
+# See https://docs.scipy.org/doc/scipy/reference/stats.html for more
+
+dist_names = ['beta',
+              'expon',
+              'gamma',
+              'norm']
+
+# Set up empty lists to stroe results
+chi_square = []
+p_values = []
+
+# Set up 50 bins for chi-square test
+# Observed data will be approximately evenly distrubuted aross all bins
+percentile_bins = np.linspace(0,100,51)
+percentile_cutoffs = np.percentile(y_std, percentile_bins)
+observed_frequency, bins = (np.histogram(y_std, bins=percentile_cutoffs))
+cum_observed_frequency = np.cumsum(observed_frequency)
+
+# Loop through candidate distributions
+
+for distribution in dist_names:
+    # Set up distribution and get fitted distribution parameters
+    dist = getattr(scipy.stats, distribution)
+    param = dist.fit(y_std)
+    
+    # Obtain the KS test P statistic, round it to 5 decimal places
+    p = scipy.stats.kstest(y_std, distribution, args=param)[1]
+    p = np.around(p, 5)
+    p_values.append(p)    
+    
+    # Get expected counts in percentile bins
+    # This is based on a 'cumulative distrubution function' (cdf)
+    cdf_fitted = dist.cdf(percentile_cutoffs, *param[:-2], loc=param[-2], 
+                          scale=param[-1])
+    expected_frequency = []
+    for bin in range(len(percentile_bins)-1):
+        expected_cdf_area = cdf_fitted[bin+1] - cdf_fitted[bin]
+        expected_frequency.append(expected_cdf_area)
+    
+    # calculate chi-squared
+    expected_frequency = np.array(expected_frequency) * size
+    cum_expected_frequency = np.cumsum(expected_frequency)
+    ss = sum (((cum_expected_frequency - cum_observed_frequency) ** 2) / cum_observed_frequency)
+    chi_square.append(ss)
+        
+# Collate results and sort by goodness of fit (best at top)
+
+resultsChi = pd.DataFrame()
+resultsChi['Distribution'] = dist_names
+resultsChi['chi_square'] = chi_square
+resultsChi['p_value'] = p_values
+resultsChi.sort_values(['chi_square'], inplace=True)
+resultsChi = resultsChi.set_index('Distribution')
+    
+# Report results
+
+print ('\nDistributions sorted by goodness of fit:')
+print ('----------------------------------------')
+print (resultsChi)
 
 #%% Margin Plots
 
