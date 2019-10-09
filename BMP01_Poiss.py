@@ -40,6 +40,12 @@ freq_mu = freq_results['x'];
 # works in a hill climbing fashion - starting at a random point on the curve and 
 # incrementally climbing until it cannot get to a higher point.
 
+import seaborn as sns
+plt.style.use('default')
+sns.set_color_codes()
+sns.set_style('darkgrid')
+plt.rcParams["font.family"] = "Times New Roman"
+
 x = np.linspace(1, 5)
 y_min = np.min([poisson_logprob(i, sign=1) for i in x])
 y_max = np.max([poisson_logprob(i, sign=1) for i in x])
@@ -48,11 +54,13 @@ fig = plt.figure(figsize=(6,4))
 _ = plt.plot(x, [poisson_logprob(i, sign=1) for i in x])
 _ = plt.fill_between(x, [poisson_logprob(i, sign=1) for i in x], 
                      y_min, alpha=0.3)
-_ = plt.title('Optimization of $\mu$')
+#_ = plt.title('Poission Parameterization $\mu$')
 _ = plt.xlabel('$\mu$')
-_ = plt.ylabel('Log probability of $\mu$ given data')
+_ = plt.ylabel('Log likelihood of $\mu$ given data')
 _ = plt.vlines(freq_results['x'], y_max, y_min, colors='red', linestyles='dashed')
 _ = plt.scatter(freq_results['x'], y_max, s=110, c='red', zorder=3)
+val = np.round(freq_mu,2)
+_ = plt.text(2.6,-2500,'$\mu$: '+str(np.round(freq_mu,2)))
 _ = plt.ylim(ymin=y_min, ymax=0)
 _ = plt.xlim(xmin=1, xmax=2*freq_mu)
 
