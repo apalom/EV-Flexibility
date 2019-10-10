@@ -15,10 +15,10 @@ print('Running ', str(datetime.now()))
 data = pd.read_csv('hdc_wkdy20.csv',  index_col='Idx');
 
 # Setup vars
-hours = np.arange(0,24)
+hours = np.arange(0,5)
 #hours = [0,4,8,12,16,20]
 out_trace = {}; out_yPred = {}; out_yObs = {}; trace24 = {};
-smpls = 1000; tunes = 50; target = 0.9;
+smpls = 100; tunes = 10; target = 0.9;
 
 # Select Parameters from data
 #params = pd.DataFrame(columns=['mu', 'stddev'])
@@ -31,8 +31,9 @@ smpls = 1000; tunes = 50; target = 0.9;
 print('hdc_wkdy20.csv | Poisson with Normal Prior')
 print('Params: samples = ', smpls, ' | tune = ', tunes, ' | target = ', target, '\n')
 
-#%% Houry Modeling
-for h in hours:
+#% Houry Modeling
+
+for h in [3]:
     print('= = = = = = = = = = = = = = = =')
     print('Hour: ', h)
 
@@ -60,7 +61,7 @@ for h in hours:
         #y_est = pm.NegativeBinomial('y_est', mu=mu, alpha=alpha, observed=y_obs)
         #y_pred = pm.NegativeBinomial('y_pred', mu=mu, alpha=alpha)
 
-        trace = pm.sample(smpls, tune=tunes, chains=4, progressbar=False, nuts={"target_accept": target})
+        trace = pm.sample(smpls, tune=tunes, chains=4, progressbar=True, nuts={"target_accept": target})
 
         # Export traceplotstr(int(h)) +
         #trarr = pm.traceplot(trace[tunes:])
