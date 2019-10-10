@@ -31,7 +31,7 @@ smpls = 100; tunes = 10; target = 0.9;
 print('hdc_wkdy20.csv | Poisson with Normal Prior')
 print('Params: samples = ', smpls, ' | tune = ', tunes, ' | target = ', target, '\n')
 
-#%% Houry Modeling
+#% Houry Modeling
 
 for h in [3]:
     print('= = = = = = = = = = = = = = = =')
