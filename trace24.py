@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import scipy.stats as stats
 import pandas as pd
 import pymc3 as pm
-
+#%%
 # When we want to understand the effect of more factors such as "day of week,"
 # "time of day," etc. We can use GLM (generalized linear models) to better
 # understand the effects of these factors.
@@ -18,7 +18,7 @@ data = pd.read_csv('hdc_wkdy20.csv',  index_col='Idx');
 hours = np.arange(0,24)
 #hours = [0,4,8,12,16,20]
 out_trace = {}; out_yPred = {}; out_yObs = {}; trace24 = {};
-smpls = 5000; tunes = 500; target = 0.9;
+smpls = 1000; tunes = 50; target = 0.9;
 
 # Select Parameters from data
 #params = pd.DataFrame(columns=['mu', 'stddev'])
@@ -42,12 +42,12 @@ for h in hours:
 
     with pm.Model() as model:
         hyper_alpha_sd = pm.Uniform('hyper_alpha_sd', lower=0, upper=20)
-        #hyper_alpha_mu = pm.Uniform('hyper_alpha_mu', lower=0, upper=20)
-        hyper_alpha_mu = pm.Normal('hyper_alpha_mu', mu=hr_std)
+        hyper_alpha_mu = pm.Uniform('hyper_alpha_mu', lower=0, upper=20)
+        #hyper_alpha_mu = pm.Normal('hyper_alpha_mu', mu=hr_std)
 
         hyper_mu_sd = pm.Uniform('hyper_mu_sd', lower=0, upper=20)
-        #hyper_mu_mu = pm.Uniform('hyper_mu_mu', lower=0, upper=20)
-        hyper_mu_mu = pm.Normal('hyper_mu_mu', mu=hr_mean)
+        hyper_mu_mu = pm.Uniform('hyper_mu_mu', lower=0, upper=20)
+        #hyper_mu_mu = pm.Normal('hyper_mu_mu', mu=hr_mean)
 
         alpha = pm.Gamma('alpha', mu=hyper_alpha_mu, sd=hyper_alpha_sd)
         mu = pm.Gamma('mu', mu=hyper_mu_mu, sd=hyper_mu_sd)
@@ -63,11 +63,11 @@ for h in hours:
         trace = pm.sample(smpls, tune=tunes, chains=4, progressbar=False, nuts={"target_accept": target})
 
         # Export traceplotstr(int(h)) +
-        trarr = pm.traceplot(trace[tunes:])
-        fig = plt.gcf()
-        fig.savefig("out_hr" + str(int(h)) + "_tracePlt" + ".png")
+        #trarr = pm.traceplot(trace[tunes:])
+        #fig = plt.gcf()
+        #fig.savefig("out_hr" + str(int(h)) + "_tracePlt" + ".png")
 
-        pm.save_trace(trace, 'out_hr' + str(int(h)) + '.trace')
+        #pm.save_trace(trace, 'out_hr' + str(int(h)) + '.trace')
 
         #trace24[h] = list(trace)
         #trace24[h] = pm.save_trace(trace)
