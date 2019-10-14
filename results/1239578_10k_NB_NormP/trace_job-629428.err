@@ -1,0 +1,318 @@
+/uufs/chpc.utah.edu/common/home/u1141243/.bashrc: line 65: bind: warning: line editing not enabled
+[?1034h/uufs/chpc.utah.edu/common/home/u1141243/.bashrc: line 66: bind: warning: line editing not enabled
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+There were 138 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 64 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 31 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 101 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.7559184786210763, but should be close to 0.9. Try to increase the number of tuning steps.
+The gelman-rubin statistic is larger than 1.05 for some parameters. This indicates slight problems during sampling.
+The estimated number of effective samples is smaller than 200 for some parameters.
+/uufs/chpc.utah.edu/common/home/u1141243/software/pkg/miniconda3/lib/python3.7/site-packages/pymc3/stats.py:991: FutureWarning: The join_axes-keyword is deprecated. Use .reindex or .reindex_like on the result to achieve the same functionality.
+  axis=1, join_axes=[dforg.index])
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+There were 67 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.8201673878040904, but should be close to 0.9. Try to increase the number of tuning steps.
+There were 101 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.7543944815297986, but should be close to 0.9. Try to increase the number of tuning steps.
+There were 55 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 52 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.8292410073329913, but should be close to 0.9. Try to increase the number of tuning steps.
+The estimated number of effective samples is smaller than 200 for some parameters.
+/uufs/chpc.utah.edu/common/home/u1141243/software/pkg/miniconda3/lib/python3.7/site-packages/pymc3/stats.py:991: FutureWarning: The join_axes-keyword is deprecated. Use .reindex or .reindex_like on the result to achieve the same functionality.
+  axis=1, join_axes=[dforg.index])
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+There were 48 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 41 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 27 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 267 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.6025712970744148, but should be close to 0.9. Try to increase the number of tuning steps.
+The estimated number of effective samples is smaller than 200 for some parameters.
+/uufs/chpc.utah.edu/common/home/u1141243/software/pkg/miniconda3/lib/python3.7/site-packages/pymc3/stats.py:991: FutureWarning: The join_axes-keyword is deprecated. Use .reindex or .reindex_like on the result to achieve the same functionality.
+  axis=1, join_axes=[dforg.index])
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+There were 23 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 145 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.7575508355247177, but should be close to 0.9. Try to increase the number of tuning steps.
+There were 382 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.5588116913950234, but should be close to 0.9. Try to increase the number of tuning steps.
+There were 93 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.7528972116004583, but should be close to 0.9. Try to increase the number of tuning steps.
+The gelman-rubin statistic is larger than 1.05 for some parameters. This indicates slight problems during sampling.
+The estimated number of effective samples is smaller than 200 for some parameters.
+/uufs/chpc.utah.edu/common/home/u1141243/software/pkg/miniconda3/lib/python3.7/site-packages/pymc3/stats.py:991: FutureWarning: The join_axes-keyword is deprecated. Use .reindex or .reindex_like on the result to achieve the same functionality.
+  axis=1, join_axes=[dforg.index])
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+There were 17 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.9813800174665461, but should be close to 0.9. Try to increase the number of tuning steps.
+There were 53 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.8262128371541699, but should be close to 0.9. Try to increase the number of tuning steps.
+There were 34 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 432 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.4029949802706558, but should be close to 0.9. Try to increase the number of tuning steps.
+The estimated number of effective samples is smaller than 200 for some parameters.
+/uufs/chpc.utah.edu/common/home/u1141243/software/pkg/miniconda3/lib/python3.7/site-packages/pymc3/stats.py:991: FutureWarning: The join_axes-keyword is deprecated. Use .reindex or .reindex_like on the result to achieve the same functionality.
+  axis=1, join_axes=[dforg.index])
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+There were 390 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.7448505309901448, but should be close to 0.9. Try to increase the number of tuning steps.
+There were 58 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 61 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.8237936504568479, but should be close to 0.9. Try to increase the number of tuning steps.
+There were 31 divergences after tuning. Increase `target_accept` or reparameterize.
+The gelman-rubin statistic is larger than 1.05 for some parameters. This indicates slight problems during sampling.
+The estimated number of effective samples is smaller than 200 for some parameters.
+/uufs/chpc.utah.edu/common/home/u1141243/software/pkg/miniconda3/lib/python3.7/site-packages/pymc3/stats.py:991: FutureWarning: The join_axes-keyword is deprecated. Use .reindex or .reindex_like on the result to achieve the same functionality.
+  axis=1, join_axes=[dforg.index])
+INFO (theano.gof.compilelock): Waiting for existing lock by process '57082' (I am process '56694')
+INFO (theano.gof.compilelock): To manually release the lock, delete /uufs/chpc.utah.edu/common/home/u1141243/.theano/compiledir_Linux-3.10-el7.x86_64-x86_64-with-centos-7.6.1810-Core-x86_64-3.7.3-64/lock_dir
+INFO (theano.gof.compilelock): Waiting for existing lock by process '57082' (I am process '56694')
+INFO (theano.gof.compilelock): To manually release the lock, delete /uufs/chpc.utah.edu/common/home/u1141243/.theano/compiledir_Linux-3.10-el7.x86_64-x86_64-with-centos-7.6.1810-Core-x86_64-3.7.3-64/lock_dir
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+There were 22 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 23 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 7 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 19 divergences after tuning. Increase `target_accept` or reparameterize.
+The estimated number of effective samples is smaller than 200 for some parameters.
+/uufs/chpc.utah.edu/common/home/u1141243/software/pkg/miniconda3/lib/python3.7/site-packages/pymc3/stats.py:991: FutureWarning: The join_axes-keyword is deprecated. Use .reindex or .reindex_like on the result to achieve the same functionality.
+  axis=1, join_axes=[dforg.index])
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+There was 1 divergence after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.9784822836654103, but should be close to 0.9. Try to increase the number of tuning steps.
+There was 1 divergence after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.9652762819956785, but should be close to 0.9. Try to increase the number of tuning steps.
+The chain reached the maximum tree depth. Increase max_treedepth, increase target_accept or reparameterize.
+There were 42 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 10 divergences after tuning. Increase `target_accept` or reparameterize.
+The estimated number of effective samples is smaller than 200 for some parameters.
+/uufs/chpc.utah.edu/common/home/u1141243/software/pkg/miniconda3/lib/python3.7/site-packages/pymc3/stats.py:991: FutureWarning: The join_axes-keyword is deprecated. Use .reindex or .reindex_like on the result to achieve the same functionality.
+  axis=1, join_axes=[dforg.index])
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+There were 6 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.9616029199725112, but should be close to 0.9. Try to increase the number of tuning steps.
+There was 1 divergence after tuning. Increase `target_accept` or reparameterize.
+The chain reached the maximum tree depth. Increase max_treedepth, increase target_accept or reparameterize.
+There were 12 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 5 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.9615998632446023, but should be close to 0.9. Try to increase the number of tuning steps.
+The gelman-rubin statistic is larger than 1.05 for some parameters. This indicates slight problems during sampling.
+The estimated number of effective samples is smaller than 200 for some parameters.
+/uufs/chpc.utah.edu/common/home/u1141243/software/pkg/miniconda3/lib/python3.7/site-packages/pymc3/stats.py:991: FutureWarning: The join_axes-keyword is deprecated. Use .reindex or .reindex_like on the result to achieve the same functionality.
+  axis=1, join_axes=[dforg.index])
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+There were 14 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 4 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 3 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 6 divergences after tuning. Increase `target_accept` or reparameterize.
+The estimated number of effective samples is smaller than 200 for some parameters.
+/uufs/chpc.utah.edu/common/home/u1141243/software/pkg/miniconda3/lib/python3.7/site-packages/pymc3/stats.py:991: FutureWarning: The join_axes-keyword is deprecated. Use .reindex or .reindex_like on the result to achieve the same functionality.
+  axis=1, join_axes=[dforg.index])
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+There were 303 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.7715601380487875, but should be close to 0.9. Try to increase the number of tuning steps.
+There were 41 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 5 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.9642926273068904, but should be close to 0.9. Try to increase the number of tuning steps.
+There were 263 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.782384064723869, but should be close to 0.9. Try to increase the number of tuning steps.
+The gelman-rubin statistic is larger than 1.05 for some parameters. This indicates slight problems during sampling.
+The estimated number of effective samples is smaller than 200 for some parameters.
+/uufs/chpc.utah.edu/common/home/u1141243/software/pkg/miniconda3/lib/python3.7/site-packages/pymc3/stats.py:991: FutureWarning: The join_axes-keyword is deprecated. Use .reindex or .reindex_like on the result to achieve the same functionality.
+  axis=1, join_axes=[dforg.index])
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+There were 12 divergences after tuning. Increase `target_accept` or reparameterize.
+The chain reached the maximum tree depth. Increase max_treedepth, increase target_accept or reparameterize.
+There were 8 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 7 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 10 divergences after tuning. Increase `target_accept` or reparameterize.
+The estimated number of effective samples is smaller than 200 for some parameters.
+/uufs/chpc.utah.edu/common/home/u1141243/software/pkg/miniconda3/lib/python3.7/site-packages/pymc3/stats.py:991: FutureWarning: The join_axes-keyword is deprecated. Use .reindex or .reindex_like on the result to achieve the same functionality.
+  axis=1, join_axes=[dforg.index])
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+There were 2 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 2 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.9913604397669091, but should be close to 0.9. Try to increase the number of tuning steps.
+There were 59 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 11 divergences after tuning. Increase `target_accept` or reparameterize.
+The estimated number of effective samples is smaller than 200 for some parameters.
+/uufs/chpc.utah.edu/common/home/u1141243/software/pkg/miniconda3/lib/python3.7/site-packages/pymc3/stats.py:991: FutureWarning: The join_axes-keyword is deprecated. Use .reindex or .reindex_like on the result to achieve the same functionality.
+  axis=1, join_axes=[dforg.index])
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+There were 33 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 25 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 8 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 6 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.967800063339482, but should be close to 0.9. Try to increase the number of tuning steps.
+The estimated number of effective samples is smaller than 200 for some parameters.
+/uufs/chpc.utah.edu/common/home/u1141243/software/pkg/miniconda3/lib/python3.7/site-packages/pymc3/stats.py:991: FutureWarning: The join_axes-keyword is deprecated. Use .reindex or .reindex_like on the result to achieve the same functionality.
+  axis=1, join_axes=[dforg.index])
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+There were 5 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.9603534114212849, but should be close to 0.9. Try to increase the number of tuning steps.
+There were 10 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 9 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 13 divergences after tuning. Increase `target_accept` or reparameterize.
+The estimated number of effective samples is smaller than 200 for some parameters.
+/uufs/chpc.utah.edu/common/home/u1141243/software/pkg/miniconda3/lib/python3.7/site-packages/pymc3/stats.py:991: FutureWarning: The join_axes-keyword is deprecated. Use .reindex or .reindex_like on the result to achieve the same functionality.
+  axis=1, join_axes=[dforg.index])
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+There were 15 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 5 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.9630011533085125, but should be close to 0.9. Try to increase the number of tuning steps.
+There were 12 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 10 divergences after tuning. Increase `target_accept` or reparameterize.
+The estimated number of effective samples is smaller than 200 for some parameters.
+/uufs/chpc.utah.edu/common/home/u1141243/software/pkg/miniconda3/lib/python3.7/site-packages/pymc3/stats.py:991: FutureWarning: The join_axes-keyword is deprecated. Use .reindex or .reindex_like on the result to achieve the same functionality.
+  axis=1, join_axes=[dforg.index])
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+There were 18 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 23 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 28 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 37 divergences after tuning. Increase `target_accept` or reparameterize.
+The estimated number of effective samples is smaller than 200 for some parameters.
+/uufs/chpc.utah.edu/common/home/u1141243/software/pkg/miniconda3/lib/python3.7/site-packages/pymc3/stats.py:991: FutureWarning: The join_axes-keyword is deprecated. Use .reindex or .reindex_like on the result to achieve the same functionality.
+  axis=1, join_axes=[dforg.index])
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+There were 21 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 12 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 130 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.6963614804076588, but should be close to 0.9. Try to increase the number of tuning steps.
+There were 259 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.6341028486525563, but should be close to 0.9. Try to increase the number of tuning steps.
+The estimated number of effective samples is smaller than 200 for some parameters.
+/uufs/chpc.utah.edu/common/home/u1141243/software/pkg/miniconda3/lib/python3.7/site-packages/pymc3/stats.py:991: FutureWarning: The join_axes-keyword is deprecated. Use .reindex or .reindex_like on the result to achieve the same functionality.
+  axis=1, join_axes=[dforg.index])
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+There were 33 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 32 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 39 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 14 divergences after tuning. Increase `target_accept` or reparameterize.
+The estimated number of effective samples is smaller than 200 for some parameters.
+/uufs/chpc.utah.edu/common/home/u1141243/software/pkg/miniconda3/lib/python3.7/site-packages/pymc3/stats.py:991: FutureWarning: The join_axes-keyword is deprecated. Use .reindex or .reindex_like on the result to achieve the same functionality.
+  axis=1, join_axes=[dforg.index])
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+There were 30 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 363 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.654014535292208, but should be close to 0.9. Try to increase the number of tuning steps.
+There were 20 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 28 divergences after tuning. Increase `target_accept` or reparameterize.
+The gelman-rubin statistic is larger than 1.05 for some parameters. This indicates slight problems during sampling.
+The estimated number of effective samples is smaller than 200 for some parameters.
+/uufs/chpc.utah.edu/common/home/u1141243/software/pkg/miniconda3/lib/python3.7/site-packages/pymc3/stats.py:991: FutureWarning: The join_axes-keyword is deprecated. Use .reindex or .reindex_like on the result to achieve the same functionality.
+  axis=1, join_axes=[dforg.index])
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+There were 24 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 50 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 22 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 35 divergences after tuning. Increase `target_accept` or reparameterize.
+The estimated number of effective samples is smaller than 200 for some parameters.
+/uufs/chpc.utah.edu/common/home/u1141243/software/pkg/miniconda3/lib/python3.7/site-packages/arviz/plots/traceplot.py:185: RuntimeWarning: More than 20 figures have been opened. Figures created through the pyplot interface (`matplotlib.pyplot.figure`) are retained until explicitly closed and may consume too much memory. (To control this warning, see the rcParam `figure.max_open_warning`).
+  len(plotters), 2, squeeze=False, figsize=figsize, constrained_layout=True
+/uufs/chpc.utah.edu/common/home/u1141243/software/pkg/miniconda3/lib/python3.7/site-packages/pymc3/stats.py:991: FutureWarning: The join_axes-keyword is deprecated. Use .reindex or .reindex_like on the result to achieve the same functionality.
+  axis=1, join_axes=[dforg.index])
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+There were 35 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 42 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 38 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 62 divergences after tuning. Increase `target_accept` or reparameterize.
+The estimated number of effective samples is smaller than 200 for some parameters.
+/uufs/chpc.utah.edu/common/home/u1141243/software/pkg/miniconda3/lib/python3.7/site-packages/arviz/plots/traceplot.py:185: RuntimeWarning: More than 20 figures have been opened. Figures created through the pyplot interface (`matplotlib.pyplot.figure`) are retained until explicitly closed and may consume too much memory. (To control this warning, see the rcParam `figure.max_open_warning`).
+  len(plotters), 2, squeeze=False, figsize=figsize, constrained_layout=True
+/uufs/chpc.utah.edu/common/home/u1141243/software/pkg/miniconda3/lib/python3.7/site-packages/pymc3/stats.py:991: FutureWarning: The join_axes-keyword is deprecated. Use .reindex or .reindex_like on the result to achieve the same functionality.
+  axis=1, join_axes=[dforg.index])
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+There were 31 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 59 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 52 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.8245952483668169, but should be close to 0.9. Try to increase the number of tuning steps.
+There were 67 divergences after tuning. Increase `target_accept` or reparameterize.
+The estimated number of effective samples is smaller than 200 for some parameters.
+/uufs/chpc.utah.edu/common/home/u1141243/software/pkg/miniconda3/lib/python3.7/site-packages/arviz/plots/traceplot.py:185: RuntimeWarning: More than 20 figures have been opened. Figures created through the pyplot interface (`matplotlib.pyplot.figure`) are retained until explicitly closed and may consume too much memory. (To control this warning, see the rcParam `figure.max_open_warning`).
+  len(plotters), 2, squeeze=False, figsize=figsize, constrained_layout=True
+/uufs/chpc.utah.edu/common/home/u1141243/software/pkg/miniconda3/lib/python3.7/site-packages/pymc3/stats.py:991: FutureWarning: The join_axes-keyword is deprecated. Use .reindex or .reindex_like on the result to achieve the same functionality.
+  axis=1, join_axes=[dforg.index])
+Multiprocess sampling (4 chains in 4 jobs)
+CompoundStep
+>NUTS: [mu, alpha, hyper_mu_mu, hyper_mu_sd, hyper_alpha_mu, hyper_alpha_sd]
+>Metropolis: [y_pred]
+There were 164 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.6978075572212796, but should be close to 0.9. Try to increase the number of tuning steps.
+There were 92 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.802051085201439, but should be close to 0.9. Try to increase the number of tuning steps.
+There were 45 divergences after tuning. Increase `target_accept` or reparameterize.
+There were 6 divergences after tuning. Increase `target_accept` or reparameterize.
+The acceptance probability does not match the target. It is 0.9890694069163799, but should be close to 0.9. Try to increase the number of tuning steps.
+The estimated number of effective samples is smaller than 200 for some parameters.
+/uufs/chpc.utah.edu/common/home/u1141243/software/pkg/miniconda3/lib/python3.7/site-packages/arviz/plots/traceplot.py:185: RuntimeWarning: More than 20 figures have been opened. Figures created through the pyplot interface (`matplotlib.pyplot.figure`) are retained until explicitly closed and may consume too much memory. (To control this warning, see the rcParam `figure.max_open_warning`).
+  len(plotters), 2, squeeze=False, figsize=figsize, constrained_layout=True
+/uufs/chpc.utah.edu/common/home/u1141243/software/pkg/miniconda3/lib/python3.7/site-packages/pymc3/stats.py:991: FutureWarning: The join_axes-keyword is deprecated. Use .reindex or .reindex_like on the result to achieve the same functionality.
+  axis=1, join_axes=[dforg.index])
