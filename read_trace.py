@@ -441,28 +441,65 @@ plt.title('Negative Binomial Likelihood')
 
 #%% Plot Training Quantiles
 
-ax = sns.relplot(x='Hr', y='y_pred', kind='line',
-                 hue='Dist', 
-                 data=trace_Both.sample(5000))
+s = 10000;
+trace_Smpl = trace_Both.sample(s)
 
-plt.title('Predictive Value Spread')
-plt.legend(title='')
-plt.ylabel('EVs')
 
-#%%
+font = {'family' : 'Times New Roman', 'size'   : 16}
+plt.rc('font', **font)
 
-g = sns.relplot(x="timepoint", y="signal",
-                 hue="event", style="event", col="region",
-                 height=5, aspect=.7, kind="line", data=fmri)
+gTrn = sns.relplot(x='Hr', y='y_pred', kind='line',
+                 hue='Dist', col='Dist', #ci='sd', 
+                 data=trace_Smpl)
 
-#fmri = sns.load_dataset("fmri")
-#ax = sns.lineplot(x="timepoint", y="signal", data=fmri)
+#pltset_title('EV Arrivals')
+plt.ylabel('y_pred')
+plt.xticks(np.arange(0,26,2))
+
+getTrn = pd.DataFrame(np.zeros((24,3)), columns=['Hr','Poisson','NegBino'])
+getTrn.Hr = gTrn.axes.flat[0].lines[0].get_xdata()
+getTrn.Poisson = gTrn.axes.flat[0].lines[0].get_ydata()    
+getTrn.NegBino = gTrn.axes.flat[1].lines[0].get_ydata()
+
+print('\nPoisson SMAPE', SMAPE(getTest[:,1],getTrn.Poisson.values))
+print('NegBino SMAPE', SMAPE(getTest[:,1],getTrn.NegBino.values))
+
+#%% Error Over Samples
+
+for s in [10,100,1000,5000,10000,15000,20000,25000,50000,100000,250000]:
+    
+
+    print('\nPoisson SMAPE', np.round(SMAPE(getTest[:,1],getTrn.Poisson.values),2))
+    print('NegBino SMAPE', np.round(SMAPE(getTest[:,1],getTrn.NegBino.values),2))
 
 #%% Start Prediction vs. Test
 
-dataTest = pd.read_csv('data/hdc_wkdy80.csv', index_col=[0])
+#dataTest = pd.read_csv('data/hdc_wkdy80.csv', index_col=[0])
 
+font = {'family' : 'Times New Roman', 'size'   : 16}
+plt.rc('font', **font)
 
+gTest = sns.relplot(x='Hour', y='Connected', kind='line', color='0.3', markers=True,
+                 data=dataTest)
+
+plt.title('Test Value Spread')
+#plt.legend(title='')
+plt.ylabel('y_test')
+plt.xticks(np.arange(0,26,2))
+
+getTest = np.zeros((24,2))
+i=0;
+for ax in gTest.axes.flat:
+    print (ax.lines)
+    for line in ax.lines:
+        getTest[:,i] = line.get_xdata();
+        getTest[:,i+1] = line.get_ydata();
+    i+=1;
+
+#%% Calculate SMAPE
+    
+def SMAPE(A, F):
+    return 100/len(A) * np.sum(2 * np.abs(F - A) / (np.abs(A) + np.abs(F)))
 
 #%%
 import XlsxWriter
