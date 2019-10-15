@@ -444,7 +444,6 @@ plt.title('Negative Binomial Likelihood')
 s = 10000;
 trace_Smpl = trace_Both.sample(s)
 
-
 font = {'family' : 'Times New Roman', 'size'   : 16}
 plt.rc('font', **font)
 
@@ -466,13 +465,30 @@ print('NegBino SMAPE', SMAPE(getTest[:,1],getTrn.NegBino.values))
 
 #%% Error Over Samples
 
-for s in [10,100,1000,5000,10000,15000,20000,25000,50000,100000,250000]:
+errSMAPE = pd.DataFrame(np.zeros((24,3)), columns=['Samples','Poisson','NegBino'])
+i=0;
+for s in [500,1000,5000,10000,15000,20000,25000,50000,100000,150000,200000,250000,300000,350000,400000,450000]:
+    trace_Smpl = trace_Both.sample(s)
     
+    gTrn = sns.relplot(x='Hr', y='y_pred', kind='line',
+                 hue='Dist', col='Dist', #ci='sd', 
+                 data=trace_Smpl)
+    
+    getTrn = pd.DataFrame(np.zeros((24,3)), columns=['Hr','Poisson','NegBino'])
+    getTrn.Hr = gTrn.axes.flat[0].lines[0].get_xdata()
+    getTrn.NegBino = gTrn.axes.flat[0].lines[0].get_ydata()    
+    getTrn.Poisson = gTrn.axes.flat[1].lines[0].get_ydata()
+    
+    errSMAPE.Samples[i] = s;
+    errSMAPE.Poisson[i] = SMAPE(getTest[:,1],getTrn.Poisson.values);
+    errSMAPE.NegBino[i] = SMAPE(getTest[:,1],getTrn.NegBino.values);
+        
+    print('\nSMAPE with ', s, 'samples.')
+    print('Poisson ', np.round(errSMAPE.Poisson[i],2))
+    print('NegBino ', np.round(errSMAPE.NegBino[i],2))
+    i+=1;
 
-    print('\nPoisson SMAPE', np.round(SMAPE(getTest[:,1],getTrn.Poisson.values),2))
-    print('NegBino SMAPE', np.round(SMAPE(getTest[:,1],getTrn.NegBino.values),2))
-
-#%% Start Prediction vs. Test
+#%% Get Test Data
 
 #dataTest = pd.read_csv('data/hdc_wkdy80.csv', index_col=[0])
 
@@ -495,6 +511,47 @@ for ax in gTest.axes.flat:
         getTest[:,i] = line.get_xdata();
         getTest[:,i+1] = line.get_ydata();
     i+=1;
+
+#%%
+
+plt.scatter(getTest[:,0],getTest[:,1], marker='x', color='k', label='Test')
+
+gTrn = sns.relplot(x='Hr', y='y_pred', kind='line',
+                 hue='Dist', col='Dist', #ci='sd', 
+                 data=trace_Smpl)
+
+#%%
+import matplotlib.pyplot as plt
+import numpy as np
+
+x = np.arange(24)
+q = 0.25;
+
+qnt_Trn = pd.DataFrame(np.zeros((24,8)), columns=['Min','25pct', 'q1', 'Med','Mean', 'q2','75pct','Max'])
+dirPoi = 'results/1239704_10k_Poiss_NormP'; dirNB = 'results/1239578_10k_NB_NormP';
+
+for h in np.arange(24):
+    filename = dirPoi + '/out_hr' + str(h) + '_trace.csv'
+    df = pd.read_csv(filename, index_col=[0], header=0)     
+    qnt_Trn.iloc[h] = [np.min(df.y_pred), np.quantile(df.y_pred, 0.25), np.quantile(df.y_pred, 0.50-q), np.median(df.y_pred), 
+                  np.mean(df.y_pred), np.quantile(df.y_pred, 0.50+q), np.quantile(df.y_pred, 0.75), np.max(df.y_pred)]
+   
+fig, ax = plt.subplots()
+ax.plot(x, qntNB_Trn.Mean, x, qnt_Trn['q2'], color='black', lw=0.5)
+ax.fill_between(x, qnt_Trn.Mean, qnt_Trn['q2'], where=qnt_Trn['q2']>qnt_Trn.Mean, 
+                facecolor='orange', alpha=0.1)
+ax.plot(x, qntNB_Trn.Mean, x, qnt_Trn['q1'], color='black', lw=0.5)
+ax.fill_between(x, qnt_Trn.Mean, qnt_Trn['q1'], where=qnt_Trn['q1']<qnt_Trn.Mean, 
+                facecolor='orange', alpha=0.1)
+
+ax.plot(x, qntNB_Trn.Mean, '--', c='orange', lw=1.5)
+
+plt.scatter(getTest[:,0],getTest[:,1], marker='x', color='k', label='Test')
+
+#ax.set_title('NegBino')
+ax.set_title('Poisson')
+ax.set_xticks(np.arange(0,26,2))
+
 
 #%% Calculate SMAPE
     
