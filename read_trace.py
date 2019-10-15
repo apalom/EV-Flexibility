@@ -331,6 +331,139 @@ plt.ylim(0,0.25)
 plt.legend()
 plt.title('Poisson Trace Hr ' + str(hr))
 
+#%% Read Results
+
+import numpy as np
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+dirPoi = 'results/1239704_10k_Poiss_NormP'
+dirNB = 'results/1239578_10k_NB_NormP'
+
+yPred_Poi = pd.read_csv(dirPoi + '/out_yPred.csv', index_col=[0])
+yPred_NB = pd.read_csv(dirNB + '/out_yPred.csv',  index_col=[0])
+
+
+#%% Read / Organize yPred
+
+yPred_Poi2 = pd.DataFrame(np.zeros((yPred_Poi.size,3)), columns=['EVs','Count','Hr'])
+yPred_NB2 = pd.DataFrame(np.zeros((yPred_NB.size,3)), columns=['EVs','Count','Hr'])
+
+for h in np.arange(24):
+    r = 15*h
+    yPred_Poi2.EVs[r:r+15] = np.arange(0,15)
+    yPred_Poi2.Count[r:r+15] = yPred_Poi.iloc[:,[h]].values.reshape(15)
+    yPred_Poi2.Hr[r:r+15] = h    
+
+for h in np.arange(24):
+    r = 15*h
+    yPred_NB2.EVs[r:r+15] = np.arange(0,15)
+    yPred_NB2.Count[r:r+15] = yPred_NB.iloc[:,[h]].values.reshape(15)
+    yPred_NB2.Hr[r:r+15] = h  
+
+#%% Read / Organize traces
+
+import pandas as pd
+import glob
+
+all_files = glob.glob(dirPoi + "/*trace.csv")
+li = []
+qntNB_Trn = pd.DataFrame(np.zeros((24,6)), columns=['Min','25pct','Med','Mean','75pct','Max'])
+
+for h in np.arange(24):
+    filename = dirPoi + '/out_hr' + str(h) + '_trace.csv'
+    df = pd.read_csv(filename, index_col=[0], header=0)     
+    df['Hr'] = h
+    li.append(df) 
+    qntNB_Trn.iloc[h] = [np.min(df.y_pred), np.quantile(df.y_pred, 0.25), np.median(df.y_pred), np.mean(df.y_pred), np.quantile(df.y_pred, 0.75), np.max(df.y_pred)]
+   
+tracePoi = pd.concat(li, axis=0, ignore_index=True)
+li = []
+qntPoi_Trn = pd.DataFrame(np.zeros((24,6)), columns=['Min','25pct','Med','Mean','75pct','Max'])
+    
+for h in np.arange(24):
+    filename = dirNB + '/out_hr' + str(h) + '_trace.csv'
+    df = pd.read_csv(filename, index_col=[0], header=0) 
+    df['Hr'] = h   
+    li.append(df) 
+    qntPoi_Trn.iloc[h] = [np.min(df.y_pred), np.quantile(df.y_pred, 0.25), np.median(df.y_pred), np.mean(df.y_pred), np.quantile(df.y_pred, 0.75), np.max(df.y_pred)]
+
+traceNB = pd.concat(li, axis=0, ignore_index=True)
+    
+trace_Both = pd.DataFrame(np.zeros((2*len(traceNB),4)), columns=['Hr','y_pred', 'mu', 'Dist'])
+trace_Both.Hr[0:len(traceNB)] = traceNB.Hr
+trace_Both.Hr[len(traceNB):2*len(traceNB)] = tracePoi.Hr
+
+trace_Both.y_pred[0:len(traceNB)] = traceNB.y_pred
+trace_Both.mu[0:len(traceNB)] = traceNB.mu
+trace_Both.Dist[0:len(traceNB)] = 'NegBino'
+
+trace_Both.y_pred[len(traceNB):2*len(traceNB)] = tracePoi.y_pred
+trace_Both.mu[len(traceNB):2*len(traceNB)] = tracePoi.mu
+trace_Both.Dist[len(traceNB):2*len(traceNB)] = 'Poiss'
+
+#%% Split Violin Plot
+
+font = {'family' : 'Times New Roman',
+        'size'   : 16}
+
+plt.rc('font', **font)
+
+plt.figure(figsize=(16,8))
+
+# Draw a nested violinplot and split the violins for easier comparison
+sns.violinplot(x="Hr", y="Value", data=trace_yPred, 
+               hue="Dist", split=True, inner="box",               
+               cut = 0, scale='width', linewidth=1.25)
+
+#plt.ylim(0, 20)
+plt.title('Predictive Value Distributions')
+plt.legend(title='')
+plt.ylabel('EVs')
+
+#%% Violin Plot
+
+yLabel = 'mu'
+
+plt.rcParams['font.family'] = "Times New Roman"
+plt.figure(figsize=(20,8))
+
+sns.violinplot(x="Hr", y=yLabel, data=tracePoi, scale='width', split=True)
+plt.title('Poisson Likelihood')
+
+#% Violin Plot Single Hour
+
+plt.figure(figsize=(20,8))
+
+sns.violinplot(x="Hr", y=yLabel, data=traceNB, scale='width', split=True)
+plt.title('Negative Binomial Likelihood')
+
+#%% Plot Training Quantiles
+
+ax = sns.relplot(x='Hr', y='y_pred', kind='line',
+                 hue='Dist', 
+                 data=trace_Both.sample(5000))
+
+plt.title('Predictive Value Spread')
+plt.legend(title='')
+plt.ylabel('EVs')
+
+#%%
+
+g = sns.relplot(x="timepoint", y="signal",
+                 hue="event", style="event", col="region",
+                 height=5, aspect=.7, kind="line", data=fmri)
+
+#fmri = sns.load_dataset("fmri")
+#ax = sns.lineplot(x="timepoint", y="signal", data=fmri)
+
+#%% Start Prediction vs. Test
+
+dataTest = pd.read_csv('data/hdc_wkdy80.csv', index_col=[0])
+
+
+
 #%%
 import XlsxWriter
 
