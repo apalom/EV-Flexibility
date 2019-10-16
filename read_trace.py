@@ -12,7 +12,8 @@ import seaborn as sns
 import scipy.stats as stats
 from scipy.stats import nbinom, gamma, poisson
 
-dataRaw = pd.read_csv('data/hdc_wkdy.csv')
+dataTest = pd.read_csv('data/hdc_wkdy80.csv',index_col=[0])
+dataTrn = pd.read_csv('data/hdc_wkdy20.csv',index_col=[0])
 
 #%% Overdispersion of Data
 
@@ -455,7 +456,7 @@ gTrn = sns.relplot(x='Hr', y='y_pred', kind='line',
 plt.ylabel('y_pred')
 plt.xticks(np.arange(0,26,2))
 
-getTrn = pd.DataFrame(np.zeros((24,3)), columns=['Hr','Poisson','NegBino'])
+getTrn = pd.DataFrame(np.zeros((24,3)), columns=['Hr','Poisson''Pint','NegBino','NBint'])
 getTrn.Hr = gTrn.axes.flat[0].lines[0].get_xdata()
 getTrn.Poisson = gTrn.axes.flat[0].lines[0].get_ydata()    
 getTrn.NegBino = gTrn.axes.flat[1].lines[0].get_ydata()
@@ -465,52 +466,80 @@ print('NegBino SMAPE', SMAPE(getTest[:,1],getTrn.NegBino.values))
 
 #%% Error Over Samples
 
-errSMAPE = pd.DataFrame(np.zeros((24,3)), columns=['Samples','Poisson','NegBino'])
+err = pd.DataFrame(np.zeros((24,5)), columns=['Samples','PoiSMAPE','NbSMAPE','PoiMAPE','NbMAPE'])
 i=0;
-for s in [500,1000,5000,10000,15000,20000,25000,50000,100000,150000,200000,250000,300000,350000,400000,450000]:
+for s in [10000]:#[500,1000,5000,10000,15000,20000,25000,50000]:#,100000,150000,200000,250000,300000,350000,400000,450000]:
     trace_Smpl = trace_Both.sample(s)
     
     gTrn = sns.relplot(x='Hr', y='y_pred', kind='line',
                  hue='Dist', col='Dist', #ci='sd', 
                  data=trace_Smpl)
     
-    getTrn = pd.DataFrame(np.zeros((24,3)), columns=['Hr','Poisson','NegBino'])
+    getTrn = pd.DataFrame(np.zeros((24,5)), columns=['Hr','Poisson','Pint','NegBino','NBint'])
     getTrn.Hr = gTrn.axes.flat[0].lines[0].get_xdata()
-    getTrn.NegBino = gTrn.axes.flat[0].lines[0].get_ydata()    
+    getTrn.NegBino = gTrn.axes.flat[0].lines[0].get_ydata()
     getTrn.Poisson = gTrn.axes.flat[1].lines[0].get_ydata()
+    getTrn.NBint = np.round(gTrn.axes.flat[0].lines[0].get_ydata(),0)
+    getTrn.Pint = np.round(gTrn.axes.flat[1].lines[0].get_ydata(),0)
     
-    errSMAPE.Samples[i] = s;
-    errSMAPE.Poisson[i] = SMAPE(getTest[:,1],getTrn.Poisson.values);
-    errSMAPE.NegBino[i] = SMAPE(getTest[:,1],getTrn.NegBino.values);
+    err.Samples[i] = s;
+    err.PoiSMAPE[i] = SMAPE(getTest.Int, getTrn.Pint);
+    err.NbSMAPE[i] = SMAPE(getTest.Int, getTrn.NBint);
+    err.PoiMAPE[i] = MAPE(getTest.Int, getTrn.Pint);
+    err.NbMAPE[i] = MAPE(getTest.Int, getTrn.NBint);
         
     print('\nSMAPE with ', s, 'samples.')
-    print('Poisson ', np.round(errSMAPE.Poisson[i],2))
-    print('NegBino ', np.round(errSMAPE.NegBino[i],2))
-    i+=1;
+    print('------ SMAPE MAPE -----')
+    print('Poisson ', np.round(err.PoiSMAPE[i],2), np.round(err.PoiMAPE[i],2))
+    print('NegBino ', np.round(err.NbSMAPE[i],2), np.round(err.NbSMAPE[i],2))
+    i+=1;    
 
-#%% Get Test Data
+#%% Calculate SMAPE
+    
+def SMAPE(A, F):
+    return 100/len(A) * np.sum(2 * np.abs(F - A) / (np.abs(A) + np.abs(F)))
+
+def MAPE(A, F):
+    return 100/len(A) * np.sum(np.abs(F - A) / np.abs(A))
+    
+
+#%% Aggregate of ALL Test Data
 
 #dataTest = pd.read_csv('data/hdc_wkdy80.csv', index_col=[0])
+
+import random    
+daysInTest = list(set(dataTest.DayYr))
+daysInTrn = list(set(dataTrn.DayYr))
+
+daysIn = random.choices(daysInTest, k=2)
+
 
 font = {'family' : 'Times New Roman', 'size'   : 16}
 plt.rc('font', **font)
 
+# Aggrgate of Test Data
+#gTest = sns.relplot(x='Hour', y='Connected', kind='line', color='0.3', markers=True,
+#                 data=dataTest)
+
+# n Days of Test Data
 gTest = sns.relplot(x='Hour', y='Connected', kind='line', color='0.3', markers=True,
-                 data=dataTest)
+                 data=dataTest.where(dataTest.DayYr.isin(daysIn)) )
 
 plt.title('Test Value Spread')
 #plt.legend(title='')
 plt.ylabel('y_test')
 plt.xticks(np.arange(0,26,2))
 
-getTest = np.zeros((24,2))
+getTest = pd.DataFrame(np.zeros((24,3)), columns=['Hr','Value','Int'])
 i=0;
 for ax in gTest.axes.flat:
     print (ax.lines)
     for line in ax.lines:
-        getTest[:,i] = line.get_xdata();
-        getTest[:,i+1] = line.get_ydata();
+        getTest.Hr = line.get_xdata();
+        getTest.Value = line.get_ydata();
     i+=1;
+    
+getTest.Int = np.round(getTest.Value,0)
 
 #%%
 
@@ -520,43 +549,38 @@ gTrn = sns.relplot(x='Hr', y='y_pred', kind='line',
                  hue='Dist', col='Dist', #ci='sd', 
                  data=trace_Smpl)
 
-#%%
+#%% Fill Plot 
+
 import matplotlib.pyplot as plt
 import numpy as np
 
 x = np.arange(24)
-q = 0.25;
+q = 0.10;
 
 qnt_Trn = pd.DataFrame(np.zeros((24,8)), columns=['Min','25pct', 'q1', 'Med','Mean', 'q2','75pct','Max'])
 dirPoi = 'results/1239704_10k_Poiss_NormP'; dirNB = 'results/1239578_10k_NB_NormP';
 
 for h in np.arange(24):
-    filename = dirPoi + '/out_hr' + str(h) + '_trace.csv'
+    filename = dirNB + '/out_hr' + str(h) + '_trace.csv'
     df = pd.read_csv(filename, index_col=[0], header=0)     
     qnt_Trn.iloc[h] = [np.min(df.y_pred), np.quantile(df.y_pred, 0.25), np.quantile(df.y_pred, 0.50-q), np.median(df.y_pred), 
                   np.mean(df.y_pred), np.quantile(df.y_pred, 0.50+q), np.quantile(df.y_pred, 0.75), np.max(df.y_pred)]
    
-fig, ax = plt.subplots()
-ax.plot(x, qntNB_Trn.Mean, x, qnt_Trn['q2'], color='black', lw=0.5)
-ax.fill_between(x, qnt_Trn.Mean, qnt_Trn['q2'], where=qnt_Trn['q2']>qnt_Trn.Mean, 
+fig, ax = plt.subplots(figsize=(12,8))
+ax.plot(x, qntNB_Trn.Med, x, qnt_Trn['q2'], color='black', lw=0.5)
+ax.fill_between(x, qnt_Trn.Med, qnt_Trn['q2'], where=qnt_Trn['q2']>qnt_Trn.Med, 
                 facecolor='orange', alpha=0.1)
-ax.plot(x, qntNB_Trn.Mean, x, qnt_Trn['q1'], color='black', lw=0.5)
-ax.fill_between(x, qnt_Trn.Mean, qnt_Trn['q1'], where=qnt_Trn['q1']<qnt_Trn.Mean, 
+ax.plot(x, qntNB_Trn.Med, x, qnt_Trn['q1'], color='black', lw=0.5)
+ax.fill_between(x, qnt_Trn.Med, qnt_Trn['q1'], where=qnt_Trn['q1']<qnt_Trn.Med, 
                 facecolor='orange', alpha=0.1)
 
-ax.plot(x, qntNB_Trn.Mean, '--', c='orange', lw=1.5)
+ax.plot(x, qntNB_Trn.Med, '--', c='orange', lw=2)
 
-plt.scatter(getTest[:,0],getTest[:,1], marker='x', color='k', label='Test')
+plt.scatter(x,getTest[:,2], marker='x', color='k', label='Test')
 
 #ax.set_title('NegBino')
 ax.set_title('Poisson')
 ax.set_xticks(np.arange(0,26,2))
-
-
-#%% Calculate SMAPE
-    
-def SMAPE(A, F):
-    return 100/len(A) * np.sum(2 * np.abs(F - A) / (np.abs(A) + np.abs(F)))
 
 #%%
 import XlsxWriter
