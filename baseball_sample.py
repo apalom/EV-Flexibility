@@ -3,6 +3,7 @@
 Created on Mon Oct 21 17:10:07 2019
 
 @author: Alex
+https://docs.pymc.io/notebooks/hierarchical_partial_pooling.html
 """
 
 import pymc3 as pm
