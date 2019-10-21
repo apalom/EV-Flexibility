@@ -2,15 +2,13 @@
 
 from datetime import datetime
 import numpy as np
-import matplotlib.pyplot as plt
-import scipy.stats as stats
 import pandas as pd
 import pymc3 as pm
 
 # When we want to understand the effect of more factors such as "day of week,"
 # "time of day," etc. We can use GLM (generalized linear models) to better
 # understand the effects of these factors.
-print('Running ', str(datetime.now()))
+print('Running ', str(datetime.now()), '\n')
 # Import Data
 data = pd.read_csv('hdc_wkdy20.csv',  index_col='Idx');
 
@@ -18,7 +16,7 @@ data = pd.read_csv('hdc_wkdy20.csv',  index_col='Idx');
 hours = np.arange(0,5)
 #hours = [0,4,8,12,16,20]
 out_trace = {}; out_yPred = {}; out_yObs = {}; trace24 = {};
-smpls = 100; tunes = 10; target = 0.9;
+smpls = 10; tunes = 1; target = 0.9;
 
 # Select Parameters from data
 #params = pd.DataFrame(columns=['mu', 'stddev'])
@@ -26,12 +24,13 @@ smpls = 100; tunes = 10; target = 0.9;
 #    dfTemp = data.loc[data.Hour == h]
 #    params.loc[h] = [np.mean(dfTemp.Connected), np.std(dfTemp.Connected)]
 
+
 # Print Header
 #print('hdc_wkdy20.csv | NB with Normal Prior')
 print('hdc_wkdy20.csv | Poisson with Normal Prior')
 print('Params: samples = ', smpls, ' | tune = ', tunes, ' | target = ', target, '\n')
 
-#% Houry Modeling
+#%% Houry Modeling
 
 for h in [3]:
     print('= = = = = = = = = = = = = = = =')
@@ -41,38 +40,39 @@ for h in [3]:
     hr_mean = np.mean(dfTemp.Connected)
     hr_std = np.std(dfTemp.Connected)
             
-    with pm.Model() as model:
-        hyper_alpha_sd = pm.Uniform('hyper_alpha_sd', lower=0, upper=20)
-        #hyper_alpha_mu = pm.Uniform('hyper_alpha_mu', lower=0, upper=20)
-        hyper_alpha_mu = pm.Normal('hyper_alpha_mu', mu=hr_std)
-
-        hyper_mu_sd = pm.Uniform('hyper_mu_sd', lower=0, upper=20)
-        #hyper_mu_mu = pm.Uniform('hyper_mu_mu', lower=0, upper=20)
-        hyper_mu_mu = pm.Normal('hyper_mu_mu', mu=hr_mean)
-
-        alpha = pm.Gamma('alpha', mu=hyper_alpha_mu, sd=hyper_alpha_sd)
-        mu = pm.Gamma('mu', mu=hyper_mu_mu, sd=hyper_mu_sd)
-
-        y_obs = data[data.Hour==h]['Connected'].values
-
-        y_est = pm.Poisson('y_est', mu=mu, observed=y_obs)
-        y_pred = pm.Poisson('y_pred', mu=mu)
-
-        #y_est = pm.NegativeBinomial('y_est', mu=mu, alpha=alpha, observed=y_obs)
-        #y_pred = pm.NegativeBinomial('y_pred', mu=mu, alpha=alpha)
-
-        trace = pm.sample(smpls, tune=tunes, chains=4, progressbar=True, nuts={"target_accept": target})
-
-        # Export traceplotstr(int(h)) +
-        #trarr = pm.traceplot(trace[tunes:])
-        #fig = plt.gcf()
-        #fig.savefig("out_hr" + str(int(h)) + "_tracePlt" + ".png")
-
-        pm.save_trace(trace, 'out_hr' + str(int(h)) + '.trace')
-
-        #trace24[h] = list(trace)
-        #trace24[h] = pm.save_trace(trace)
-        ess = pm.diagnostics.effective_n(trace)
+    if __name__ == '__main__':
+        with pm.Model() as model:
+            hyper_alpha_sd = pm.Uniform('hyper_alpha_sd', lower=0, upper=20)
+            #hyper_alpha_mu = pm.Uniform('hyper_alpha_mu', lower=0, upper=20)
+            hyper_alpha_mu = pm.Normal('hyper_alpha_mu', mu=hr_std)
+    
+            hyper_mu_sd = pm.Uniform('hyper_mu_sd', lower=0, upper=20)
+            #hyper_mu_mu = pm.Uniform('hyper_mu_mu', lower=0, upper=20)
+            hyper_mu_mu = pm.Normal('hyper_mu_mu', mu=hr_mean)
+    
+            alpha = pm.Gamma('alpha', mu=hyper_alpha_mu, sd=hyper_alpha_sd)
+            mu = pm.Gamma('mu', mu=hyper_mu_mu, sd=hyper_mu_sd)
+    
+            y_obs = data[data.Hour==h]['Connected'].values
+    
+            y_est = pm.Poisson('y_est', mu=mu, observed=y_obs)
+            y_pred = pm.Poisson('y_pred', mu=mu)
+    
+            #y_est = pm.NegativeBinomial('y_est', mu=mu, alpha=alpha, observed=y_obs)
+            #y_pred = pm.NegativeBinomial('y_pred', mu=mu, alpha=alpha)
+    
+            trace = pm.sample(smpls, tune=tunes, chains=4, progressbar=True, nuts={"target_accept": target})
+    
+            # Export traceplotstr(int(h)) +
+            #trarr = pm.traceplot(trace[tunes:])
+            #fig = plt.gcf()
+            #fig.savefig("out_hr" + str(int(h)) + "_tracePlt" + ".png")
+    
+            #pm.save_trace(trace, 'out_hr' + str(int(h)) + '.trace')
+    
+            #trace24[h] = list(trace)
+            #trace24[h] = pm.save_trace(trace)
+            ess = pm.diagnostics.effective_n(trace)
 
     print('- ESS: ', ess)
     obs = np.mean(data[data.Hour==h]['Connected'].values)
