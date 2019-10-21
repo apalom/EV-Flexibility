@@ -4,7 +4,7 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 import pymc3 as pm
-
+#%%
 # When we want to understand the effect of more factors such as "day of week,"
 # "time of day," etc. We can use GLM (generalized linear models) to better
 # understand the effects of these factors.
@@ -39,40 +39,39 @@ for h in [3]:
     dfTemp = data.loc[data.Hour == h]
     hr_mean = np.mean(dfTemp.Connected)
     hr_std = np.std(dfTemp.Connected)
-            
-    if __name__ == '__main__':
-        with pm.Model() as model:
-            hyper_alpha_sd = pm.Uniform('hyper_alpha_sd', lower=0, upper=20)
-            #hyper_alpha_mu = pm.Uniform('hyper_alpha_mu', lower=0, upper=20)
-            hyper_alpha_mu = pm.Normal('hyper_alpha_mu', mu=hr_std)
-    
-            hyper_mu_sd = pm.Uniform('hyper_mu_sd', lower=0, upper=20)
-            #hyper_mu_mu = pm.Uniform('hyper_mu_mu', lower=0, upper=20)
-            hyper_mu_mu = pm.Normal('hyper_mu_mu', mu=hr_mean)
-    
-            alpha = pm.Gamma('alpha', mu=hyper_alpha_mu, sd=hyper_alpha_sd)
-            mu = pm.Gamma('mu', mu=hyper_mu_mu, sd=hyper_mu_sd)
-    
-            y_obs = data[data.Hour==h]['Connected'].values
-    
-            y_est = pm.Poisson('y_est', mu=mu, observed=y_obs)
-            y_pred = pm.Poisson('y_pred', mu=mu)
-    
-            #y_est = pm.NegativeBinomial('y_est', mu=mu, alpha=alpha, observed=y_obs)
-            #y_pred = pm.NegativeBinomial('y_pred', mu=mu, alpha=alpha)
-    
-            trace = pm.sample(smpls, tune=tunes, chains=4, progressbar=True, nuts={"target_accept": target})
-    
-            # Export traceplotstr(int(h)) +
-            #trarr = pm.traceplot(trace[tunes:])
-            #fig = plt.gcf()
-            #fig.savefig("out_hr" + str(int(h)) + "_tracePlt" + ".png")
-    
-            #pm.save_trace(trace, 'out_hr' + str(int(h)) + '.trace')
-    
-            #trace24[h] = list(trace)
-            #trace24[h] = pm.save_trace(trace)
-            ess = pm.diagnostics.effective_n(trace)
+
+    with pm.Model() as model:
+        hyper_alpha_sd = pm.Uniform('hyper_alpha_sd', lower=0, upper=20)
+        hyper_alpha_mu = pm.Uniform('hyper_alpha_mu', lower=0, upper=20)
+        #hyper_alpha_mu = pm.Normal('hyper_alpha_mu', mu=hr_std)
+
+        hyper_mu_sd = pm.Uniform('hyper_mu_sd', lower=0, upper=20)
+        hyper_mu_mu = pm.Uniform('hyper_mu_mu', lower=0, upper=20)
+        #hyper_mu_mu = pm.Normal('hyper_mu_mu', mu=hr_mean)
+
+        alpha = pm.Gamma('alpha', mu=hyper_alpha_mu, sd=hyper_alpha_sd)
+        mu = pm.Gamma('mu', mu=hyper_mu_mu, sd=hyper_mu_sd)
+
+        y_obs = data[data.Hour==h]['Connected'].values
+
+        y_est = pm.Poisson('y_est', mu=mu, observed=y_obs)
+        y_pred = pm.Poisson('y_pred', mu=mu)
+
+        #y_est = pm.NegativeBinomial('y_est', mu=mu, alpha=alpha, observed=y_obs)
+        #y_pred = pm.NegativeBinomial('y_pred', mu=mu, alpha=alpha)
+
+        trace = pm.sample(smpls, tune=tunes, chains=4, progressbar=True, nuts={"target_accept": target})
+
+        # Export traceplotstr(int(h)) +
+        #trarr = pm.traceplot(trace[tunes:])
+        #fig = plt.gcf()
+        #fig.savefig("out_hr" + str(int(h)) + "_tracePlt" + ".png")
+
+        #pm.save_trace(trace, 'out_hr' + str(int(h)) + '.trace')
+
+        #trace24[h] = list(trace)
+        #trace24[h] = pm.save_trace(trace)
+        ess = pm.diagnostics.effective_n(trace)
 
     print('- ESS: ', ess)
     obs = np.mean(data[data.Hour==h]['Connected'].values)

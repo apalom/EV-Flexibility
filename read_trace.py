@@ -12,7 +12,8 @@ import seaborn as sns
 import scipy.stats as stats
 from scipy.stats import nbinom, gamma, poisson
 
-dataRaw = pd.read_csv('data/hdc_wkdy.csv')
+dataTest = pd.read_csv('data/hdc_wkdy80.csv',index_col=[0])
+dataTrn = pd.read_csv('data/hdc_wkdy20.csv',index_col=[0])
 
 #%% Overdispersion of Data
 
@@ -330,6 +331,256 @@ plt.title('Hr: ' + str(hr))
 plt.ylim(0,0.25)
 plt.legend()
 plt.title('Poisson Trace Hr ' + str(hr))
+
+#%% Read Results
+
+import numpy as np
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+dirPoi = 'results/1239704_10k_Poiss_NormP'
+dirNB = 'results/1239578_10k_NB_NormP'
+
+yPred_Poi = pd.read_csv(dirPoi + '/out_yPred.csv', index_col=[0])
+yPred_NB = pd.read_csv(dirNB + '/out_yPred.csv',  index_col=[0])
+
+
+#%% Read / Organize yPred
+
+yPred_Poi2 = pd.DataFrame(np.zeros((yPred_Poi.size,3)), columns=['EVs','Count','Hr'])
+yPred_NB2 = pd.DataFrame(np.zeros((yPred_NB.size,3)), columns=['EVs','Count','Hr'])
+
+for h in np.arange(24):
+    r = 15*h
+    yPred_Poi2.EVs[r:r+15] = np.arange(0,15)
+    yPred_Poi2.Count[r:r+15] = yPred_Poi.iloc[:,[h]].values.reshape(15)
+    yPred_Poi2.Hr[r:r+15] = h    
+
+for h in np.arange(24):
+    r = 15*h
+    yPred_NB2.EVs[r:r+15] = np.arange(0,15)
+    yPred_NB2.Count[r:r+15] = yPred_NB.iloc[:,[h]].values.reshape(15)
+    yPred_NB2.Hr[r:r+15] = h  
+
+#%% Read / Organize traces
+
+import pandas as pd
+import glob
+
+all_files = glob.glob(dirPoi + "/*trace.csv")
+li = []
+qntNB_Trn = pd.DataFrame(np.zeros((24,6)), columns=['Min','25pct','Med','Mean','75pct','Max'])
+
+for h in np.arange(24):
+    filename = dirPoi + '/out_hr' + str(h) + '_trace.csv'
+    df = pd.read_csv(filename, index_col=[0], header=0)     
+    df['Hr'] = h
+    li.append(df) 
+    qntNB_Trn.iloc[h] = [np.min(df.y_pred), np.quantile(df.y_pred, 0.25), np.median(df.y_pred), np.mean(df.y_pred), np.quantile(df.y_pred, 0.75), np.max(df.y_pred)]
+   
+tracePoi = pd.concat(li, axis=0, ignore_index=True)
+li = []
+qntPoi_Trn = pd.DataFrame(np.zeros((24,6)), columns=['Min','25pct','Med','Mean','75pct','Max'])
+    
+for h in np.arange(24):
+    filename = dirNB + '/out_hr' + str(h) + '_trace.csv'
+    df = pd.read_csv(filename, index_col=[0], header=0) 
+    df['Hr'] = h   
+    li.append(df) 
+    qntPoi_Trn.iloc[h] = [np.min(df.y_pred), np.quantile(df.y_pred, 0.25), np.median(df.y_pred), np.mean(df.y_pred), np.quantile(df.y_pred, 0.75), np.max(df.y_pred)]
+
+traceNB = pd.concat(li, axis=0, ignore_index=True)
+    
+trace_Both = pd.DataFrame(np.zeros((2*len(traceNB),4)), columns=['Hr','y_pred', 'mu', 'Dist'])
+trace_Both.Hr[0:len(traceNB)] = traceNB.Hr
+trace_Both.Hr[len(traceNB):2*len(traceNB)] = tracePoi.Hr
+
+trace_Both.y_pred[0:len(traceNB)] = traceNB.y_pred
+trace_Both.mu[0:len(traceNB)] = traceNB.mu
+trace_Both.Dist[0:len(traceNB)] = 'NegBino'
+
+trace_Both.y_pred[len(traceNB):2*len(traceNB)] = tracePoi.y_pred
+trace_Both.mu[len(traceNB):2*len(traceNB)] = tracePoi.mu
+trace_Both.Dist[len(traceNB):2*len(traceNB)] = 'Poiss'
+
+#%% Split Violin Plot
+
+font = {'family' : 'Times New Roman',
+        'size'   : 16}
+
+plt.rc('font', **font)
+
+plt.figure(figsize=(16,8))
+
+# Draw a nested violinplot and split the violins for easier comparison
+sns.violinplot(x="Hr", y="Value", data=trace_yPred, 
+               hue="Dist", split=True, inner="box",               
+               cut = 0, scale='width', linewidth=1.25)
+
+#plt.ylim(0, 20)
+plt.title('Predictive Value Distributions')
+plt.legend(title='')
+plt.ylabel('EVs')
+
+#%% Violin Plot
+
+yLabel = 'mu'
+
+plt.rcParams['font.family'] = "Times New Roman"
+plt.figure(figsize=(20,8))
+
+sns.violinplot(x="Hr", y=yLabel, data=tracePoi, scale='width', split=True)
+plt.title('Poisson Likelihood')
+
+#% Violin Plot Single Hour
+
+plt.figure(figsize=(20,8))
+
+sns.violinplot(x="Hr", y=yLabel, data=traceNB, scale='width', split=True)
+plt.title('Negative Binomial Likelihood')
+
+#%% Plot Training Quantiles
+
+s = 10000;
+trace_Smpl = trace_Both.sample(s)
+
+font = {'family' : 'Times New Roman', 'size'   : 16}
+plt.rc('font', **font)
+
+gTrn = sns.relplot(x='Hr', y='y_pred', kind='line',
+                 hue='Dist', col='Dist', #ci='sd', 
+                 data=trace_Smpl)
+
+#pltset_title('EV Arrivals')
+plt.ylabel('y_pred')
+plt.xticks(np.arange(0,26,2))
+
+getTrn = pd.DataFrame(np.zeros((24,3)), columns=['Hr','Poisson''Pint','NegBino','NBint'])
+getTrn.Hr = gTrn.axes.flat[0].lines[0].get_xdata()
+getTrn.Poisson = gTrn.axes.flat[0].lines[0].get_ydata()    
+getTrn.NegBino = gTrn.axes.flat[1].lines[0].get_ydata()
+
+print('\nPoisson SMAPE', SMAPE(getTest[:,1],getTrn.Poisson.values))
+print('NegBino SMAPE', SMAPE(getTest[:,1],getTrn.NegBino.values))
+
+#%% Error Over Samples
+
+err = pd.DataFrame(np.zeros((24,5)), columns=['Samples','PoiSMAPE','NbSMAPE','PoiMAPE','NbMAPE'])
+i=0;
+for s in [10000]:#[500,1000,5000,10000,15000,20000,25000,50000]:#,100000,150000,200000,250000,300000,350000,400000,450000]:
+    trace_Smpl = trace_Both.sample(s)
+    
+    gTrn = sns.relplot(x='Hr', y='y_pred', kind='line',
+                 hue='Dist', col='Dist', #ci='sd', 
+                 data=trace_Smpl)
+    
+    getTrn = pd.DataFrame(np.zeros((24,5)), columns=['Hr','Poisson','Pint','NegBino','NBint'])
+    getTrn.Hr = gTrn.axes.flat[0].lines[0].get_xdata()
+    getTrn.NegBino = gTrn.axes.flat[0].lines[0].get_ydata()
+    getTrn.Poisson = gTrn.axes.flat[1].lines[0].get_ydata()
+    getTrn.NBint = np.round(gTrn.axes.flat[0].lines[0].get_ydata(),0)
+    getTrn.Pint = np.round(gTrn.axes.flat[1].lines[0].get_ydata(),0)
+    
+    err.Samples[i] = s;
+    err.PoiSMAPE[i] = SMAPE(getTest.Int, getTrn.Pint);
+    err.NbSMAPE[i] = SMAPE(getTest.Int, getTrn.NBint);
+    err.PoiMAPE[i] = MAPE(getTest.Int, getTrn.Pint);
+    err.NbMAPE[i] = MAPE(getTest.Int, getTrn.NBint);
+        
+    print('\nSMAPE with ', s, 'samples.')
+    print('------ SMAPE MAPE -----')
+    print('Poisson ', np.round(err.PoiSMAPE[i],2), np.round(err.PoiMAPE[i],2))
+    print('NegBino ', np.round(err.NbSMAPE[i],2), np.round(err.NbSMAPE[i],2))
+    i+=1;    
+
+#%% Calculate SMAPE
+    
+def SMAPE(A, F):
+    return 100/len(A) * np.sum(2 * np.abs(F - A) / (np.abs(A) + np.abs(F)))
+
+def MAPE(A, F):
+    return 100/len(A) * np.sum(np.abs(F - A) / np.abs(A))
+    
+
+#%% Aggregate of ALL Test Data
+
+#dataTest = pd.read_csv('data/hdc_wkdy80.csv', index_col=[0])
+
+import random    
+daysInTest = list(set(dataTest.DayYr))
+daysInTrn = list(set(dataTrn.DayYr))
+
+daysIn = random.choices(daysInTest, k=2)
+
+
+font = {'family' : 'Times New Roman', 'size'   : 16}
+plt.rc('font', **font)
+
+# Aggrgate of Test Data
+#gTest = sns.relplot(x='Hour', y='Connected', kind='line', color='0.3', markers=True,
+#                 data=dataTest)
+
+# n Days of Test Data
+gTest = sns.relplot(x='Hour', y='Connected', kind='line', color='0.3', markers=True,
+                 data=dataTest.where(dataTest.DayYr.isin(daysIn)) )
+
+plt.title('Test Value Spread')
+#plt.legend(title='')
+plt.ylabel('y_test')
+plt.xticks(np.arange(0,26,2))
+
+getTest = pd.DataFrame(np.zeros((24,3)), columns=['Hr','Value','Int'])
+i=0;
+for ax in gTest.axes.flat:
+    print (ax.lines)
+    for line in ax.lines:
+        getTest.Hr = line.get_xdata();
+        getTest.Value = line.get_ydata();
+    i+=1;
+    
+getTest.Int = np.round(getTest.Value,0)
+
+#%%
+
+plt.scatter(getTest[:,0],getTest[:,1], marker='x', color='k', label='Test')
+
+gTrn = sns.relplot(x='Hr', y='y_pred', kind='line',
+                 hue='Dist', col='Dist', #ci='sd', 
+                 data=trace_Smpl)
+
+#%% Fill Plot 
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+x = np.arange(24)
+q = 0.10;
+
+qnt_Trn = pd.DataFrame(np.zeros((24,8)), columns=['Min','25pct', 'q1', 'Med','Mean', 'q2','75pct','Max'])
+dirPoi = 'results/1239704_10k_Poiss_NormP'; dirNB = 'results/1239578_10k_NB_NormP';
+
+for h in np.arange(24):
+    filename = dirNB + '/out_hr' + str(h) + '_trace.csv'
+    df = pd.read_csv(filename, index_col=[0], header=0)     
+    qnt_Trn.iloc[h] = [np.min(df.y_pred), np.quantile(df.y_pred, 0.25), np.quantile(df.y_pred, 0.50-q), np.median(df.y_pred), 
+                  np.mean(df.y_pred), np.quantile(df.y_pred, 0.50+q), np.quantile(df.y_pred, 0.75), np.max(df.y_pred)]
+   
+fig, ax = plt.subplots(figsize=(12,8))
+ax.plot(x, qntNB_Trn.Med, x, qnt_Trn['q2'], color='black', lw=0.5)
+ax.fill_between(x, qnt_Trn.Med, qnt_Trn['q2'], where=qnt_Trn['q2']>qnt_Trn.Med, 
+                facecolor='orange', alpha=0.1)
+ax.plot(x, qntNB_Trn.Med, x, qnt_Trn['q1'], color='black', lw=0.5)
+ax.fill_between(x, qnt_Trn.Med, qnt_Trn['q1'], where=qnt_Trn['q1']<qnt_Trn.Med, 
+                facecolor='orange', alpha=0.1)
+
+ax.plot(x, qntNB_Trn.Med, '--', c='orange', lw=2)
+
+plt.scatter(x,getTest[:,2], marker='x', color='k', label='Test')
+
+#ax.set_title('NegBino')
+ax.set_title('Poisson')
+ax.set_xticks(np.arange(0,26,2))
 
 #%%
 import XlsxWriter
