@@ -1,0 +1,13 @@
+
+*.json
+*.npz
+*.json
+*.npz
+NBsmpls100.trace/0/metadata.json
+NBsmpls100.trace/0/samples.npz
+NBsmpls100.trace/1/metadata.json
+NBsmpls100.trace/1/samples.npz
+NBsmpls100.trace/2/metadata.json
+NBsmpls100.trace/2/samples.npz
+NBsmpls100.trace/3/metadata.json
+NBsmpls100.trace/3/samples.npz

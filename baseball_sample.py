@@ -38,7 +38,16 @@ with baseball_model:
 #%%
     
 with baseball_model:
-    trace = pm.sample(2000, tune=1000, chains=2,
+    trace = pm.sample(2000, cores=1, tune=1000, chains=2,
                       target_accept=0.95)
 
 pm.traceplot(trace, var_names=['phi', 'kappa']);
+
+#%%
+
+pm.model_to_graphviz(baseball_model)
+
+#out_smry = pd.DataFrame(pm.summary(trace))
+
+    #fig = plt.gcf()
+    #fig.savefig("out_hr" + str(int(h)) + "_tracePlt" + ".png")

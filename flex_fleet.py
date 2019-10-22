@@ -777,7 +777,52 @@ plt.scatter(x=idxMat,y=dfPoissTrial.values)
 dfPoissTrial = pd.DataFrame(data=poissTrial)
 sns.regplot(x=dfPoissTrial.index,y=dfPoissTrial.values,data=dfPoissTrial)
 
+#%%
 
+from scipy.stats import nbinom
+import matplotlib.pyplot as plt
 
+result_NB_20k = pd.read_xls('results/NB_20kpool.xlsx');
 
+result_NB_20k['r'], result_NB_20k['p'] = convert_params(result_NB_20k['alpha'],result_NB_20k['mu']) 
 
+#%%
+from scipy.stats import nbinom
+import matplotlib.pyplot as plt
+
+x = np.arange(0, 17, 1)
+
+out_r, out_p = convert_params(out_mu, out_alpha)
+
+for i in np.arange(0,24,4):
+    
+    r = out_r[i]; p = out_p[i];
+    plt.plot(x, nbinom.pmf(x, r, p), label=i)
+
+plt.xlim((0,18))   
+plt.legend()
+#ax.vlines(x, 0, nbinom.pmf(x, r, p), colors='b', lw=5, alpha=0.5)
+
+#%%
+rdmNB = nbinom.rvs(r, p, size=10000)
+plt.hist(rdmNB, density=True)
+
+#%%
+
+def convert_params(mu, alpha):
+    """ 
+    Convert mean/dispersion parameterization of a negative binomial to the ones scipy supports
+
+    Parameters
+    ----------
+    mu : float 
+       Mean of NB distribution.
+    alpha : float
+       Overdispersion parameter used for variance calculation.
+
+    See https://en.wikipedia.org/wiki/Negative_binomial_distribution#Alternative_formulations
+    """
+    var = mu + alpha * mu ** 2
+    p = (var - mu) / var
+    r = mu ** 2 / (var - mu)
+    return r, p
