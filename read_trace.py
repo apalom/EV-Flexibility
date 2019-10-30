@@ -391,18 +391,19 @@ for h in np.arange(24):
     qntPoi_Trn.iloc[h] = [np.min(df.y_pred), np.quantile(df.y_pred, 0.25), np.median(df.y_pred), np.mean(df.y_pred), np.quantile(df.y_pred, 0.75), np.max(df.y_pred)]
 
 traceNB = pd.concat(li, axis=0, ignore_index=True)
-    
-trace_Both = pd.DataFrame(np.zeros((2*len(traceNB),4)), columns=['Hr','y_pred', 'mu', 'Dist'])
-trace_Both.Hr[0:len(traceNB)] = traceNB.Hr
-trace_Both.Hr[len(traceNB):2*len(traceNB)] = tracePoi.Hr
 
-trace_Both.y_pred[0:len(traceNB)] = traceNB.y_pred
-trace_Both.mu[0:len(traceNB)] = traceNB.mu
-trace_Both.Dist[0:len(traceNB)] = 'NegBino'
+#%%    
+trace_Both = pd.DataFrame(np.zeros((2*24,4)), columns=['Hr', 'mu', 'sd', 'Dist'])
+trace_Both.Hr[0:24] = np.arange(24)
+trace_Both.Hr[24:2*24] = np.arange(24)
 
-trace_Both.y_pred[len(traceNB):2*len(traceNB)] = tracePoi.y_pred
-trace_Both.mu[len(traceNB):2*len(traceNB)] = tracePoi.mu
-trace_Both.Dist[len(traceNB):2*len(traceNB)] = 'Poiss'
+trace_Both.mu[0:24] = out_smryNB.mu
+trace_Both.sd[0:24] = out_smryNB.sd
+trace_Both.Dist[0:24] = 'NegBino'
+
+trace_Both.mu[24:2*24] = out_smryPoi.mu
+trace_Both.sd[24:2*24] = out_smryPoi.sd
+trace_Both.Dist[24:2*24] = 'Poiss'
 
 #%% Split Violin Plot
 
@@ -468,7 +469,7 @@ print('NegBino SMAPE', SMAPE(getTest[:,1],getTrn.NegBino.values))
 
 err = pd.DataFrame(np.zeros((24,5)), columns=['Samples','PoiSMAPE','NbSMAPE','PoiMAPE','NbMAPE'])
 i=0;
-for s in [10000]:#[500,1000,5000,10000,15000,20000,25000,50000]:#,100000,150000,200000,250000,300000,350000,400000,450000]:
+for s in [100, 250, 500, 1000, 2500, 5000]:#[500,1000,5000,10000,15000,20000,25000,50000]:#,100000,150000,200000,250000,300000,350000,400000,450000]:
     trace_Smpl = trace_Both.sample(s)
     
     gTrn = sns.relplot(x='Hr', y='y_pred', kind='line',
@@ -558,7 +559,7 @@ x = np.arange(24)
 q = 0.10;
 
 qnt_Trn = pd.DataFrame(np.zeros((24,8)), columns=['Min','25pct', 'q1', 'Med','Mean', 'q2','75pct','Max'])
-dirPoi = 'results/1239704_10k_Poiss_NormP'; dirNB = 'results/1239578_10k_NB_NormP';
+#dirPoi = 'results/1239704_10k_Poiss_NormP'; dirNB = 'results/1239578_10k_NB_NormP';
 
 for h in np.arange(24):
     filename = dirNB + '/out_hr' + str(h) + '_trace.csv'

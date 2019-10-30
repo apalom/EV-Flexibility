@@ -794,16 +794,17 @@ x = np.arange(0, 17, 1)
 
 out_r, out_p = convert_params(out_mu, out_alpha)
 
-for i in np.arange(0,24,4):
+for i in np.arange(0,24,6):
     
     r = out_r[i]; p = out_p[i];
     plt.plot(x, nbinom.pmf(x, r, p), label=i)
 
-plt.xlim((0,18))   
+plt.xlim((0,10))   
 plt.legend()
 #ax.vlines(x, 0, nbinom.pmf(x, r, p), colors='b', lw=5, alpha=0.5)
 
 #%%
+
 rdmNB = nbinom.rvs(r, p, size=10000)
 plt.hist(rdmNB, density=True)
 
