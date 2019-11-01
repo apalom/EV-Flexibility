@@ -17,39 +17,39 @@ import pymc3 as pm
 
 #%%  Import Data
 
-data = pd.read_csv('hdc_wkdy20.csv',  index_col='Idx');
+dataTrn = pd.read_csv('hdc_wkdy20.csv',  index_col='Idx');
 
 # Convert categorical variables to integer
-hrs_idx = data['Hour']
+hrs_idx = dataTrn['Hour']
 hrs = np.arange(24)
 n_hrs = len(hrs)
 
 dataHrly = pd.DataFrame(np.zeros((len(hrs),2)), columns=['mu', 'sd'])
 for h in hrs:
-    temp = data.loc[data.Hour == h]
+    temp = dataTrn.loc[dataTrn.Hour == h]
     dataHrly.mu.at[h] = np.mean(temp.Connected)
     dataHrly.sd.at[h] = np.std(temp.Connected)
 
-agg = [np.mean(data.Connected), np.std(data.Connected)]
+agg = [np.mean(dataTrn.Connected), np.std(dataTrn.Connected)]
 
 #%% Load Data and Setup Hierarchical Model 
   
-data = pd.read_csv('hdc_wkdy20.csv',  index_col='Idx');
+dataTrn = pd.read_csv('hdc_wkdy20.csv',  index_col='Idx');
 
-connected = data['Connected'].values
+cnctdTrn = dataTrn['Connected'].values
 # Convert categorical variables to integer
-hrs_idx = data['Hour']
+hrs_idx = dataTrn['Hour']
 hrs = np.arange(24)
 n_hrs = len(hrs)
     
 with pm.Model() as EVpooling:
     
     # Hyper-Priors
-    hyper_alpha_sd = pm.Uniform('hyper_alpha_sd', lower=0, upper=40)
-    hyper_alpha_mu = pm.Uniform('hyper_alpha_mu', lower=0, upper=40)
+    hyper_alpha_sd = pm.Uniform('hyper_alpha_sd', lower=0, upper=5)
+    hyper_alpha_mu = pm.Uniform('hyper_alpha_mu', lower=0, upper=15)
 
-    hyper_mu_sd = pm.Uniform('hyper_mu_sd', lower=0, upper=40)
-    hyper_mu_mu = pm.Uniform('hyper_mu_mu', lower=0, upper=40) 
+    hyper_mu_sd = pm.Uniform('hyper_mu_sd', lower=0, upper=10)
+    hyper_mu_mu = pm.Uniform('hyper_mu_mu', lower=0, upper=10) 
     
     # Priors
     alpha = pm.Gamma('alpha', mu=hyper_alpha_mu, 
@@ -59,39 +59,196 @@ with pm.Model() as EVpooling:
     mu = pm.Gamma('mu', mu=hyper_mu_mu, 
                         sigma=hyper_mu_sd,
                         shape=n_hrs)    
-
+    
+#    # Data Likelihood
+#    y_est = pm.Poisson('y_est', 
+#                       mu=mu[hrs_idx], 
+#                       observed=cnctdTrn)    
+#    # Data Prediction
+#    y_pred = pm.Poisson('y_pred', 
+#                        mu=mu[hrs_idx], 
+#                        shape=hrs_idx.shape)   
+    
     #Data Likelihood
-#    y_like = pm.NegativeBinomial('y_like', 
+    y_like = pm.NegativeBinomial('y_like', 
+                                 mu=mu[hrs_idx], 
+                                 alpha=alpha[hrs_idx], 
+                                 observed=cnctdTrn)
+    # Data Prediction
+#    y_pred = pm.NegativeBinomial('y_pred', 
 #                                 mu=mu[hrs_idx], 
-#                                 alpha=alpha[hrs_idx], 
-#                                 observed=connected)
-    y_like = pm.Poisson('y_like', 
-                            mu=mu[hrs_idx],                                   
-                            observed=connected)
-     
+#                                 alpha=alpha[hrs_idx],
+#                                 shape=hrs_idx.shape) 
+#    
+#    y_like = pm.Poisson('y_like', 
+#                            mu=mu[hrs_idx],                                   
+#                            observed=connected)
+    
+
+
 #%% Hierarchical Model Inference
 
 # Setup vars
-smpls = 5000; tunes = 5000; target = 0.90;    
+smpls = 2500; tunes = 500; targetAcc = 0.90;    
     
 # Print Header
 print('\n Running ', str(datetime.now()))
-#print('hdc_wkdy20.csv | NB with Uniform Hyper-Prior')
-print('hdc_wkdy20.csv | Poisson with Uniform Hyper-Prior')
-print('Params: samples = ', smpls, ' | tune = ', tunes, ' | target = ', target, '\n')
+print('hdc_wkdy20.csv | NB with Uniform Hyper-Prior')
+#print('hdc_wkdy20.csv | Poisson with Uniform Hyper-Prior')
+print('Params: samples = ', smpls, ' | tune = ', tunes, ' | target = ', targetAcc, '\n')
         
 with EVpooling:
-    trace = pm.sample(smpls, tune=tunes, cores=1, target_accept=target)   
+    trace = pm.sample(smpls, chains=4, tune=tunes, cores=1)#, NUTS={"target_accept": targetAcc})
+    
+    ppc = pm.sample_ppc(trace)
+    pm.traceplot(trace)                  
+
+out_smryNB = pd.DataFrame(pm.summary(trace))  
+#out_traceNB = pd.DataFrame.from_dict(list(trace)) 
+
+
+#%% Compare Aggregate
+
+#ppcVals = np.reshape(ppc_Sample.sample(100).values, (100*1248,1))
+nn = 15
+errAgg = pd.DataFrame(np.zeros((nn, 6)), columns= ['nTrn', 'binTrn', 'nPPC', 'binPPC', 'nTest', 'binTest'])
+
+import seaborn as sns
+sns.set(style="whitegrid", font='Times New Roman', font_scale=1.75)
+plt.figure(figsize=(16,8))
+
+[errAgg.nTrn[0:nn-1], errAgg.binTrn, _] = plt.hist(dataTrn.Connected, 
+                                                    bins=np.arange(nn), density=True, color='orange', label='Train')
+[errAgg.nPPC[0:nn-1], errAgg.binPPC, _] = plt.hist(ppcVals, 
+                                                    bins=np.arange(nn), density=True, color='blue', alpha=0.5, label='PPC')
+[errAgg.nTest[0:nn-1], errAgg.binTest, _] = plt.hist(dataTest.Connected, 
+                                                    bins=np.arange(nn), density=True, color='black', histtype='step', lw=3, label='Test')
+
+plt.title('NB Aggregate Data Comparisons')
+plt.xlabel('Connected EVs')
+plt.ylabel('Density')
+plt.legend()
+
+#%% ppc Samples vs. test
+
+ppc_Sample = pd.DataFrame(ppc['y_like']).transpose()
+ppc_Sample['Hr'] = hrs_idx 
+
+ppc_HistData = pd.DataFrame(np.zeros((24,13)))
+for h in hrs:
+    tempHr = ppc_Sample.loc[ppc_Sample.Hr==h].values[:,0:10000]
+    [ppc_HistData.at[h], _] = np.histogram(tempHr, bins=np.arange(14), density=True)
+    
+    
+
+ppcVals = np.reshape(ppc_Sample.values, (ppc_Sample.shape[0]*ppc_Sample.shape[1],)) 
+
+ppcHrs = np.tile(hrs_idx,ppc_Sample.shape[0])
+
+smpl = 25000; s=len(dataTest);
+ppcTest = pd.DataFrame(np.zeros((smpl+s,3)), columns=['Connected', 'Hr', 'Src'])
+ppcTest.Hr[0:smpl] = ppcHrs[0:smpl]
+ppcTest.Connected[0:smpl] = ppcVals[0:smpl]
+ppcTest.Src[0:smpl] = 'PPC'
+
+ppcTest.Hr[smpl:smpl+s] = dataTest.Hour
+ppcTest.Connected[smpl:smpl+s] = dataTest.Connected
+ppcTest.Src[smpl:smpl+s] = 'Test'
+
+#%% ppcTest Violin Plot
+
+import seaborn as sns
+sns.set(style="whitegrid", font='Times New Roman', 
+        font_scale=1.75)
+
+plt.figure(figsize=(20,8))
+
+# Draw a nested violinplot and split the violins for easier comparison
+sns.violinplot(x="Hr", y="Connected", data=ppcTest, 
+               hue="Src", split=True, inner="box", scale='width', linewidth=1.25)
+
+#plt.ylim(0, 20)
+plt.title('NB Predictive Value Distributions')
+plt.legend(title='')
+plt.ylabel('EV Arrivals')
+
+#%% Predictive Inference
+dataTrn = pd.read_csv('hdc_wkdy80.csv',  index_col='Idx');
+
+dataTrnS = dataTrn.sample(500)
+obs_vals = dataTrnS.Connected
+obs_hrsIdx = dataTrnS.Hour
+
+with EVpooling:
+    
+    #Priors
+    alpha_prd = pm.Gamma('alpha_prd', mu=hyper_alpha_mu, 
+                                      sigma=hyper_alpha_sd, 
+                                      shape=len(dataTrnS))
+    
+    mu1_prd = pm.Gamma('mu1_prd', mu=hyper_mu_mu, 
+                                sigma=hyper_mu_sd,
+                                shape=len(dataTrnS)) 
+        
+    y1_prd = pm.NegativeBinomial('y1_prd', mu=mu[obs_hrsIdx], 
+                                         alpha=alpha[obs_hrsIdx], 
+                                         observed=obs_vals)
+
+with EVpooling:
+    trace = pm.sample(2000, tune=1000, chains=2, cores=1)  
+                     
 
 #%% Load Trace
 with EVpooling:
-    traceNB = pm.load_trace('results/pool/pool_NB_5k_pt9.trace')
+    tracePoi = pm.load_trace('results/pool/pool_Poi_5k_pt9.trace')
 
-print('NB Likelihood - 5000 sample - 5000 tune')
+print('Poi Likelihood - 5000 sample - 5000 tune')
 
-out_smryPoi = pd.DataFrame(pm.summary(traceNB))  
-out_tracePoi = pd.DataFrame.from_dict(list(traceNB)) 
+out_smryPoi = pd.DataFrame(pm.summary(tracePoi))  
+out_tracePoi = pd.DataFrame.from_dict(list(tracePoi)) 
     
+#%% Asking Questions of the Posterior
+# pm.sample_ppc - https://docs.pymc.io/notebooks/posterior_predictive.html
+
+level = 6
+hr = 12
+
+def hr_y_pred(hr):
+    """Return posterior predictive for hr"""
+    ix = np.where(hrs_idx == hr)[0][0]
+    return tracePoi['y_pred'][:, ix]
+
+def hr_pred_hist(hr):
+    ix_check = hr_y_pred(hr) > level
+    _ = plt.hist(hr_y_pred(hr)[~ix_check], range=[0, 12], density=True,
+                 bins=np.arange(12), histtype='stepfilled', label='< %s EV' %level)
+    _ = plt.hist(hr_y_pred(hr)[ix_check], range=[0, 12], density=True,
+                 bins=np.arange(12), histtype='stepfilled', label='> %s EV' %level)
+    _ = plt.title('Posterior predictive \ndistribution for Hr: %s' % hr)
+    _ = plt.xlabel('EV Arrivals')
+    _ = plt.ylabel('Density')
+    _ = plt.legend()
+    
+def hr_pred_cdf(hr):
+    x = np.linspace(1, 11, num=11)
+    num_samples = float(len(hr_y_pred(hr)))
+    prob_lt_x = [100*sum(hr_y_pred(hr) < i)/num_samples for i in x]
+    _ = plt.plot(x, prob_lt_x, color='orange')
+    _ = plt.fill_between(x, prob_lt_x, color='orange', alpha=0.3)
+    _ = plt.scatter(level, float(100*sum(hr_y_pred(hr) < level))/num_samples, s=180, c='orange')
+    _ = plt.title('Probability of Arrivals at Hr: %s' % hr)
+    _ = plt.xlabel('EV Arrivals')
+    _ = plt.ylabel('Cumulative Probability')
+    _ = plt.ylim(ymin=0, ymax=100)
+    _ = plt.xlim(xmin=0, xmax=12)
+
+fig = plt.figure(figsize=(11,6))
+_ = fig.add_subplot(221)
+hr_pred_hist(hr)
+_ = fig.add_subplot(222)
+hr_pred_cdf(hr)
+plt.tight_layout()
+
 #%% Save Outputs
 #model_to_graphviz(EVpooling)    
 
