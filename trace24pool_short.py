@@ -18,6 +18,7 @@ import pymc3 as pm
 #%%  Import Data
 
 dataTrn = pd.read_csv('hdc_wkdy20.csv',  index_col='Idx');
+dataTest = pd.read_csv('hdc_wkdy80.csv',  index_col='Idx');
 
 # Convert categorical variables to integer
 hrs_idx = dataTrn['Hour']
@@ -45,35 +46,35 @@ n_hrs = len(hrs)
 with pm.Model() as EVpooling:
     
     # Hyper-Priors
-    hyper_alpha_sd = pm.Uniform('hyper_alpha_sd', lower=0, upper=5)
-    hyper_alpha_mu = pm.Uniform('hyper_alpha_mu', lower=0, upper=15)
+#    hyper_alpha_sd = pm.Uniform('hyper_alpha_sd', lower=0, upper=5)
+#    hyper_alpha_mu = pm.Uniform('hyper_alpha_mu', lower=0, upper=15)
 
     hyper_mu_sd = pm.Uniform('hyper_mu_sd', lower=0, upper=10)
     hyper_mu_mu = pm.Uniform('hyper_mu_mu', lower=0, upper=10) 
     
     # Priors
-    alpha = pm.Gamma('alpha', mu=hyper_alpha_mu, 
-                              sigma=hyper_alpha_sd, 
-                              shape=n_hrs)
+#    alpha = pm.Gamma('alpha', mu=hyper_alpha_mu, 
+#                              sigma=hyper_alpha_sd, 
+#                              shape=n_hrs)
     
     mu = pm.Gamma('mu', mu=hyper_mu_mu, 
                         sigma=hyper_mu_sd,
                         shape=n_hrs)    
     
-#    # Data Likelihood
-#    y_est = pm.Poisson('y_est', 
-#                       mu=mu[hrs_idx], 
-#                       observed=cnctdTrn)    
+    # Data Likelihood
+    y_like = pm.Poisson('y_like', 
+                       mu=mu[hrs_idx], 
+                       observed=cnctdTrn)    
 #    # Data Prediction
 #    y_pred = pm.Poisson('y_pred', 
 #                        mu=mu[hrs_idx], 
 #                        shape=hrs_idx.shape)   
     
     #Data Likelihood
-    y_like = pm.NegativeBinomial('y_like', 
-                                 mu=mu[hrs_idx], 
-                                 alpha=alpha[hrs_idx], 
-                                 observed=cnctdTrn)
+#    y_like = pm.NegativeBinomial('y_like', 
+#                                 mu=mu[hrs_idx], 
+#                                 alpha=alpha[hrs_idx], 
+#                                 observed=cnctdTrn)
     # Data Prediction
 #    y_pred = pm.NegativeBinomial('y_pred', 
 #                                 mu=mu[hrs_idx], 
@@ -85,6 +86,7 @@ with pm.Model() as EVpooling:
 #                            observed=connected)
     
 
+pm.model_to_graphviz(EVpooling)
 
 #%% Hierarchical Model Inference
 
@@ -93,23 +95,29 @@ smpls = 2500; tunes = 500; targetAcc = 0.90;
     
 # Print Header
 print('\n Running ', str(datetime.now()))
-print('hdc_wkdy20.csv | NB with Uniform Hyper-Prior')
-#print('hdc_wkdy20.csv | Poisson with Uniform Hyper-Prior')
+#print('hdc_wkdy20.csv | NB with Uniform Hyper-Prior')
+print('hdc_wkdy20.csv | Poisson with Uniform Hyper-Prior')
 print('Params: samples = ', smpls, ' | tune = ', tunes, ' | target = ', targetAcc, '\n')
         
 with EVpooling:
     trace = pm.sample(smpls, chains=4, tune=tunes, cores=1)#, NUTS={"target_accept": targetAcc})
     
-    ppc = pm.sample_ppc(trace)
-    pm.traceplot(trace)                  
+    #ppc = pm.sample_posterior_predictive(trace)
+    #pm.traceplot(trace)                  
 
-out_smryNB = pd.DataFrame(pm.summary(trace))  
+out_smryPoi = pd.DataFrame(pm.summary(trace))  
 #out_traceNB = pd.DataFrame.from_dict(list(trace)) 
 
-
 #%% Compare Aggregate
+ppc_Sample = pd.DataFrame(ppc['y_like'])
+ppcVals = np.reshape(ppc_Sample.sample(10000).values, (10000*1248,1))
+ppc_Sample = pd.DataFrame(ppc['y_like'].transpose())
+ppc_Sample['Hr'] = hrs_idx 
+ppcHrs = np.tile(hrs_idx,ppc_Sample.shape[1]-1)
+ppc_Vals = pd.DataFrame(ppcVals, columns=['Connected'])
+ppc_Vals['Hr'] = ppcHrs
 
-#ppcVals = np.reshape(ppc_Sample.sample(100).values, (100*1248,1))
+#%%
 nn = 15
 errAgg = pd.DataFrame(np.zeros((nn, 6)), columns= ['nTrn', 'binTrn', 'nPPC', 'binPPC', 'nTest', 'binTest'])
 
@@ -124,7 +132,7 @@ plt.figure(figsize=(16,8))
 [errAgg.nTest[0:nn-1], errAgg.binTest, _] = plt.hist(dataTest.Connected, 
                                                     bins=np.arange(nn), density=True, color='black', histtype='step', lw=3, label='Test')
 
-plt.title('NB Aggregate Data Comparisons')
+plt.title('Poisson Aggregate Data Comparisons')
 plt.xlabel('Connected EVs')
 plt.ylabel('Density')
 plt.legend()
@@ -138,23 +146,73 @@ ppc_HistData = pd.DataFrame(np.zeros((24,13)))
 for h in hrs:
     tempHr = ppc_Sample.loc[ppc_Sample.Hr==h].values[:,0:10000]
     [ppc_HistData.at[h], _] = np.histogram(tempHr, bins=np.arange(14), density=True)
-    
-    
 
-ppcVals = np.reshape(ppc_Sample.values, (ppc_Sample.shape[0]*ppc_Sample.shape[1],)) 
 
-ppcHrs = np.tile(hrs_idx,ppc_Sample.shape[0])
+test_HistData = pd.DataFrame(np.zeros((24,13)))  
+for h in hrs:
+    tempHr = dataTest.loc[dataTest.Hour==h].Connected
+    [test_HistData.at[h], _] = np.histogram(tempHr, bins=np.arange(14), density=True)
+
+#%%ppcVals = np.reshape(ppc_Sample.values, (ppc_Sample.shape[0]*ppc_Sample.shape[1],)) 
 
 smpl = 25000; s=len(dataTest);
 ppcTest = pd.DataFrame(np.zeros((smpl+s,3)), columns=['Connected', 'Hr', 'Src'])
 ppcTest.Hr[0:smpl] = ppcHrs[0:smpl]
-ppcTest.Connected[0:smpl] = ppcVals[0:smpl]
+ppcTest.Connected[0:smpl] = ppcVals[0:smpl,0]
 ppcTest.Src[0:smpl] = 'PPC'
 
 ppcTest.Hr[smpl:smpl+s] = dataTest.Hour
 ppcTest.Connected[smpl:smpl+s] = dataTest.Connected
 ppcTest.Src[smpl:smpl+s] = 'Test'
 
+#%% ppc Hourly Plot Histograms
+
+import seaborn as sns
+sns.set(style="whitegrid", font='Times New Roman', 
+        font_scale=1.75)
+              
+fig, axs = plt.subplots(4, 6, figsize=(20,12), sharex=True, sharey=True) 
+r,c = 0,0;
+
+for h in hrs:     
+    print('Hr: ', h)
+    ppcSmpl = ppc_Vals.loc[ppc_Vals.Hr==h].sample(50)
+    axs[r,c].hist(ppcSmpl.Connected, ec='white', fc='lightblue', 
+                   bins=np.arange(16), density=True, label='Predicted')  
+    print('Pred')
+    testSmpl = dataTest.loc[dataTest.Hour==h]
+    axs[r,c].hist(testSmpl.Connected, color='black', histtype='step', lw=2,
+                   bins=np.arange(16), density=True, label='Testing')  
+    print('Test')
+    #axs[r,c].hist(get_nb_vals(mu, alpha, 1000), histtype='step', ec='black', bins=np.arange(16), density=True, lw=1.2, label='NB Dist')    
+    #axs[r,c].hist(get_poiss_vals(mu, 1000), histtype='step', ec='black', bins=np.arange(16), density=True, lw=1.2, label='Poiss Dist')    
+    #axs[r,c].hist(dctData[hr][dim].values, histtype='step', ec='blue', lw=1.2, bins=np.arange(16), density=True, label='Predicted') 
+    axs[r,c].set_title('Hr: ' + str(h))
+    
+    # Subplot Spacing
+    c += 1
+    if c >= 6:
+        r += 1;
+        c = 0;
+        if r >= 4:
+            r=0;
+    print(r,c)
+  
+fig.tight_layout()
+fig.suptitle('Hourly Histogram Arrival Prediction', y = 1.02)
+#xM, bS = int(np.max(dctData[hr][dim])), 4
+xM, bS = 20, 4
+plt.xlim(0,xM)
+plt.xticks(np.arange(0,xM+bS,bS))
+plt.ylim(0,0.4)
+plt.legend()
+plt.show()
+
+#%% Calculate Hist MAPE, SMAPE
+
+for h in hrs: 
+    print(MAPE(ppc_HistData.iloc[h], test_HistData.iloc[h]))    
+    
 #%% ppcTest Violin Plot
 
 import seaborn as sns
@@ -168,7 +226,7 @@ sns.violinplot(x="Hr", y="Connected", data=ppcTest,
                hue="Src", split=True, inner="box", scale='width', linewidth=1.25)
 
 #plt.ylim(0, 20)
-plt.title('NB Predictive Value Distributions')
+plt.title('Poisson Predictive Value Distributions')
 plt.legend(title='')
 plt.ylabel('EV Arrivals')
 
@@ -210,44 +268,98 @@ out_tracePoi = pd.DataFrame.from_dict(list(tracePoi))
 #%% Asking Questions of the Posterior
 # pm.sample_ppc - https://docs.pymc.io/notebooks/posterior_predictive.html
 
-level = 6
-hr = 12
+level = 3
+hr = 16
 
 def hr_y_pred(hr):
     """Return posterior predictive for hr"""
-    ix = np.where(hrs_idx == hr)[0][0]
-    return tracePoi['y_pred'][:, ix]
+    #ix = np.where(hrs_idx == hr)[0][:]
+    #return trace['mu'][:, ix]
+    ix = np.where(ppc_Vals.Hr == hr)[0][:]
+    return ppc_Vals.Connected[ix]
 
 def hr_pred_hist(hr):
-    ix_check = hr_y_pred(hr) > level
-    _ = plt.hist(hr_y_pred(hr)[~ix_check], range=[0, 12], density=True,
-                 bins=np.arange(12), histtype='stepfilled', label='< %s EV' %level)
-    _ = plt.hist(hr_y_pred(hr)[ix_check], range=[0, 12], density=True,
-                 bins=np.arange(12), histtype='stepfilled', label='> %s EV' %level)
-    _ = plt.title('Posterior predictive \ndistribution for Hr: %s' % hr)
+    ix_check = hr_y_pred(hr) < level
+    _ = plt.hist(hr_y_pred(hr)[ix_check], density=False,
+                 bins=np.arange(16), fc='darkblue', ec='white', label='<= %s EV' %level)
+    _ = plt.hist(hr_y_pred(hr)[~ix_check], density=False,
+                 bins=np.arange(16), fc='lightblue', ec='white', label='> %s EV' %level)
+    _ = plt.title('Posterior predictive \ndistribution for Hr: %s' %hr)
     _ = plt.xlabel('EV Arrivals')
-    _ = plt.ylabel('Density')
+    _ = plt.xticks(np.arange(0,18,2))
+    _ = plt.ylabel('Frequency')
     _ = plt.legend()
     
 def hr_pred_cdf(hr):
-    x = np.linspace(1, 11, num=11)
+    x = np.linspace(0, 16, num=17)
     num_samples = float(len(hr_y_pred(hr)))
-    prob_lt_x = [100*sum(hr_y_pred(hr) < i)/num_samples for i in x]
-    _ = plt.plot(x, prob_lt_x, color='orange')
-    _ = plt.fill_between(x, prob_lt_x, color='orange', alpha=0.3)
-    _ = plt.scatter(level, float(100*sum(hr_y_pred(hr) < level))/num_samples, s=180, c='orange')
+    prob_lt_x = [100*sum(hr_y_pred(hr) <= i)/num_samples for i in x]    
+    _ = plt.plot(x, prob_lt_x, color='darkblue')
+    _ = plt.fill_between(x, prob_lt_x, color='lightblue', alpha=0.3)
+    y = prob_lt_x[level]
+    _ = plt.scatter(level, y, s=100, c='darkblue')
+    _ = plt.text(level+0.5, y-8, str(np.round(y,2)) + '%', fontsize=14)
     _ = plt.title('Probability of Arrivals at Hr: %s' % hr)
     _ = plt.xlabel('EV Arrivals')
+    _ = plt.xticks(np.arange(0,18,2))
     _ = plt.ylabel('Cumulative Probability')
     _ = plt.ylim(ymin=0, ymax=100)
-    _ = plt.xlim(xmin=0, xmax=12)
+    _ = plt.xlim(xmin=0, xmax=16)
 
-fig = plt.figure(figsize=(11,6))
+fig = plt.figure(figsize=(12,8))
 _ = fig.add_subplot(221)
 hr_pred_hist(hr)
 _ = fig.add_subplot(222)
 hr_pred_cdf(hr)
 plt.tight_layout()
+
+#%% SNS Relationship Plot
+
+#plt.figure(figsize=(20,10))
+import seaborn as sns
+
+sns.set(style="whitegrid", font='Times New Roman', 
+        font_scale=1.75)
+
+g_test = sns.relplot(x='Hr', y='Connected', kind='line',
+                 hue='Src', ci='sd', 
+                 data=ppcTest)
+g_test.fig.set_size_inches(16,8)
+
+plt.xticks(np.arange(0,28,4))
+plt.yticks(np.arange(0,16,2))
+
+#%%
+getRel = pd.DataFrame(np.zeros((24,5)), columns=['Hr','PPC', 'PPCint', 'Test', 'Testint'])
+getRel.Hr = np.arange(24);
+getRel.PPC = g_test.axes.flat[0].lines[0].get_ydata()
+getRel.PPCint = np.round(getRel.PPC,0)
+getRel.Test = g_test.axes.flat[1].lines[0].get_ydata()
+getRel.Testint = np.round(getRel.Test,0)
+print('MAPE = ', MAPE(getRel.Testint, getRel.PPCint))
+print('SMAPE = ', SMAPE(getRel.Testint, getRel.PPCint))
+
+
+#%%
+
+x = np.linspace(0, 16, num=17)
+within = pd.DataFrame(np.zeros((24,2)), columns=['one','two'])
+
+for h in hrs:
+    print(h)
+    num_samples = float(520000.0)
+    prob_lt_x = [100*sum(hr_y_pred(h) <= i)/num_samples for i in x]
+    exp = np.int(np.mean(hr_y_pred(h)))
+    val1 = prob_lt_x[exp+1] - prob_lt_x[exp-1]
+    if exp == 0:
+        val1 = prob_lt_x[exp+1];        
+    within.one.at[h] = val1
+    
+    val2 = prob_lt_x[exp+2] - prob_lt_x[exp-2]
+    if exp < 2:
+        val2 = prob_lt_x[2];    
+    within.two.at[h] = val2
+    
 
 #%% Save Outputs
 #model_to_graphviz(EVpooling)    
@@ -480,7 +592,6 @@ for h in hrs:
 #%%
     
 sns.set(style="whitegrid")
-
 
 #plt.figure(figsize=(16,8))
 
