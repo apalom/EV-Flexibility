@@ -19,10 +19,14 @@ import datetime
 
 # Import Data
 dataRaw = pd.read_csv('data/Session-Details-Summary-20190404.csv');
+dfSLC = pd.read_excel('data/dfSLC_Wkdy_2018.xlsx')
 
+dfTrain = pd.read_csv('data\dfTrain_wkdy.csv')
+dfTrain = dfTrain.drop(['Unnamed: 0'], axis=1)
+dfTest = pd.read_csv('data\dfTest_wkdy.csv')
+dfTest = dfTest.drop(['Unnamed: 0'], axis=1)
 #dataHead = data.head(100);
 #dataTypes = data.dtypes;
-
 #allColumns = list(data);
 
 #%% Dataframe Preparation
@@ -67,11 +71,11 @@ def filterPrep(df, string, fltr):
     df = df.loc[df['isWeekday'] == 1]
     df['Year'] = df['Start Date'].apply(lambda x: x.year) 
     df['StartHr'] = df['Start Date'].apply(lambda x: x.hour + x.minute/60) 
-    df['StartHr'] = df['StartHr'].apply(lambda x: np.floor(x))  
-    #df['StartHr'] = df['StartHr'].apply(lambda x: round(x * 4) / 4) 
+    #df['StartHr'] = df['StartHr'].apply(lambda x: np.floor(x))  
+    df['StartHr'] = df['StartHr'].apply(lambda x: round(x * 4) / 4) 
     df['EndHr'] = df['End Date'].apply(lambda x: x.hour + x.minute/60)         
-    df['EndHr'] = df['EndHr'].apply(lambda x: np.floor(x)) 
-    #df['EndHr'] = df['EndHr'].apply(lambda x: round(x * 4) / 4) 
+    #df['EndHr'] = df['EndHr'].apply(lambda x: np.floor(x)) 
+    df['EndHr'] = df['EndHr'].apply(lambda x: round(x * 4) / 4) 
     df['AvgPwr'] = df['Energy (kWh)']/df['Duration (h)']
     df['Date'] = df['Start Date'].apply(lambda x: str(x.year) + '-' + str(x.month) + '-' + str(x.day)) 
         
@@ -99,7 +103,7 @@ def filterPrep(df, string, fltr):
     return df, daysTot;
 
 # Salt Lake City Sessions
-dfSLC, daysTot = filterPrep(dataRaw, "Salt Lake City", True)
+dfSLC_15min, daysTot = filterPrep(dataRaw, "Salt Lake City", True)
 
 # Save 
 #dfSLC.to_excel("data/dfSLC_Wkdy_2018.xlsx")
@@ -129,90 +133,102 @@ def testTrain(df, day, p):
     return dfTrain, dfTest 
 
 # Inputs (dfAll, Day of Week [Mon = 0, Sat = 5] ,percent Training Data)
-dfTrain, dfTest = testTrain(dfSLC, 0, 0.20)
+dfTrain15, dfTest15 = testTrain(dfSLC_15min, 0, 0.20)
 
-#dfTrain.to_csv('data\dfTrain_all.csv')
-#dfTest.to_csv('data\dfTest_all.csv')
+#dfTrain15.to_csv('data\dfTrain_all15.csv')
+#dfTest15.to_csv('data\dfTest_all15.csv')
 
-daysInTrn = len(list(set(list(dfTrain.DayofYr))))
+#daysInTrn = len(list(set(list(dfTrain.DayofYr))))
 
 #%% Calculate Connected EVs per Day/Hr and Calculate Mean, 1st and 2nd Standard Deviation of Connected Vehicles
 
-def quants(dfs, weekday):
+def quants(df, weekday):
+        
+    dctQuant = {}; dctDay = {};   
 
-    #allDays = list(set(df.dayCount))
-    #df = dfs;
+    daysIn = list(set(df.dayCount))
+    daysIn.sort()
     
-#    if weekday:
-#        df = df[df.DayofWk < 5]
-#    else:
-#        df = df[df.DayofWk >= 5]
-        
-    i = 0;
-    dctQuant = {}; dctDay = {};
+    dfArrivals = pd.DataFrame(np.zeros((4*24,len(set(df.dayCount)))), 
+                          index=np.arange(0,24,0.25), columns=daysIn)
     
-    for frame in dfs:
-        df = frame;
+    dfEnergy = pd.DataFrame(np.zeros((4*24,len(set(df.dayCount)))), 
+                          index=np.arange(0,24,0.25), columns=daysIn)
     
-        daysIn = list(set(df.dayCount))
-        daysIn.sort()
-        
-        dfDays = pd.DataFrame(np.zeros((24,len(set(df.dayCount)))), 
-                            index=np.arange(0,24,1), columns=daysIn)
-        
-        dfNames = ['Train', 'Test']
-        for d in df.dayCount:
-            print('Day: ', d)
-            dfDay = df[df.dayCount == d]
-            cnct = dfDay.StartHr.value_counts()
-            cnct = cnct.sort_index()
+    dfDuration = pd.DataFrame(np.zeros((4*24,len(set(df.dayCount)))), 
+                          index=np.arange(0,24,0.25), columns=daysIn)
+    
+    dfCharging = pd.DataFrame(np.zeros((4*24,len(set(df.dayCount)))), 
+                          index=np.arange(0,24,0.25), columns=daysIn)
             
-            dfDays.loc[:,d] = dfDay.StartHr.value_counts()
-            dfDays.loc[:,d] = np.nan_to_num(dfDays.loc[:,d])
+    for d in df.dayCount:
+        print('Day: ', d)
+        dfDay = df[df.dayCount == d]
+        cnct = dfDay.StartHr.value_counts()
+        cnct = cnct.sort_index()
         
-        quants = pd.DataFrame(np.zeros((24,6)), 
-                            index= np.arange(0,24,1), 
-                            columns=['-2_sigma','-1_sigma','mu','+1_sigma','+2_sigma','stddev'])
+        energy = dfDay['Energy (kWh)'].groupby(dfDay.StartHr).sum()
+        duration = dfDay['Duration (h)'].groupby(dfDay.StartHr).mean()
+        charging = dfDay['Charging (h)'].groupby(dfDay.StartHr).mean()
+                    
+        dfArrivals.loc[:,d] = cnct
+        dfArrivals.loc[:,d] = np.nan_to_num(dfArrivals.loc[:,d])
         
-        quants['-2_sigma'] = dfDays.quantile(q=0.023, axis=1)
-        quants['-1_sigma'] = dfDays.quantile(q=0.159, axis=1)
-        quants['mu'] = dfDays.quantile(q=0.50, axis=1)
-        quants['+1_sigma'] = dfDays.quantile(q=0.841, axis=1)
-        quants['+2_sigma'] = dfDays.quantile(q=0.977, axis=1)
-        quants['stddev'] = np.std(dfDays, axis=1)
+        dfEnergy.loc[:,d] = energy
+        dfEnergy.loc[:,d] = np.nan_to_num(dfEnergy.loc[:,d])
+        
+        dfDuration.loc[:,d] = duration
+        dfDuration.loc[:,d] = np.nan_to_num(dfDuration.loc[:,d])
+        
+        dfCharging.loc[:,d] = charging
+        dfCharging.loc[:,d] = np.nan_to_num(dfCharging.loc[:,d])
     
-        dctQuant[dfNames[i]] = quants;
-        dctDay[dfNames[i]] = dfDays;
-        i += 1;
+#        quants = pd.DataFrame(np.zeros((24,6)), 
+#                            index= np.arange(0,24,1), 
+#                            columns=['-2_sigma','-1_sigma','mu','+1_sigma','+2_sigma','stddev'])
+#        quants['-2_sigma'] = dfDays.quantile(q=0.023, axis=1)
+#        quants['-1_sigma'] = dfDays.quantile(q=0.159, axis=1)
+#        quants['mu'] = dfDays.quantile(q=0.50, axis=1)
+#        quants['+1_sigma'] = dfDays.quantile(q=0.841, axis=1)
+#        quants['+2_sigma'] = dfDays.quantile(q=0.977, axis=1)
+#        quants['stddev'] = np.std(dfDays, axis=1)
+#        dctQuant[dfNames[i]] = quants;
+    dctDay['Arrivals'] = dfArrivals;
+    dctDay['Energy'] = dfEnergy;
+    dctDay['Duration'] = dfDuration;
+    dctDay['Charging'] = dfCharging;    
 
     return dctDay, dctQuant
 
-# quants(df, weekday = True/False)
-dfDays, dfQuants = quants([dfTrain, dfTest], True)
-#dfDays, dfQuants = quants(dfSLC, True)
+dfDays_Test15, dfQuants = quants(dfTest15, True)
 
 #%% Create Hour_DayCnt_DayYr_Connected data
 
 #dfHrCnctd = {};
+df = dfDays_Test15
 
-tt = 'Test'
-daysIn = dfDays[tt].shape[1]
-dfHrCnctd[tt] = pd.DataFrame(np.zeros((24*daysIn,4)), columns=['Hour','DayCnt','DayYr','Connected'])
+daysIn = df['Arrivals'].shape[1]
+dfDays_Val = pd.DataFrame(np.zeros((4*24*daysIn,7)), 
+              columns=['Hour','DayCnt','DayYr','Arrivals','Energy','Duration','Charging'])
 
-r = 0;
-d = 0;
+r = 0; d = 0;
 
-for j in list(dfDays[tt]):   
+for j in df['Arrivals'].columns:   
+    print(j)
+    dfDays_Val.Hour.iloc[r:r+4*24] = np.arange(0,24,0.25);
+    dfDays_Val.DayCnt.iloc[r:r+4*24] = np.repeat(d, 4*24);
+    dfDays_Val.DayYr.iloc[r:r+4*24] = j;    
     
-    dfHrCnctd[tt].Hour.iloc[r:r+24] = np.linspace(0,23,24);
-    dfHrCnctd[tt].DayCnt.iloc[r:r+24] = np.repeat(d, 24);
-    dfHrCnctd[tt].DayYr.iloc[r:r+24] = j;
-    dfHrCnctd[tt].Connected[r:r+24] = dfDays[tt][j]
+    dfDays_Val.Arrivals[r:r+4*24] = df['Arrivals'][j];
+    dfDays_Val.Energy[r:r+4*24] = df['Energy'][j];
+    dfDays_Val.Duration[r:r+4*24] = df['Duration'][j];
+    dfDays_Val.Charging[r:r+4*24] = df['Charging'][j];
     
     d += 1;
-    r += 24;
-    
-dfHrCnctd[tt].to_csv('data\hdc_wkdy_TEST.csv')
+    r += 4*24;
+
+dfDays_Test15Val = dfDays_Val    
+dfDays_Test15Val.to_csv('data\dfDays_Test15Val.csv')
 #dfHrCnctd['Train'].to_csv('data\hdc_wkdy_TRAIN.csv')
 
 #%% Create Fitting Data 

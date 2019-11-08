@@ -34,7 +34,7 @@ dfPublic = dataRaw.loc[dataRaw['Station Name'].isin(stationsPublic)]
 
 #%% Create Hour_DayCnt_DayYr_Connected data
 
-df = dfPublic
+df = dfWork
 daysIn = list(set(df.dayCount))
 daysIn.sort()
 
@@ -65,16 +65,17 @@ for j in list(dfDays):
     
     d += 1;
     r += 24;
-    
+
+dfHrCnctd_work = dfHrCnctd    
 #dfHrCnctd.to_excel("data/dfPublic2018wkdy.xlsx")    
 
 #%% Load Data and Define Hierarchical Model 
   
-obsVals = dfHrCnctd['Connected'].values
+obsVals = dfHrCnctd_work['Connected'].values
 
 # Define indices for hourly partial pooling
 le = preprocessing.LabelEncoder()
-hrs_idx = le.fit_transform(dfHrCnctd['Hour'])
+hrs_idx = le.fit_transform(dfHrCnctd_work['Hour'])
 hrs = le.classes_
 n_hrs = len(hrs)
     
@@ -96,33 +97,38 @@ with pm.Model() as EVmodel:
     
 pm.model_to_graphviz(EVmodel)
 
-#%% Hierarchical Model Inference
+#% Hierarchical Model Inference
 
 # Setup vars
 smpls = 2500; tunes = 500; ch = 4;
     
 # Print Header
-print('Public Charging')
+print('Work Charging')
 print('Params: samples = ', smpls, ' | tune = ', tunes)
         
 with EVmodel:
     trace = pm.sample(smpls, tune=tunes, chains=ch, cores=1)
     
-    ppc = pm.sample_posterior_predictive(trace)
+    ppc_work = pm.sample_posterior_predictive(trace)
     #pm.traceplot(trace)                  
 
-out_smryPublic = pd.DataFrame(pm.summary(trace))  
+out_smryWork = pd.DataFrame(pm.summary(trace))  
 
 #%% Posterior Predictive Results
 
-ppc_Sample = pd.DataFrame(ppc['y_like'])
+obsVals = dfHrCnctd_public['Connected'].values
+hrs_idx = le.fit_transform(dfHrCnctd_public['Hour'])
+
+ppc_Sample = pd.DataFrame(ppc_public['y_like'])
 ppcVals = np.reshape(ppc_Sample.sample(smpls*ch).values, (smpls*ch*len(obsVals),1))
-ppc_Sample = pd.DataFrame(ppc['y_like'].transpose())
+ppc_Sample = pd.DataFrame(ppc_public['y_like'].transpose())
 ppc_Sample['Hr'] = hrs_idx 
 ppcHrs = np.tile(hrs_idx,ppc_Sample.shape[1]-1)
 ppc_Vals = pd.DataFrame(ppcVals, columns=['Connected'])
 ppc_Vals['Hr'] = ppcHrs
-ppc_Vals.sample(smpls*ch).reset_index(drop=True).to_excel("results/forAvi/ppcPublic.xlsx") 
+ppc_publicVal.sample(smpls*ch).reset_index(drop=True).to_excel("results/forAvi/ppc_publicVal.xlsx") 
+
+ppc_publicVal = ppc_Vals
 
 #%% ppc Hourly Plot Histograms
 
@@ -130,35 +136,41 @@ import seaborn as sns
 sns.set(style="whitegrid", font='Times New Roman', 
         font_scale=1.75)
               
-fig, axs = plt.subplots(4, 6, figsize=(20,12), sharex=True, sharey=True) 
+#fig, axs = plt.subplots(4, 6, figsize=(20,12), sharex=True, sharey=True) 
 r,c = 0,0;
+
+probWork = pd.DataFrame(np.zeros((24,16)))
+probPublic = pd.DataFrame(np.zeros((24,16)))
 
 for h in hrs:     
     print('Hr: ', h)
-    smplWork = ppc_Work.loc[ppc_Work.Hr==h].sample(5000)
-    axs[r,c].hist(smplWork.Connected, ec='white', fc='lightblue', 
-                   bins=np.arange(16), density=True, label='Workplace'
-                   )  
-    smplPublic = ppc_Public.loc[ppc_Public.Hr==h].sample(5000)
-    axs[r,c].hist(smplPublic.Connected, ec='white', fc='orange', alpha=0.3,
-                   bins=np.arange(16), density=True, label='Public')      
-    axs[r,c].set_title('Hr: ' + str(int(h)))
+    #smplWork = ppc_workVal.loc[ppc_workVal.Hr==h].sample(5000)
+    probWork.loc[h] = np.histogram(ppc_workVal.loc[ppc_workVal.Hr==h].sample(5000).Connected.values,
+                                    bins=np.arange(17), density=True)[0]
+    #axs[r,c].hist(smplWork.Connected, ec='white', fc='lightblue', 
+    #               bins=np.arange(16), density=True, label='Workplace'                   )  
+    #smplPublic = ppc_publicVal.loc[ppc_publicVal.Hr==h].sample(5000)
+    probPublic.loc[h] = np.histogram(ppc_publicVal.loc[ppc_publicVal.Hr==h].sample(5000).Connected.values,
+                                     bins=np.arange(17), density=True)[0]
+    #axs[r,c].hist(smplPublic.Connected, ec='white', fc='orange', alpha=0.3,
+    #               bins=np.arange(16), density=True, label='Public')      
+    #axs[r,c].set_title('Hr: ' + str(int(h)))
     
     # Subplot Spacing
-    c += 1
-    if c >= 6:
-        r += 1;
-        c = 0;
-        if r >= 4:
-            r=0;
-    print(r,c)
-  
-fig.tight_layout()
-fig.suptitle('Hourly Histogram Arrival Prediction', y = 1.02)
-#xM, bS = int(np.max(dctData[hr][dim])), 4
-xM, bS = 20, 4
-plt.xlim(0,xM)
-plt.xticks(np.arange(0,xM+bS,bS))
-plt.ylim(0,0.4)
-plt.legend()
-plt.show()   
+#    c += 1
+#    if c >= 6:
+#        r += 1;
+#        c = 0;
+#        if r >= 4:
+#            r=0;
+#    print(r,c)
+#  
+#fig.tight_layout()
+#fig.suptitle('Hourly Histogram Arrival Prediction', y = 1.02)
+##xM, bS = int(np.max(dctData[hr][dim])), 4
+#xM, bS = 20, 4
+#plt.xlim(0,xM)
+#plt.xticks(np.arange(0,xM+bS,bS))
+#plt.ylim(0,0.4)
+#plt.legend()
+#plt.show()   
