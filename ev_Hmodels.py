@@ -16,19 +16,53 @@ import pymc3 as pm
 #dfDays_TrnVal = pd.read_csv('data/wkdy_Train_all.csv', index_col=[0])
 #dfDays_TestVal = pd.read_csv('data/wkdy_Test_all.csv', index_col=[0])
 #dfDays_Both = pd.concat([dfDays_TrnVal, dfDays_TestVal])
+dfDays_Trn15Val = pd.read_csv('data/dfDays_Trn15Val.csv', index_col=[0])
+
 df = dfDays_Trn15Val
 
-y_obs = df['Arrivals'].values
+y_obs = df['Energy'].values[:,None]
 #y_obs = y_obs[0:48]
-upprbnd = y_obs.mean() + 2 * y_obs.std()
+#upprbnd = y_obs.mean() + 2 * y_obs.std()
 
 # Convert categorical variables to integer
 le = preprocessing.LabelEncoder()
-hrs_idx = le.fit_transform(df['Hour'])
+hrs_idx = le.fit_transform(df['Hour'])[:,None]
 hrs = le.classes_
 n_hrs = len(hrs)    
 
-#%% Hierarchical Count Model
+
+#%% Setup Covariance Func
+
+# pymc3.gp.cov.Periodic()
+input_dim = 96
+T = 96
+ls1 = 96
+pm.gp.cov.Periodic(input_dim, period=T, ls=ls1)
+
+# pymc3.gp.cov.ExpQuad()
+ls2 = 4
+pm.gp.cov.ExpQuad(input_dim, ls=4)
+
+#%% Hierarchical GP Energy Model
+
+with pm.Model() as marginal_gp_model:
+    # Specify the covariance function.
+    input_dim = 1; T = 96; ls1 = 96; ls2 = 4;
+    cov_func = ( pm.gp.cov.Periodic(input_dim, period=T, ls=ls1)
+                + pm.gp.cov.ExpQuad(input_dim, ls=ls2) ) 
+
+    # Specify the GP.  The default mean function is `Zero`.
+    gp = pm.gp.Marginal(cov_func=cov_func)
+
+    # The scale of the white noise term can be provided,
+    sigma = pm.HalfCauchy("sigma", beta=5)
+    y_ = gp.marginal_likelihood("y", X=hrs_idx, y=y_obs, noise=sigma)
+    
+    trace = pm.sample(1000, chains=4, cores=1)
+
+pm.plot_posterior(trace) 
+
+#%% Hierarchical Poisson Count Model
 with pm.Model() as arrivalModel:
     
     # Hyper-Priors
@@ -155,17 +189,67 @@ plt.xticks(np.arange(0,105,15))
 fig.tight_layout()
 plt.show()
 
-#%%
+#%% Calculate Parameter Values by MAP
 
-import theano.tensor as tt
+# Specify the covariance function.
+input_dim = 1; T = 96; ls1 = 48; ls2 = 4; sd = 5;
+X=hrs_idx[:10*96];
+y=y_obs[:10*96];
 
-class Mean(pm.gp.mean.Mean):
+with pm.Model() as model:
+    #ℓ = pm.Gamma("ℓ", alpha=2, beta=1)
+    #η = pm.HalfCauchy("η", beta=5)
 
-    def __init__(self, c=0):
-        Mean.__init__(self)
-        self.c = c
+    #cov = η**2 * pm.gp.cov.Matern52(1, ℓ)
+    
+    #input_dim = 1; T = 96; ls1 = 12; ls2 = 4;
+    
+    #ℓ1 = pm.Lognormal("ℓ1", mu=ls1, sigma=1)
+    #τ1 = pm.Lognormal("τ1", mu=T, sigma=10)    
+    #ℓ2 = pm.Lognormal("ℓ2", mu=ls2, sigma=1)    
+    
+    ℓ1 = pm.Uniform("ℓ1", lower=0, upper=ls1)
+    τ1 = pm.Uniform("τ1", lower=0, upper=T)
+    ℓ2 = pm.Uniform("ℓ2", lower=0, upper=ls2)
+    
+    cov = ( pm.gp.cov.Periodic(input_dim, period=τ1, ls=ℓ1)
+            + pm.gp.cov.ExpQuad(input_dim, ls=ℓ2) ) 
+    
+    gp = pm.gp.Marginal(cov_func=cov)
 
-    def __call__(self, X):
-        return tt.alloc(1.0, X.shape[0]) * self.c
+    σ = pm.Normal("σ", mu=sd, sigma=2)
+    y = gp.marginal_likelihood("y", X=hrs_idx[:10*96], y=y_obs[:10*96], noise=σ)
 
+    mp = pm.find_MAP()
 
+# collect the results into a pandas dataframe to display
+# "mp" stands for marginal posterior
+pd.DataFrame({"Parameter": ["ℓ1", "τ1", "ℓ2", "σ"],
+              "Value at MAP": [float(mp["ℓ1"]), float(mp["τ1"]), float(mp["ℓ2"]), float(mp["σ"])],
+              "Init value": [ls1, T, ls2, sd]})
+#%% Predict new values 
+X_new = np.arange(0,96)[:,None]
+
+# add the GP conditional to the model, given the new X values
+with model:
+    f_pred = gp.conditional("f_pred", X_new)
+
+# To use the MAP values, you can just replace the trace with a length-1 list with `mp`
+with model:
+    pred_samples = pm.sample_posterior_predictive([mp], vars=[f_pred], samples=1000)
+    
+#%% Plot the results
+    
+fig = plt.figure(figsize=(12,5)); ax = fig.gca()
+
+# plot the samples from the gp posterior with samples and shading
+from pymc3.gp.util import plot_gp_dist
+plot_gp_dist(ax, pred_samples["f_pred"], X_new);
+
+# plot the data and the true latent function
+plt.plot(X, f_true, "dodgerblue", lw=3, label="True f");
+plt.plot(X, y, 'ok', ms=3, alpha=0.5, label="Observed data");
+
+# axis labels and title
+plt.xlabel("X"); plt.ylim([-13,13]);
+plt.title("Posterior distribution over $f(x)$ at the observed values"); plt.legend();
