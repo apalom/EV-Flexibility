@@ -30,19 +30,6 @@ hrs_idx = le.fit_transform(df['Hour'])[:,None]
 hrs = le.classes_
 n_hrs = len(hrs)    
 
-
-#%% Setup Covariance Func
-
-# pymc3.gp.cov.Periodic()
-input_dim = 96
-T = 96
-ls1 = 96
-pm.gp.cov.Periodic(input_dim, period=T, ls=ls1)
-
-# pymc3.gp.cov.ExpQuad()
-ls2 = 4
-pm.gp.cov.ExpQuad(input_dim, ls=4)
-
 #%% Hierarchical GP Energy Model
 
 with pm.Model() as marginal_gp_model:
@@ -191,22 +178,23 @@ plt.show()
 
 #%% Calculate Parameter Values by MAP
 
-# Specify the covariance function.
-input_dim = 1; T = 96; ls1 = 48; ls2 = 4; sd = 5;
-X=hrs_idx[:10*96];
-y=y_obs[:10*96];
+# Zero Inflated
+df = dfDays_Trn15Val.loc[dfDays_Trn15Val.Energy>1]
+y_obs = df['Energy'].values[:,None]
+
+# Convert categorical variables to integer
+le = preprocessing.LabelEncoder()
+hrs_idx = le.fit_transform(df['Hour'])[:,None]
+hrs = le.classes_
+n_hrs = len(hrs)   
+
+#% Specify the covariance function.
+input_dim = 1; T = 12; ls1 = 48; ls2 = 4; sd = 1;
+#X=np.arange(0,10*96)[:,None];
+X=hrs_idx[:10*96]
+y=y_obs[:10*96].squeeze();
 
 with pm.Model() as model:
-    #ℓ = pm.Gamma("ℓ", alpha=2, beta=1)
-    #η = pm.HalfCauchy("η", beta=5)
-
-    #cov = η**2 * pm.gp.cov.Matern52(1, ℓ)
-    
-    #input_dim = 1; T = 96; ls1 = 12; ls2 = 4;
-    
-    #ℓ1 = pm.Lognormal("ℓ1", mu=ls1, sigma=1)
-    #τ1 = pm.Lognormal("τ1", mu=T, sigma=10)    
-    #ℓ2 = pm.Lognormal("ℓ2", mu=ls2, sigma=1)    
     
     ℓ1 = pm.Uniform("ℓ1", lower=0, upper=ls1)
     τ1 = pm.Uniform("τ1", lower=0, upper=T)
@@ -218,8 +206,8 @@ with pm.Model() as model:
     gp = pm.gp.Marginal(cov_func=cov)
 
     σ = pm.Normal("σ", mu=sd, sigma=2)
-    y = gp.marginal_likelihood("y", X=hrs_idx[:10*96], y=y_obs[:10*96], noise=σ)
-
+    y = gp.marginal_likelihood("y", X=np.arange(0,10*96)[:,None], 
+                                    y=y_obs[:10*96].squeeze(), noise=σ)
     mp = pm.find_MAP()
 
 # collect the results into a pandas dataframe to display
@@ -228,7 +216,7 @@ pd.DataFrame({"Parameter": ["ℓ1", "τ1", "ℓ2", "σ"],
               "Value at MAP": [float(mp["ℓ1"]), float(mp["τ1"]), float(mp["ℓ2"]), float(mp["σ"])],
               "Init value": [ls1, T, ls2, sd]})
 #%% Predict new values 
-X_new = np.arange(0,96)[:,None]
+X_new = np.arange(0,2*96)[:,None]
 
 # add the GP conditional to the model, given the new X values
 with model:
@@ -240,16 +228,18 @@ with model:
     
 #%% Plot the results
     
-fig = plt.figure(figsize=(12,5)); ax = fig.gca()
+fig = plt.figure(figsize=(16,8)); ax = fig.gca()
 
 # plot the samples from the gp posterior with samples and shading
 from pymc3.gp.util import plot_gp_dist
 plot_gp_dist(ax, pred_samples["f_pred"], X_new);
 
 # plot the data and the true latent function
-plt.plot(X, f_true, "dodgerblue", lw=3, label="True f");
+y=y_obs[:10*96].squeeze();
 plt.plot(X, y, 'ok', ms=3, alpha=0.5, label="Observed data");
 
 # axis labels and title
-plt.xlabel("X"); plt.ylim([-13,13]);
+plt.xlabel("Time (15min)"); plt.ylabel("Session Energy (kWh)");
+plt.xticks(np.arange(0,len(X_new),24))
+plt.ylim([0,20])
 plt.title("Posterior distribution over $f(x)$ at the observed values"); plt.legend();
