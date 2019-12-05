@@ -18,22 +18,25 @@ import datetime
 #%% Import Data
 
 # Import Data
-dataRaw = pd.read_csv('data/Session-Details-Summary-20190404.csv');
+filePath = 'data/Session-Details-Summary-20191203.csv';
+dataRaw = pd.read_csv(filePath);
 
-#dataHead = data.head(100);
+dataRawHead = dataRaw.head(100);
 #dataTypes = data.dtypes;
 
-#allColumns = list(data);
+allColumns = list(dataRaw);
 
 #%% Dataframe Preparation
 
 def filterPrep(df, string, fltr):
     
-    colNames = ['EVSE ID', 'Port Number', 'Station Name', 'Plug In Event Id', 'Start Date', 'End Date', 
-            'Total Duration (hh:mm:ss)', 'Charging Time (hh:mm:ss)', 'Energy (kWh)',
-            'Ended By', 'Port Type', 'City', 'Latitude', 'Longitude', 'User ID', 'Driver Postal Code'];
+    colNames = ['EVSE ID', 'Port Number', 'Port Type', 'Station Name', 'Plug In Event Id', 'City', 'Latitude', 'Longitude', 
+                'User ID', 'Driver Postal Code', 'Start Date', 'End Date', 'Total Duration (hh:mm:ss)', 'Charging Time (hh:mm:ss)', 
+                'Energy (kWh)', 'Ended By', 'Start SOC', 'End SOC'];
             
     df = pd.DataFrame(df, index=np.arange(len(df)), columns=colNames)
+    
+    df = df.loc[df['Port Type'] == 'DC Fast']
     
     df['Start Date'] = pd.to_datetime(df['Start Date']);
     df['End Date'] = pd.to_datetime(df['End Date']);
@@ -47,24 +50,26 @@ def filterPrep(df, string, fltr):
     else:        
         print("No Filter")
            
-    #clean data
+    #clean data    
     df = df.loc[df['Energy (kWh)'] > 0]
     df = df.loc[~pd.isnull(df['End Date'])]
-    yr = 2018
-    df = df.loc[(df['Start Date'] > datetime.date(yr,1,1)) & (df['Start Date'] < datetime.date(yr+1,1,1))]
-        
-    #update data types
+    yr = 2017
+    df = df.loc[(df['Start Date'] > datetime.date(yr,12,1)) & (df['Start Date'] < datetime.date(yr+2,12,1))]
+         
+    #update data types 
     df['Duration (h)'] = df['Total Duration (hh:mm:ss)'].apply(lambda x: x.seconds/3600)
-    df['Duration (h)'] = df['Duration (h)'].apply(lambda x: round(x * 2) / 4) 
+    #df['Duration (h)'] = df['Duration (h)'].apply(lambda x: round(x * 4) / 4) 
     df['Charging (h)'] = df['Charging Time (hh:mm:ss)'].apply(lambda x: x.seconds/3600)    
-    df['Charging (h)'] = df['Charging (h)'].apply(lambda x: round(x * 2) / 4) 
+    #df['Charging (h)'] = df['Charging (h)'].apply(lambda x: round(x * 4) / 4) 
+    df['NoCharge (h)'] = df['Duration (h)'] - df['Charging (h)']
+    df = df.loc[df['Duration (h)'] > 0]
     
     # Day of year 0 = Jan1 and day of year 365 = Dec31
     df['DayofYr'] = df['Start Date'].apply(lambda x: x.dayofyear) 
     # Monday is 0 and Sunday is 6
     df['DayofWk'] = df['Start Date'].apply(lambda x: x.weekday()) 
-    df['isWeekday'] = df['DayofWk'].apply(lambda x: 1 if x <=4 else 0) 
-    df = df.loc[df['isWeekday'] == 1]
+    #df['isWeekday'] = df['DayofWk'].apply(lambda x: 1 if x <=4 else 0) 
+    #df = df.loc[df['isWeekday'] == 1]
     df['Year'] = df['Start Date'].apply(lambda x: x.year) 
     df['StartHr'] = df['Start Date'].apply(lambda x: x.hour + x.minute/60) 
     df['StartHr'] = df['StartHr'].apply(lambda x: np.floor(x))  
@@ -74,8 +79,18 @@ def filterPrep(df, string, fltr):
     #df['EndHr'] = df['EndHr'].apply(lambda x: round(x * 4) / 4) 
     df['AvgPwr'] = df['Energy (kWh)']/df['Duration (h)']
     df['Date'] = df['Start Date'].apply(lambda x: str(x.year) + '-' + str(x.month) + '-' + str(x.day)) 
+     
+    #convert percent to float
+    def p2f(s): 
+        if isinstance(s, str):
+            x = s.strip('%')       
+            x = float(x)/100  
+            return x
+        else: 
+            return s
         
-    df = df.loc[df['Duration (h)'] > 0]
+    df['Start SOC'] =  df['Start SOC'].apply(lambda x: p2f(x))    
+    df['End SOC'] =  df['End SOC'].apply(lambda x: p2f(x))
     
     # Sort Dataframe
     df.sort_values(['Start Date'], inplace=True);
@@ -99,10 +114,10 @@ def filterPrep(df, string, fltr):
     return df, daysTot;
 
 # Salt Lake City Sessions
-dfSLC, daysTot = filterPrep(dataRaw, "Salt Lake City", True)
+dfUtah, daysTot = filterPrep(dataRaw, "Salt Lake City", False)
 
 # Save 
-#dfSLC.to_excel("data/dfSLC_Wkdy_2018.xlsx")
+dfUtah.to_excel("data/DCFC_dfUtah_Alldays_2018-2019.xlsx")
 
 #%% Training and Testing for a Single Day
 
@@ -826,3 +841,31 @@ def convert_params(mu, alpha):
     p = (var - mu) / var
     r = mu ** 2 / (var - mu)
     return r, p
+
+
+#%% DCFC Start/End SOC
+
+import seaborn as sns
+
+#sns.set_style("whitegrid")    
+
+plt.style.use('ggplot')  
+plt.figure(figsize=(12,6))
+
+font = {'family': 'Times New Roman', 
+        'weight': 'light', 
+        'size': 16}
+plt.rc('font', **font)
+
+b = np.arange(0,70,5)
+plt.hist(dfUtah['Energy (kWh)'], bins=b, density=False, color='g', 
+                lw=2, alpha=1, histtype='step', label='kWh')
+#plt.hist(dfUtah['Charging (h)'], bins=b, density=False, 
+#                lw=2, alpha=1, histtype='step', label='Charging Time')
+
+plt.title('Utah DCFC (2018-2019)')
+plt.ylabel('Frequency')
+plt.xlabel('Energy')
+#plt.xlim((0,4))
+plt.legend()
+    

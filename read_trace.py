@@ -583,6 +583,88 @@ ax.set_title('Poisson')
 ax.set_xticks(np.arange(0,26,2))
 
 #%%
+
+import pymc3 as pm
+
+# Convert categorical variables to integer
+hr_idx = data.Hour.values
+hrs = np.arange(24)
+n_hrs = len(hrs)
+
+#% Hierarchical Modeling
+with pm.Model() as model:
+    hyper_alpha_sd = pm.Uniform('hyper_alpha_sd', lower=0, upper=20)
+    hyper_alpha_mu = pm.Uniform('hyper_alpha_mu', lower=0, upper=20)
+    #hyper_alpha_mu = pm.Normal('hyper_alpha_mu', mu=hr_std)
+
+    hyper_mu_sd = pm.Uniform('hyper_mu_sd', lower=0, upper=20)
+    hyper_mu_mu = pm.Uniform('hyper_mu_mu', lower=0, upper=20)
+    #hyper_mu_mu = pm.Normal('hyper_mu_mu', mu=hr_mean)
+
+    alpha = pm.Gamma('alpha', mu=hyper_alpha_mu, sd=hyper_alpha_sd, shape=n_hrs)
+    mu = pm.Gamma('mu', mu=hyper_mu_mu, sd=hyper_mu_sd, shape=n_hrs)
+    #alpha = pm.Gamma('alpha', mu=hyper_alpha_mu, sd=hyper_alpha_sd)
+    #mu = pm.Gamma('mu', mu=hyper_mu_mu, sd=hyper_mu_sd)
+
+    y_obs = data.Connected.values
+
+    #y_est = pm.Poisson('y_est', mu=mu[hr_idx], observed=y_obs)
+    #y_pred = pm.Poisson('y_pred', mu=mu[hr_idx], shape=data.Hour.shape)
+
+    y_est = pm.NegativeBinomial('y_est', mu=mu[hr_idx], alpha=alpha[hr_idx], observed=y_obs)
+    y_pred = pm.NegativeBinomial('y_pred', mu=mu[hr_idx], alpha=alpha[hr_idx], shape=data.Hour.shape)
+
+#%%    
+
+trace1 = pm.load_trace('/results/667548_20k_poolNB/out_smpls20000.trace')
+
+
+#%%
+
+from scipy.stats import nbinom
+import matplotlib.pyplot as plt
+
+result_NB_20k = pd.read_excel('results/NB_20kpool.xlsx');
+
+result_NB_20k['r'], result_NB_20k['p'] = convert_params(result_NB_20k['alpha'],result_NB_20k['mu']) 
+
+#%%
+x = np.arange(0, 10, 1)
+
+for i in [12]:
+    
+    r = result_NB_20k['r'].at[i]
+    p = result_NB_20k['p'].at[i]
+
+    plt.bar(x, nbinom.pmf(x, r, p), label='nbinom pmf')
+#ax.vlines(x, 0, nbinom.pmf(x, r, p), colors='b', lw=5, alpha=0.5)
+
+#%%
+rdmNB = nbinom.rvs(r, p, size=100000)
+plt.hist(rdmNB, density=True)
+
+#%%
+
+def convert_params(mu, alpha):
+    """ 
+    Convert mean/dispersion parameterization of a negative binomial to the ones scipy supports
+
+    Parameters
+    ----------
+    mu : float 
+       Mean of NB distribution.
+    alpha : float
+       Overdispersion parameter used for variance calculation.
+
+    See https://en.wikipedia.org/wiki/Negative_binomial_distribution#Alternative_formulations
+    """
+    var = mu + alpha * mu ** 2
+    p = (var - mu) / var
+    r = mu ** 2 / (var - mu)
+    return r, p
+
+
+#%%
 import XlsxWriter
 
 writer = pd.ExcelWriter('out_trace.xlsx', engine='xlsxwriter')

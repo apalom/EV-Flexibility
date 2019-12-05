@@ -18,8 +18,9 @@ import datetime
 
 # Raw Data
 #filePath = 'PackSize-Session-Details-Meter-with-Summary-20181211.csv';
-filePath = 'data/Session-Details-Summary-20190812.csv';
+#filePath = 'data/Session-Details-Summary-20190812.csv';
 #filePath = 'data/Lifetime-UniqueDrivers-vs-Time.csv';
+filePath = 'data/Session-Details-Summary-20191203.csv';
 
 # Import Data
 dataRaw = pd.read_csv(filePath);
@@ -44,20 +45,21 @@ allColumns = list(data);
 
 #%% Data Columns for ChargePoint 'data/Lifetime-Session-Details.csv';
 
-colNames = ['EVSE ID', 'Port Number', 'Station Name', 'Plug In Event Id', 'Start Date', 'End Date', 
+colNames = ['EVSE ID', 'Port Number', 'Port Type', 'Station Name', 'Plug In Event Id', 'Start Date', 'End Date', 
             'Total Duration (hh:mm:ss)', 'Charging Time (hh:mm:ss)', 'Energy (kWh)', 'AvgPwr',
-            'Ended By', 'Port Type', 'Latitude', 'Longitude', 'User ID', 'Driver Postal Code', 'Transit Corridor', 
-            'Duration (h)', 'Charging (h)', 'Sparrow', 'DayofYr', 'DayofWk', 'StartHr', 'EndHr' ];
+            'Ended By', 'Latitude', 'Longitude', 'User ID', 'Driver Postal Code', 'Transit Corridor', 
+            'Duration (h)', 'Charging (h)', 'Sparrow', 'DayofYr', 'DayofWk', 'StartHr', 'EndHr', 'Start SOC', 'End SOC'];
             
 data = pd.DataFrame(data, index=np.arange(len(dataRaw)), columns=colNames)
 
+data = data.loc[data['Port Type'] == 'DC Fast']
 data = data.loc[data['Energy (kWh)'] > 0]
 
 data['Start Date'] = pd.to_datetime(data['Start Date']);
 data['End Date'] = pd.to_datetime(data['End Date']);
 data['Total Duration (hh:mm:ss)'] = pd.to_timedelta(data['Total Duration (hh:mm:ss)']);
 data['Charging Time (hh:mm:ss)'] = pd.to_timedelta(data['Charging Time (hh:mm:ss)']);
-data['Transit Corridor'] = data['Station Name'].apply(lambda x: 'MAVERIK' in x);
+#data['Transit Corridor'] = data['Station Name'].apply(lambda x: 'MAVERIK' in x);
 
 data['Duration (h)'] = data['Total Duration (hh:mm:ss)'].apply(lambda x: x.days*24 +  x.seconds/3600)
 data['Duration (h)'] = data['Duration (h)'].apply(lambda x: round(x * 2) / 4) 
@@ -79,7 +81,6 @@ data['AvgPwr'] = data['Energy (kWh)']/data['Duration (h)']
 
 data = data.sort_values(by=['Start Date']);
 data = data.reset_index(drop=True);
-
 
 dataHead = data.head(100);
               
@@ -363,6 +364,17 @@ dataUnique['EVSE ID'] = dataUnique['EVSE ID'].map(str) + '-' + dataUnique['Port 
 
 dataUnique = dataUnique.drop(['Start Date', 'Port Number'], axis=1)
 
+#%% Create List of Dates
+
+import datetime
+
+start = datetime.datetime.strptime("2013-01-01", "%Y-%m-%d")
+end = datetime.datetime.strptime("2019-08-13", "%Y-%m-%d")
+#date_generated = [start + datetime.timedelta(days=x) for x in range(0, (end-start).days)]
+date_generated = [start + datetime.timedelta(days=x) for x in range(0, (end-start).days)]
+date_generated =[x.date() for x in date_generated]
+#date_generated =[x.date().strftime('%Y-%m-%d') for x in date_generated]
+
 #%%
 
 dfUnique = pd.DataFrame(np.zeros((len(date_generated),3)), columns=['Date','Drivers', 'Ports'])
@@ -380,16 +392,11 @@ for i in range(len(date_generated)):
         
 dfUnique.Date = date_generated    
 
-#%% Create List of Dates
+#%%
 
-import datetime
-
-start = datetime.datetime.strptime("2013-01-01", "%Y-%m-%d")
-end = datetime.datetime.strptime("2019-08-13", "%Y-%m-%d")
-#date_generated = [start + datetime.timedelta(days=x) for x in range(0, (end-start).days)]
-date_generated = [start + datetime.timedelta(days=x) for x in range(0, (end-start).days)]
-date_generated =[x.date() for x in date_generated]
-#date_generated =[x.date().strftime('%Y-%m-%d') for x in date_generated]
+dfUnique1 = dfUnique[(dfUnique.Date < datetime.date(2019, 1, 1))]
+dfUnique1 = dfUnique1[(dfUnique1.Date > datetime.date(2015, 1, 1))]
+dfUnique1 = dfUnique1.reset_index(drop=True)
 
 #%% Unique Drivers per Port
 
