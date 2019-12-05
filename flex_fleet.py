@@ -29,94 +29,94 @@ allColumns = list(dataRaw);
 #%% Dataframe Preparation
 
 def filterPrep(df, string, fltr):
-    
-    colNames = ['EVSE ID', 'Port Number', 'Port Type', 'Station Name', 'Plug In Event Id', 'City', 'Latitude', 'Longitude', 
-                'User ID', 'Driver Postal Code', 'Start Date', 'End Date', 'Total Duration (hh:mm:ss)', 'Charging Time (hh:mm:ss)', 
+
+    colNames = ['EVSE ID', 'Port Number', 'Port Type', 'Station Name', 'Plug In Event Id', 'City', 'Latitude', 'Longitude',
+                'User ID', 'Driver Postal Code', 'Start Date', 'End Date', 'Total Duration (hh:mm:ss)', 'Charging Time (hh:mm:ss)',
                 'Energy (kWh)', 'Ended By', 'Start SOC', 'End SOC'];
-            
+
     df = pd.DataFrame(df, index=np.arange(len(df)), columns=colNames)
-    
+
     df = df.loc[df['Port Type'] == 'DC Fast']
-    
+
     df['Start Date'] = pd.to_datetime(df['Start Date']);
     df['End Date'] = pd.to_datetime(df['End Date']);
     df['Total Duration (hh:mm:ss)'] = pd.to_timedelta(df['Total Duration (hh:mm:ss)']);
     df['Charging Time (hh:mm:ss)'] = pd.to_timedelta(df['Charging Time (hh:mm:ss)']);
-    
+
     #filter by City
     if fltr:
         df = df[df['City'].str.contains(string)]
         print("Filter for: ", string)
-    else:        
+    else:
         print("No Filter")
-           
-    #clean data    
+
+    #clean data
     df = df.loc[df['Energy (kWh)'] > 0]
     df = df.loc[~pd.isnull(df['End Date'])]
     yr = 2017
     df = df.loc[(df['Start Date'] > datetime.date(yr,12,1)) & (df['Start Date'] < datetime.date(yr+2,12,1))]
-         
-    #update data types 
+
+    #update data types
     df['Duration (h)'] = df['Total Duration (hh:mm:ss)'].apply(lambda x: x.seconds/3600)
-    #df['Duration (h)'] = df['Duration (h)'].apply(lambda x: round(x * 4) / 4) 
-    df['Charging (h)'] = df['Charging Time (hh:mm:ss)'].apply(lambda x: x.seconds/3600)    
-    #df['Charging (h)'] = df['Charging (h)'].apply(lambda x: round(x * 4) / 4) 
+    #df['Duration (h)'] = df['Duration (h)'].apply(lambda x: round(x * 4) / 4)
+    df['Charging (h)'] = df['Charging Time (hh:mm:ss)'].apply(lambda x: x.seconds/3600)
+    #df['Charging (h)'] = df['Charging (h)'].apply(lambda x: round(x * 4) / 4)
     df['NoCharge (h)'] = df['Duration (h)'] - df['Charging (h)']
     df = df.loc[df['Duration (h)'] > 0]
-    
+
     # Day of year 0 = Jan1 and day of year 365 = Dec31
-    df['DayofYr'] = df['Start Date'].apply(lambda x: x.dayofyear) 
+    df['DayofYr'] = df['Start Date'].apply(lambda x: x.dayofyear)
     # Monday is 0 and Sunday is 6
-    df['DayofWk'] = df['Start Date'].apply(lambda x: x.weekday()) 
-    #df['isWeekday'] = df['DayofWk'].apply(lambda x: 1 if x <=4 else 0) 
+    df['DayofWk'] = df['Start Date'].apply(lambda x: x.weekday())
+    #df['isWeekday'] = df['DayofWk'].apply(lambda x: 1 if x <=4 else 0)
     #df = df.loc[df['isWeekday'] == 1]
-    df['Year'] = df['Start Date'].apply(lambda x: x.year) 
-    df['StartHr'] = df['Start Date'].apply(lambda x: x.hour + x.minute/60) 
-    df['StartHr'] = df['StartHr'].apply(lambda x: np.floor(x))  
-    #df['StartHr'] = df['StartHr'].apply(lambda x: round(x * 4) / 4) 
-    df['EndHr'] = df['End Date'].apply(lambda x: x.hour + x.minute/60)         
-    df['EndHr'] = df['EndHr'].apply(lambda x: np.floor(x)) 
-    #df['EndHr'] = df['EndHr'].apply(lambda x: round(x * 4) / 4) 
+    df['Year'] = df['Start Date'].apply(lambda x: x.year)
+    df['StartHr'] = df['Start Date'].apply(lambda x: x.hour + x.minute/60)
+    #df['StartHr'] = df['StartHr'].apply(lambda x: np.floor(x))
+    df['StartHr'] = df['StartHr'].apply(lambda x: round(x * 4) / 4)
+    df['EndHr'] = df['End Date'].apply(lambda x: x.hour + x.minute/60)
+    #df['EndHr'] = df['EndHr'].apply(lambda x: np.floor(x))
+    df['EndHr'] = df['EndHr'].apply(lambda x: round(x * 4) / 4)
     df['AvgPwr'] = df['Energy (kWh)']/df['Duration (h)']
-    df['Date'] = df['Start Date'].apply(lambda x: str(x.year) + '-' + str(x.month) + '-' + str(x.day)) 
-     
+    df['Date'] = df['Start Date'].apply(lambda x: str(x.year) + '-' + str(x.month) + '-' + str(x.day))
+
     #convert percent to float
-    def p2f(s): 
+    def p2f(s):
         if isinstance(s, str):
-            x = s.strip('%')       
-            x = float(x)/100  
+            x = s.strip('%')
+            x = float(x)/100
             return x
-        else: 
+        else:
             return s
-        
-    df['Start SOC'] =  df['Start SOC'].apply(lambda x: p2f(x))    
+
+    df['Start SOC'] =  df['Start SOC'].apply(lambda x: p2f(x))
     df['End SOC'] =  df['End SOC'].apply(lambda x: p2f(x))
-    
+
     # Sort Dataframe
     df.sort_values(['Start Date'], inplace=True);
     df = df.reset_index(drop=True);
 
-    # Assign Day Count    
+    # Assign Day Count
     df['dayCount'] = 0;
-    
+
     days = list(df['Start Date'].apply(lambda x: str(x.year) + '-' + str(x.month) + '-' + str(x.day)))
     daysSet = sorted(set(days), key=days.index)
-    
+
     c = 0;
-    for d in daysSet:        
+    for d in daysSet:
         dateTest = [df['Date'] == d]
         trueIdx = list(dateTest[0][dateTest[0]].index)
         df.at[trueIdx,'dayCount'] = c
-        c += 1; 
-        
+        c += 1;
+
     daysTot =  (df['Start Date'].iloc[len(df)-1] - df['Start Date'].iloc[0]).days+1
-    
+
     return df, daysTot;
 
 # Salt Lake City Sessions
 dfUtah, daysTot = filterPrep(dataRaw, "Salt Lake City", False)
 
-# Save 
+# Save
 dfUtah.to_excel("data/DCFC_dfUtah_Alldays_2018-2019.xlsx")
 
 #%% Training and Testing for a Single Day
@@ -124,141 +124,153 @@ dfUtah.to_excel("data/DCFC_dfUtah_Alldays_2018-2019.xlsx")
 import random
 
 def testTrain(df, day, p):
-    
+
     #df = df.loc[df.DayofWk == day]
     df = df.reset_index(drop=True)
     daysIn = list(set(list(df.DayofYr)))
     daysIn.sort()
-    
+
     # Define list of days for training and testing
     daysTrain = random.sample(daysIn, int(p*len(daysIn)))
     daysTest = list(set(daysIn) - set(daysTrain))
-    
+
     # Sample training data
     dfTrain = df.loc[df.DayofYr.isin(daysTrain)]
     dfTest = df.loc[df.DayofYr.isin(daysTest)]
-    
+
     dfTrain = dfTrain.sort_values(by=['dayCount'])
     dfTest = dfTest.sort_values(by=['dayCount'])
-    
-    return dfTrain, dfTest 
+
+    return dfTrain, dfTest
 
 # Inputs (dfAll, Day of Week [Mon = 0, Sat = 5] ,percent Training Data)
-dfTrain, dfTest = testTrain(dfSLC, 0, 0.20)
+dfTrain15, dfTest15 = testTrain(dfSLC_15min, 0, 0.20)
 
-#dfTrain.to_csv('data\dfTrain_all.csv')
-#dfTest.to_csv('data\dfTest_all.csv')
+#dfTrain15.to_csv('data\dfTrain_all15.csv')
+#dfTest15.to_csv('data\dfTest_all15.csv')
 
-daysInTrn = len(list(set(list(dfTrain.DayofYr))))
+#daysInTrn = len(list(set(list(dfTrain.DayofYr))))
 
 #%% Calculate Connected EVs per Day/Hr and Calculate Mean, 1st and 2nd Standard Deviation of Connected Vehicles
 
-def quants(dfs, weekday):
+def quants(df, weekday):
 
-    #allDays = list(set(df.dayCount))
-    #df = dfs;
-    
-#    if weekday:
-#        df = df[df.DayofWk < 5]
-#    else:
-#        df = df[df.DayofWk >= 5]
-        
-    i = 0;
     dctQuant = {}; dctDay = {};
-    
-    for frame in dfs:
-        df = frame;
-    
-        daysIn = list(set(df.dayCount))
-        daysIn.sort()
-        
-        dfDays = pd.DataFrame(np.zeros((24,len(set(df.dayCount)))), 
-                            index=np.arange(0,24,1), columns=daysIn)
-        
-        dfNames = ['Train', 'Test']
-        for d in df.dayCount:
-            print('Day: ', d)
-            dfDay = df[df.dayCount == d]
-            cnct = dfDay.StartHr.value_counts()
-            cnct = cnct.sort_index()
-            
-            dfDays.loc[:,d] = dfDay.StartHr.value_counts()
-            dfDays.loc[:,d] = np.nan_to_num(dfDays.loc[:,d])
-        
-        quants = pd.DataFrame(np.zeros((24,6)), 
-                            index= np.arange(0,24,1), 
-                            columns=['-2_sigma','-1_sigma','mu','+1_sigma','+2_sigma','stddev'])
-        
-        quants['-2_sigma'] = dfDays.quantile(q=0.023, axis=1)
-        quants['-1_sigma'] = dfDays.quantile(q=0.159, axis=1)
-        quants['mu'] = dfDays.quantile(q=0.50, axis=1)
-        quants['+1_sigma'] = dfDays.quantile(q=0.841, axis=1)
-        quants['+2_sigma'] = dfDays.quantile(q=0.977, axis=1)
-        quants['stddev'] = np.std(dfDays, axis=1)
-    
-        dctQuant[dfNames[i]] = quants;
-        dctDay[dfNames[i]] = dfDays;
-        i += 1;
+
+    daysIn = list(set(df.dayCount))
+    daysIn.sort()
+
+    dfArrivals = pd.DataFrame(np.zeros((4*24,len(set(df.dayCount)))),
+                          index=np.arange(0,24,0.25), columns=daysIn)
+
+    dfEnergy = pd.DataFrame(np.zeros((4*24,len(set(df.dayCount)))),
+                          index=np.arange(0,24,0.25), columns=daysIn)
+
+    dfDuration = pd.DataFrame(np.zeros((4*24,len(set(df.dayCount)))),
+                          index=np.arange(0,24,0.25), columns=daysIn)
+
+    dfCharging = pd.DataFrame(np.zeros((4*24,len(set(df.dayCount)))),
+                          index=np.arange(0,24,0.25), columns=daysIn)
+
+    for d in df.dayCount:
+        print('Day: ', d)
+        dfDay = df[df.dayCount == d]
+        cnct = dfDay.StartHr.value_counts()
+        cnct = cnct.sort_index()
+
+        energy = dfDay['Energy (kWh)'].groupby(dfDay.StartHr).sum()
+        duration = dfDay['Duration (h)'].groupby(dfDay.StartHr).mean()
+        charging = dfDay['Charging (h)'].groupby(dfDay.StartHr).mean()
+
+        dfArrivals.loc[:,d] = cnct
+        dfArrivals.loc[:,d] = np.nan_to_num(dfArrivals.loc[:,d])
+
+        dfEnergy.loc[:,d] = energy
+        dfEnergy.loc[:,d] = np.nan_to_num(dfEnergy.loc[:,d])
+
+        dfDuration.loc[:,d] = duration
+        dfDuration.loc[:,d] = np.nan_to_num(dfDuration.loc[:,d])
+
+        dfCharging.loc[:,d] = charging
+        dfCharging.loc[:,d] = np.nan_to_num(dfCharging.loc[:,d])
+
+#        quants = pd.DataFrame(np.zeros((24,6)),
+#                            index= np.arange(0,24,1),
+#                            columns=['-2_sigma','-1_sigma','mu','+1_sigma','+2_sigma','stddev'])
+#        quants['-2_sigma'] = dfDays.quantile(q=0.023, axis=1)
+#        quants['-1_sigma'] = dfDays.quantile(q=0.159, axis=1)
+#        quants['mu'] = dfDays.quantile(q=0.50, axis=1)
+#        quants['+1_sigma'] = dfDays.quantile(q=0.841, axis=1)
+#        quants['+2_sigma'] = dfDays.quantile(q=0.977, axis=1)
+#        quants['stddev'] = np.std(dfDays, axis=1)
+#        dctQuant[dfNames[i]] = quants;
+    dctDay['Arrivals'] = dfArrivals;
+    dctDay['Energy'] = dfEnergy;
+    dctDay['Duration'] = dfDuration;
+    dctDay['Charging'] = dfCharging;
 
     return dctDay, dctQuant
 
-# quants(df, weekday = True/False)
-dfDays, dfQuants = quants([dfTrain, dfTest], True)
-#dfDays, dfQuants = quants(dfSLC, True)
+dfDays_Test15, dfQuants = quants(dfTest15, True)
 
 #%% Create Hour_DayCnt_DayYr_Connected data
 
 #dfHrCnctd = {};
+df = dfDays_Test15
 
-tt = 'Test'
-daysIn = dfDays[tt].shape[1]
-dfHrCnctd[tt] = pd.DataFrame(np.zeros((24*daysIn,4)), columns=['Hour','DayCnt','DayYr','Connected'])
+daysIn = df['Arrivals'].shape[1]
+dfDays_Val = pd.DataFrame(np.zeros((4*24*daysIn,7)),
+              columns=['Hour','DayCnt','DayYr','Arrivals','Energy','Duration','Charging'])
 
-r = 0;
-d = 0;
+r = 0; d = 0;
 
-for j in list(dfDays[tt]):   
-    
-    dfHrCnctd[tt].Hour.iloc[r:r+24] = np.linspace(0,23,24);
-    dfHrCnctd[tt].DayCnt.iloc[r:r+24] = np.repeat(d, 24);
-    dfHrCnctd[tt].DayYr.iloc[r:r+24] = j;
-    dfHrCnctd[tt].Connected[r:r+24] = dfDays[tt][j]
-    
+for j in df['Arrivals'].columns:
+    print(j)
+    dfDays_Val.Hour.iloc[r:r+4*24] = np.arange(0,24,0.25);
+    dfDays_Val.DayCnt.iloc[r:r+4*24] = np.repeat(d, 4*24);
+    dfDays_Val.DayYr.iloc[r:r+4*24] = j;
+
+    dfDays_Val.Arrivals[r:r+4*24] = df['Arrivals'][j];
+    dfDays_Val.Energy[r:r+4*24] = df['Energy'][j];
+    dfDays_Val.Duration[r:r+4*24] = df['Duration'][j];
+    dfDays_Val.Charging[r:r+4*24] = df['Charging'][j];
+
     d += 1;
-    r += 24;
-    
-dfHrCnctd[tt].to_csv('data\hdc_wkdy_TEST.csv')
+    r += 4*24;
+
+dfDays_Test15Val = dfDays_Val
+dfDays_Test15Val.to_csv('data\dfDays_Test15Val.csv')
 #dfHrCnctd['Train'].to_csv('data\hdc_wkdy_TRAIN.csv')
 
-#%% Create Fitting Data 
+#%% Create Fitting Data
 
 def dfFitting(dfs, dfDays):
-    
+
     dfFits = {}
     i = 0;
     for frame in dfs:
-    
-        dlen = 24*len(set(dfs[i].dayCount))        
+
+        dlen = 24*len(set(dfs[i].dayCount))
         dfDayCol = pd.DataFrame(np.zeros((dlen,6)), columns=['Hour','isWeekday','DayWk','DayYr','DayCnt','Connected'])
         dayList = list(dfDays[i]);
-        
+
         for c in np.arange(0,dfDays[i].shape[1]):
-            print('df: ', i, ' | Day: ', c);                        
+            print('df: ', i, ' | Day: ', c);
             isWkdy = 0;
-            
+
             # Day of Week [Mon = 0, Sat = 5]
             if np.mod(dayList[c],7) < 5:
                 isWkdy = 1;
-            
+
             for h in np.arange(0,24):
                 #print('  Hr: ', h);
                 dfDayCol.Hour.at[(c*24)+h] = int(h);
-                dfDayCol.isWeekday.at[(c*24)+h] = isWkdy;    
-                dfDayCol.DayWk.at[(c*24)+h] = np.mod(dayList[c],7);    
-                dfDayCol.DayYr.at[(c*24)+h] = dayList[c];                    
-                dfDayCol.DayCnt.at[(c*24)+h] = c;    
+                dfDayCol.isWeekday.at[(c*24)+h] = isWkdy;
+                dfDayCol.DayWk.at[(c*24)+h] = np.mod(dayList[c],7);
+                dfDayCol.DayYr.at[(c*24)+h] = dayList[c];
+                dfDayCol.DayCnt.at[(c*24)+h] = c;
                 dfDayCol.Connected.at[(c*24)+h] = dfDays[i].iloc[h,c];
-        
+
         dfFits[i] = dfDayCol;
         i += 1;
 
@@ -278,7 +290,7 @@ fig, ax = plt.subplots(figsize=(16,6))
 fig.tight_layout()
 
 endHr = 143
-ax = sns.stripplot(x=dfFitTrain.head(endHr).index, y="Connected", hue="Day", 
+ax = sns.stripplot(x=dfFitTrain.head(endHr).index, y="Connected", hue="Day",
                    s=5, data=dfFitTrain.head(endHr), jitter=True)
 
 ax.set(xlabel='Hour',  ylabel='EV Connected', title='Training Data - Monday',
@@ -305,7 +317,7 @@ kernels = [1.0 * RBF(length_scale=1.0, length_scale_bounds=(1e-1, 10.0)),
                * (DotProduct(sigma_0=1.0, sigma_0_bounds=(0.1, 10.0)) ** 2),
            1.0 * Matern(length_scale=1.0, length_scale_bounds=(1e-1, 10.0), nu=1.5)]
 
-kernel = (5**2 * RBF(length_scale=24, length_scale_bounds=(0.1, 48)) 
+kernel = (5**2 * RBF(length_scale=24, length_scale_bounds=(0.1, 48))
             + 2**2 * RationalQuadratic(length_scale=1.0, alpha=0.1))
 
 days = 10;
@@ -372,7 +384,7 @@ y_samples1 = np.zeros((len(y_samples),nS))
 
 for j in range(len(y_samples1)):
     y_samples1[j] = y_samples[j]
-    
+
 Xc1 = np.repeat(Xc, nS, axis=1)
 
 plt.plot(Xc1, y_samples1, lw=1)
@@ -385,14 +397,14 @@ gp.kernel_
 #x_pred = np.array(dfFitTest.Hour).reshape(-1, 1)
 #y_pred, sigma = gp.predict(x_pred, return_std=True)
 
-#%% 
+#%%
 
 dfMonday = dfSLC.loc[dfSLC.DayofWk >= 5]
 dfMonday = dfMonday.reset_index(drop=True)
 
 #%% Remove data outside of 2nd standard deviation
 
-#dim = 'Duration (h)' 
+#dim = 'Duration (h)'
 dim = 'Energy (kWh)'
 stdDev2 = np.round((dfSLC[dim].quantile(q=0.977)),0)
 
@@ -412,19 +424,19 @@ plt.figure(figsize=(12,6))
 font = {'family': 'Times New Roman', 'weight': 'light', 'size': 16}
 plt.rc('font', **font)
 
-dfCln[dim].plot.hist(grid=True, bins=np.arange(0,(kBins)), 
+dfCln[dim].plot.hist(grid=True, bins=np.arange(0,(kBins)),
                      density=True, rwidth=0.9, color='#607c8e')
-                     
-                     
+
+
 plt.xlabel(dim)
 plt.ylabel('Density')
 
 #%% Hourly Plot Histograms
-              
+
 hrs = np.arange(0,24)
 hists = {}
 
-fig, axs = plt.subplots(4, 6, figsize=(16,12), sharex=True, sharey=True) 
+fig, axs = plt.subplots(4, 6, figsize=(16,12), sharex=True, sharey=True)
 font = {'family': 'Times New Roman', 'weight': 'normal', 'size': 12}
 plt.rc('font', **font)
 
@@ -433,20 +445,20 @@ r,c = 0,0;
 for hr in hrs:
     mask = (dfCln['StartHr'] == hr)
     df_hr = dfCln[mask]
-    
+
     if len(df_hr) > 0:
         kBins = 1 + 3.22*np.log(len(df_hr)) #Sturge's Rule for Bin Count
-        hists[hr] = np.histogram(df_hr[dim], bins=int(kBins))        
-    else: 
+        hists[hr] = np.histogram(df_hr[dim], bins=int(kBins))
+    else:
         hists[hr] = np.histogram(0)
-    
+
     print('position', r, c)
-    axs[r,c].hist(df_hr[dim], edgecolor='white', color='#E3A79D', linewidth=0.5, bins=int(kBins), density=True) 
+    axs[r,c].hist(df_hr[dim], edgecolor='white', color='#E3A79D', linewidth=0.5, bins=int(kBins), density=True)
     axs[r,c].set_title('Hr: ' + str(hr))
     axs[r,c].text(9, 0.35,  str(len(df_hr)) + ' samples')#, ha='center', va='center',)
     #axs[r,c].set_xlim(0,22)
     #axs[r,c].set_xticks(np.arange(0,22+4,4))
-    
+
     # Subplot Spacing
     c += 1
     if c >= 6:
@@ -454,7 +466,7 @@ for hr in hrs:
         c = 0;
         if r >= 4:
             r=0;
-  
+
 
 fig.text(0.5, 0.0, 'Energy (kWh)', ha='center')
 fig.text(0.0, 0.5, 'Density', va='center', rotation='vertical')
@@ -484,23 +496,23 @@ x = dfCln[dim]
 #xN = (x - agg_mu)/agg_sigma
 
 fit_q = stats.kstest(x, 'norm', args=stats.norm.fit(x), N=1000)
-ax = sns.distplot(x, fit=stats.norm, kde=False,  
-                  fit_kws={'color':'blue', 'label':'norm: $\chi^2$ =${0:.2g}'.format(resultsChi.loc['norm']['chi_square'])}) 
+ax = sns.distplot(x, fit=stats.norm, kde=False,
+                  fit_kws={'color':'blue', 'label':'norm: $\chi^2$ =${0:.2g}'.format(resultsChi.loc['norm']['chi_square'])})
 print('norm: ', fit_q)
 
 fit_q = stats.kstest(x, 'gamma', args=stats.gamma.fit(x), N=1000)
-ax = sns.distplot(x, fit=stats.gamma, hist=False, kde=False,  
+ax = sns.distplot(x, fit=stats.gamma, hist=False, kde=False,
                   fit_kws={'color':'green', 'label':'gamma: $\chi^2$ =${0:.2g}'.format(resultsChi.loc['gamma']['chi_square'])})
 print('gamma: ', fit_q)
 
 fit_q = stats.kstest(x, 'beta', args=stats.beta.fit(x), N=1000)
-ax = sns.distplot(x, fit=stats.beta, hist=False, kde=False,  
+ax = sns.distplot(x, fit=stats.beta, hist=False, kde=False,
                   fit_kws={'color':'red', 'label':'beta: $\chi^2$ =${0:.2g}'.format(resultsChi.loc['beta']['chi_square'])})
 print('beta: ', fit_q)
 
 
 fit_q = stats.kstest(x, 'expon', args=stats.expon.fit(x), N=1000)
-ax = sns.distplot(x, fit=stats.expon, hist=False, kde=False,  
+ax = sns.distplot(x, fit=stats.expon, hist=False, kde=False,
                   fit_kws={'color':'grey', 'label':'expon: $\chi^2$ =${0:.2g}'.format(resultsChi.loc['expon']['chi_square'])})
 print('expon: ', fit_q)
 
@@ -512,7 +524,7 @@ params_gamma = stats.gamma.fit(x);
 # Beta Params Energy: α, β, loc (lower limit), scale (upper limit - lower limit)
 params_beta = stats.beta.fit(x);
 
-# Beta Params Energy: α, loc, scale 
+# Beta Params Energy: α, loc, scale
 params_skewnorm = stats.skewnorm.fit(x);
 
 #%% Test Chi-Square
@@ -537,7 +549,7 @@ size = len(y)
 #plt.hist(y)
 #plt.show()
 
-sc=StandardScaler() 
+sc=StandardScaler()
 yy = y.reshape (-1,1)
 sc.fit(yy)
 y_std =sc.transform(yy)
@@ -574,27 +586,27 @@ for distribution in dist_names:
     # Set up distribution and get fitted distribution parameters
     dist = getattr(scipy.stats, distribution)
     param = dist.fit(y_std)
-    
+
     # Obtain the KS test P statistic, round it to 5 decimal places
     p = scipy.stats.kstest(y_std, distribution, args=param)[1]
     p = np.around(p, 5)
-    p_values.append(p)    
-    
+    p_values.append(p)
+
     # Get expected counts in percentile bins
     # This is based on a 'cumulative distrubution function' (cdf)
-    cdf_fitted = dist.cdf(percentile_cutoffs, *param[:-2], loc=param[-2], 
+    cdf_fitted = dist.cdf(percentile_cutoffs, *param[:-2], loc=param[-2],
                           scale=param[-1])
     expected_frequency = []
     for bin in range(len(percentile_bins)-1):
         expected_cdf_area = cdf_fitted[bin+1] - cdf_fitted[bin]
         expected_frequency.append(expected_cdf_area)
-    
+
     # calculate chi-squared
     expected_frequency = np.array(expected_frequency) * size
     cum_expected_frequency = np.cumsum(expected_frequency)
     ss = sum (((cum_expected_frequency - cum_observed_frequency) ** 2) / cum_observed_frequency)
     chi_square.append(ss)
-        
+
 # Collate results and sort by goodness of fit (best at top)
 
 resultsChi = pd.DataFrame()
@@ -603,7 +615,7 @@ resultsChi['chi_square'] = chi_square
 resultsChi['p_value'] = p_values
 resultsChi.sort_values(['chi_square'], inplace=True)
 resultsChi = resultsChi.set_index('Distribution')
-    
+
 # Report results
 
 print ('\nDistributions sorted by goodness of fit:')
@@ -621,7 +633,7 @@ g.ax_joint.set_xticks(np.arange(0,26,2))
 #g.ax_joint.set_ylim(0,yM)
 g.ax_joint.set_title(ttl, x = 1.1, y = 1.0)
 #g.annotate(stats.pearsonr, loc=(1.2,1), fontsize=0.1)
-         
+
 #%% Import Training Connected Dat
 
 # Raw Data
@@ -655,7 +667,7 @@ p = 0
 for i in range(len(result.critical_values)):
     sl, cv = result.significance_level[i], result.critical_values[i]
     if result.statistic < result.critical_values[i]:
-        print('Anderson: Sample looks Gaussian (fail to reject H0)')        
+        print('Anderson: Sample looks Gaussian (fail to reject H0)')
     else:
         print('Anderson: Sample does not look Gaussian (reject H0)')
     print('\t', len(x), stat, sl, cv)
@@ -718,15 +730,15 @@ N = 21;
 poissMatch = np.zeros((N,3))
 
 for n in range(1, N):
-    
+
     mean, var, skew, kurt = poisson.stats(n, moments='mvsk')
     print(mean, var)
     poissMatch[n,0] = mean
     poissMatch[n,1] = mean + var
     poissMatch[n,2] = mean - var
-    
+
 #%% Poisson Distribution Fit
-    
+
 trials = 20000
 N = 21
 
@@ -735,19 +747,19 @@ poissMatch = pd.DataFrame(np.zeros((3*N,3)), columns=['mu','val','cat'])
 poissTrial = pd.DataFrame(np.zeros((trials,2)), columns=['mu','val'])
 
 for n in range(0,N):
-    
+
     poisRdm = np.random.poisson(n, trials)
     poissTrial.iloc[n:trials+(n)] = [np.array(trials*([n]-1)), poisRdm]
-    
+
     mu = np.mean(poisRdm)
     poissMatch.at[n] = [mu, mu, 'mu']
-    
-    var = np.var(poisRdm)  
+
+    var = np.var(poisRdm)
     poissMatch.at[n+N] = [mu, mu-var, '-var']
-    
+
     var = np.var(poisRdm)
     poissMatch.at[n+2*N] = [mu, mu+var, '+var']
-    
+
 
 #%% Plot Poisson Distribution
 
@@ -799,7 +811,7 @@ import matplotlib.pyplot as plt
 
 result_NB_20k = pd.read_xls('results/NB_20kpool.xlsx');
 
-result_NB_20k['r'], result_NB_20k['p'] = convert_params(result_NB_20k['alpha'],result_NB_20k['mu']) 
+result_NB_20k['r'], result_NB_20k['p'] = convert_params(result_NB_20k['alpha'],result_NB_20k['mu'])
 
 #%%
 from scipy.stats import nbinom
@@ -809,28 +821,29 @@ x = np.arange(0, 17, 1)
 
 out_r, out_p = convert_params(out_mu, out_alpha)
 
-for i in np.arange(0,24,4):
-    
+for i in np.arange(0,24,6):
+
     r = out_r[i]; p = out_p[i];
     plt.plot(x, nbinom.pmf(x, r, p), label=i)
 
-plt.xlim((0,18))   
+plt.xlim((0,10))
 plt.legend()
 #ax.vlines(x, 0, nbinom.pmf(x, r, p), colors='b', lw=5, alpha=0.5)
 
 #%%
+
 rdmNB = nbinom.rvs(r, p, size=10000)
 plt.hist(rdmNB, density=True)
 
 #%%
 
 def convert_params(mu, alpha):
-    """ 
+    """
     Convert mean/dispersion parameterization of a negative binomial to the ones scipy supports
 
     Parameters
     ----------
-    mu : float 
+    mu : float
        Mean of NB distribution.
     alpha : float
        Overdispersion parameter used for variance calculation.
@@ -847,20 +860,20 @@ def convert_params(mu, alpha):
 
 import seaborn as sns
 
-#sns.set_style("whitegrid")    
+#sns.set_style("whitegrid")
 
-plt.style.use('ggplot')  
+plt.style.use('ggplot')
 plt.figure(figsize=(12,6))
 
-font = {'family': 'Times New Roman', 
-        'weight': 'light', 
+font = {'family': 'Times New Roman',
+        'weight': 'light',
         'size': 16}
 plt.rc('font', **font)
 
 b = np.arange(0,70,5)
-plt.hist(dfUtah['Energy (kWh)'], bins=b, density=False, color='g', 
+plt.hist(dfUtah['Energy (kWh)'], bins=b, density=False, color='g',
                 lw=2, alpha=1, histtype='step', label='kWh')
-#plt.hist(dfUtah['Charging (h)'], bins=b, density=False, 
+#plt.hist(dfUtah['Charging (h)'], bins=b, density=False,
 #                lw=2, alpha=1, histtype='step', label='Charging Time')
 
 plt.title('Utah DCFC (2018-2019)')
@@ -868,4 +881,3 @@ plt.ylabel('Frequency')
 plt.xlabel('Energy')
 #plt.xlim((0,4))
 plt.legend()
-    
