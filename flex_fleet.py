@@ -881,3 +881,19 @@ plt.ylabel('Frequency')
 plt.xlabel('Energy')
 #plt.xlim((0,4))
 plt.legend()
+
+#%%
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+mu = [0,0]
+sigma = [[3.0,2.9],[2.9,3.0]]
+
+sIter=500;
+smpl = np.zeros((sIter,2))
+
+for i in range(sIter):
+  smpl[i] = np.random.multivariate_normal(mu,sigma)
+
+plt.scatter(smpl[:,0], smpl[:,1])
