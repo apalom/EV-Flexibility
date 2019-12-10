@@ -200,8 +200,8 @@ def aggData(dfDays):
         d += 1;
         r += 4*24;
      
-    for i in range(len(dfDays_Val.Arrivals)-1):
-        dfDays_Val.Departures.at[i] = dfDays_Val.Arrivals.at[i+1] - dfDays_Val.Arrivals.at[i]
+    for i in range(1,len(dfDays_Val.Arrivals)-1):
+        dfDays_Val.Departures.at[i] = dfDays_Val.Arrivals.at[i-1] - dfDays_Val.Arrivals.at[i]
         dfDays_Val.Departures[dfDays_Val.Departures.values < 0] = 0
         
     return dfDays_Val
