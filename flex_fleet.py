@@ -35,8 +35,9 @@ def filterPrep(df, string, fltr):
                 'Energy (kWh)', 'Ended By', 'Start SOC', 'End SOC'];
 
     df = pd.DataFrame(df, index=np.arange(len(df)), columns=colNames)
-
-    df = df.loc[df['Port Type'] == 'DC Fast']
+    
+    #filter for dfcf
+    #df = df.loc[df['Port Type'] == 'DC Fast']
 
     df['Start Date'] = pd.to_datetime(df['Start Date']);
     df['End Date'] = pd.to_datetime(df['End Date']);
@@ -114,7 +115,7 @@ def filterPrep(df, string, fltr):
     return df, daysTot;
 
 # Salt Lake City Sessions
-dfUtah, daysTot = filterPrep(dataRaw, "Salt Lake City", False)
+dfSLC, daysTot = filterPrep(dataRaw, "Salt Lake City", True)
 
 # Save
 dfUtah.to_excel("data/DCFC_dfUtah_Alldays_2018-2019.xlsx")

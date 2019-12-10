@@ -13,6 +13,8 @@ import matplotlib.pyplot as plt
 import scipy.stats as stats
 import pandas as pd
 from sklearn import preprocessing
+from sklearn import datasets, linear_model
+from sklearn.model_selection import train_test_split
 import pymc3 as pm
 
 #%%  Import Data
