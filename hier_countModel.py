@@ -19,7 +19,7 @@ X = df_Train[0]['Arrivals'].values
 
 # Convert categorical variables to integer
 hrs_idx = df_Train[0]['Hour'].astype(int)
-hrs = np.arange(96)
+hrs = np.arange(24)
 n_hrs = len(hrs)
 
 # Setup Bayesian Hierarchical Model 
@@ -49,7 +49,7 @@ pm.model_to_graphviz(countModel)
 #%% Hierarchical Model Inference
 
 # Setup vars
-smpls = 2500; burnin = 25000;
+smpls = 2000; burnin = 10000;
 
 # Print Header
 print('Poisson Likelihood')
@@ -58,7 +58,7 @@ print('Params: samples = ', smpls, ' | tune = ', burnin, '\n')
 with countModel:
     trace = pm.sample(smpls, chains=4, tune=burnin, cores=1)#, NUTS={"target_accept": targetAcc})
     
-    #ppc = pm.sample_posterior_predictive(trace)
+    ppc = pm.sample_posterior_predictive(trace)
     #pm.traceplot(trace[burnin:], var_names=['mu'])                  
 
 out_smryPoi = pd.DataFrame(pm.summary(trace))  
