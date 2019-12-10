@@ -14,9 +14,8 @@ from scipy.stats import mstats
 import matplotlib.pyplot as plt
 import pandas as pd
 from os import path
-import timeit
-import time
 import datetime
+from sklearn.model_selection import train_test_split, KFold
 
 #%% Import Data
 
@@ -176,6 +175,14 @@ def intervalData(df, weekday):
 
 dfSLC_dayData = intervalData(dfSLC_sesh, True)
 
+#%% Save
+#dfSLC_dayData.to_excel("data/dfSLC_dayData_2018-2019.xlsx")
+dfSLC_dayData['Arrivals'].to_excel("data/dfArrivals_dayData_2018-2019.xlsx")
+dfSLC_dayData['EnergyAvg'].to_excel("data/dfEnergyAvg_dayData_2018-2019.xlsx")
+dfSLC_dayData['EnergyTot'].to_excel("data/dfEnergyTot_dayData_2018-2019.xlsx")
+dfSLC_dayData['Duration'].to_excel("data/dfDuration_dayData_2018-2019.xlsx")
+dfSLC_dayData['Charging'].to_excel("data/dfCharging_dayData_2018-2019.xlsx")
+
 #%% Aggregate Data 
 
 def aggData(dfDays):
@@ -187,7 +194,7 @@ def aggData(dfDays):
     r = 0; d = 0;
     for j in df['Arrivals'].columns:
         print(j)
-        dfDays_Val.Hour.iloc[r:r+4*24] = np.arange(0,24,0.25);
+        dfDays_Val.Hour.iloc[r:r+4*24] = np.arange(0,96);
         dfDays_Val.DayCnt.iloc[r:r+4*24] = np.repeat(d, 4*24);
         dfDays_Val.DayYr.iloc[r:r+4*24] = j;
     
@@ -211,12 +218,10 @@ dfSLC_aggData = aggData(dfSLC_dayData)
 # Save
 #dfSLC_aggData.to_excel("data/dfSLC_aggData_2018-2019.xlsx")
 
-#%% Test Train Split
+#%% Naive Test-Train Split
 
-from sklearn.model_selection import train_test_split
-
-#file_aggData = 'data/dfSLC_aggData_2018-2019.xlsx';
-#dfSLC_aggData = pd.read_csv(file_aggData)
+file_aggData = 'data/dfSLC_aggData_2018-2019.xlsx';
+dfSLC_aggData = pd.read_excel(file_aggData)
 
 # create training and testing vars
 def dataSplit(dfSLC_aggData, testPct):
@@ -227,9 +232,20 @@ def dataSplit(dfSLC_aggData, testPct):
 
 df_Train, df_Test = dataSplit(dfSLC_aggData, 0.2)
 
-#%%
+#%% Cross Validation Test/Train Data
 
-for i in range(len(arrive)-1):
-    depart.at[i] = arrive.at[i+1] - arrive.at[i]
-    depart[depart.values < 0] = 0
+def dataCV(X, folds):
     
+    kf = KFold(n_splits=folds) # Define the split - into 5 folds 
+    kf.get_n_splits(dfSLC_aggData) # returns the number of splitting iterations in the cross-validator
+    print(kf) 
+    f = 0; X_train={}; X_test={};
+    
+    for train_index, test_index in kf.split(X):
+         print("TRAIN:", train_index, "TEST:", test_index)
+         X_train[f], X_test[f] = X.iloc[train_index], X.iloc[test_index]
+         f += 1;
+     
+    return X_train, X_test
+
+df_Train, df_Test = dataCV(dfSLC_aggData, 5)
