@@ -193,7 +193,7 @@ dfSLC_dayData['Charging'].to_excel("data/1hr/dfCharging_dayData_2018-2019.xlsx")
 def aggData(dfDays, periodsPerDay):
     df = dfDays;
     daysIn = df['Arrivals'].shape[1]
-    dfDays_Val = pd.DataFrame(np.zeros((4*24*daysIn,9)),
+    dfDays_Val = pd.DataFrame(np.zeros((periodsPerDay*daysIn,9)),
               columns=['Hour','DayCnt','DayYr','Arrivals','Departures','EnergyAvg','EnergyTot','Duration','Charging'])
 
     r = 0; d = 0; 
@@ -225,19 +225,27 @@ dfSLC_aggData.to_excel("data/1hr/dfSLC_aggData_2018-2019.xlsx")
 
 #%% Naive Test-Train Split
 
-file_aggData = 'data/dfSLC_aggData_2018-2019.xlsx';
+file_aggData = 'data/1hr/dfSLC_aggData_2018-2019.xlsx';
 dfSLC_aggData = pd.read_excel(file_aggData)
 
 # create training and testing vars
 def dataSplit(dfSLC_aggData, testPct):
-    X_train, X_test = train_test_split(dfSLC_aggData, test_size=testPct, shuffle=True)
+    X_train, X_test = train_test_split(dfSLC_aggData, test_size=testPct, shuffle=False)
     X_train = X_train.reset_index(drop=True);
     X_test = X_test.reset_index(drop=True);
     return X_train, X_test
 
-df_Train, df_Test = dataSplit(dfSLC_aggData, 0.2)
+df_Train_naive, df_Test_naive = dataSplit(dfSLC_aggData, 0.2)
+
+df_Train_naive.to_excel("data/1hr/trn_test/dfTrn_Naive.xlsx")
+df_Test_naive.to_excel("data/1hr/trn_test/dfTest_Naive.xlsx")
 
 #%% Cross Validation Test/Train Data
+
+from sklearn.model_selection import train_test_split, KFold
+
+file_aggData = 'data/1hr/dfSLC_aggData_2018-2019.xlsx';
+dfSLC_aggData = pd.read_excel(file_aggData)
 
 def dataCV(X, folds):
     

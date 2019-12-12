@@ -15,10 +15,15 @@ import pymc3 as pm
 
 #%%  Import Data
 
-X = df_Train[0]['Arrivals'].values
+data = pd.read_excel('data/1hr/trn_test/trn1.xlsx')
+data = data.loc[data.DayCnt>0]#.sample(500)
+#data = data.head(5000)
+X = data['Arrivals'].values 
+dataTest = pd.read_excel('data/1hr/trn_test/test1.xlsx')
+T = dataTest['Arrivals'].values
 
 # Convert categorical variables to integer
-hrs_idx = df_Train[0]['Hour'].astype(int)
+hrs_idx = data['Hour'].values
 hrs = np.arange(24)
 n_hrs = len(hrs)
 
@@ -49,7 +54,7 @@ pm.model_to_graphviz(countModel)
 #%% Hierarchical Model Inference
 
 # Setup vars
-smpls = 2000; burnin = 10000;
+smpls = 1000; burnin = 3000;
 
 # Print Header
 print('Poisson Likelihood')
@@ -63,5 +68,95 @@ with countModel:
 
 out_smryPoi = pd.DataFrame(pm.summary(trace))  
 
-#trace_Stn = trace[burnin:];
-#trace_Smpls = trace_Stn[0::10]
+#%% #% TracePlot
+
+import arviz as az
+
+plt.style.use('default')
+font = {'family': 'Times New Roman', 'weight': 'light', 'size': 16}
+plt.rc('font', **font)
+
+plt.figure(figsize=(10,4))
+pm.traceplot(trace[0::4], var_names=['mu'])  
+
+plt.figure(figsize=(10,4))
+az.plot_posterior(trace[0::4])
+
+plt.figure(figsize=(10,4))
+az.plot_forest(trace[0::4], var_names=['mu'], combined=True)
+
+#%% Train vs. Test Data
+
+dataTest = pd.read_excel('data/1hr/trn_test/test4.xlsx')
+T = dataTest['Arrivals'].values
+
+s = 10000; t = len(T);
+r = np.shape(ppc['y_like'])[0]; c = np.shape(ppc['y_like'])[1];
+ppc_Smpl = pd.DataFrame(np.reshape(ppc['y_like'], (r*c,1)))
+ppc_Smpl['Hour'] = np.tile(hrs_idx,r)
+ppc_Smpl = ppc_Smpl.sample(s)
+
+# Setup PPC
+ppcTest = pd.DataFrame(np.zeros((s+t,3)), columns=['Hr', 'Departures', 'Src'])
+ppcTest.Hr[0:s] = ppc_Smpl['Hour']
+ppcTest.Departures[0:s] = ppc_Smpl[0]
+ppcTest.Src[0:s] = 'PPC'
+aggTrn = ppcTest[0:s]
+
+# Setup test
+ppcTest.Hr[s:s+t] = dataTest.Hour
+ppcTest.Departures[s:s+t] = T
+ppcTest.Src[s:s+t] = 'Test'
+aggTest = ppcTest[s:s+t]
+
+#% SNS Relationship Plot
+
+import seaborn as sns
+
+plt.style.use('default')
+font = {'family': 'Times New Roman', 'weight': 'light', 'size': 16}
+plt.rc('font', **font)
+
+g_Rel = sns.relplot(x='Hr', y='Departures', kind='line',
+                 hue='Src', ci='sd', 
+                 data=ppcTest)
+
+g_Rel.fig.set_size_inches(12,6)
+plt.xticks(np.arange(0,28,4))
+plt.yticks(np.arange(0,18,2))
+
+g_Data = pd.DataFrame(np.zeros((24,3)), columns=['Hr','Trn','Test'])
+
+#%% Error Measure
+import arviz as az
+    
+def SMAPE(A, F):
+    return 100/len(A) * np.sum(2 * np.abs(F - A) / (np.abs(A) + np.abs(F)))
+
+font = {'family': 'Times New Roman', 'weight': 'light', 'size': 1}
+plt.rc('font', **font)
+g_Trn = sns.relplot(x='Hr', y='Departures', kind='line',
+                 hue='Src', ci='sd', data=aggTrn)
+g_Trn.fig.set_size_inches(0.1,0.1)
+
+for ax in g_Trn.axes.flat:    
+    for line in ax.lines:
+        if len(line.get_xdata()) == 24:
+            g_Data.Hr = line.get_xdata();
+            g_Data.Trn = line.get_ydata();
+    
+g_Test = sns.relplot(x='Hr', y='Departures', kind='line',
+                 hue='Src', ci='sd', data=aggTest)
+g_Test.fig.set_size_inches(0.1,0.1)
+
+for ax in g_Test.axes.flat:    
+    for line in ax.lines:
+        if len(line.get_xdata()) == 24:
+            g_Data.Hr = line.get_xdata();
+            g_Data.Test = line.get_ydata();
+
+print('SMAPE: ', SMAPE(g_Data.Trn, g_Data.Test))
+
+#print('r2 Trn: ', az.r2_score(X, np.array(ppc_Smpl[0].sample(len(X))))[0])
+#print('r2 Test: ', az.r2_score(T, np.array(ppc_Smpl[0].sample(len(T))))[0])
+
