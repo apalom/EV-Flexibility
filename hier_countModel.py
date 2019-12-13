@@ -13,60 +13,87 @@ import pandas as pd
 from sklearn import preprocessing
 import pymc3 as pm
 
+#%% Read k-Fold Test-Train Data
+
+df_Train = {}; df_Test = {};
+
+df_Train[0] = pd.read_excel("data/1hr/trn_test/trn0.xlsx")
+df_Test[0] = pd.read_excel("data/1hr/trn_test/test0.xlsx")
+df_Train[1] = pd.read_excel("data/1hr/trn_test/trn1.xlsx")
+df_Test[1] = pd.read_excel("data/1hr/trn_test/test1.xlsx")
+df_Train[2] = pd.read_excel("data/1hr/trn_test/trn2.xlsx")
+df_Test[2] = pd.read_excel("data/1hr/trn_test/test2.xlsx")
+df_Train[3] = pd.read_excel("data/1hr/trn_test/trn3.xlsx")
+df_Test[3] = pd.read_excel("data/1hr/trn_test/test3.xlsx")
+df_Train[4] = pd.read_excel("data/1hr/trn_test/trn4.xlsx")
+df_Test[4] = pd.read_excel("data/1hr/trn_test/test4.xlsx")
+
 #%%  Import Data
 
-data = pd.read_excel('data/1hr/trn_test/trn1.xlsx')
-data = data.loc[data.DayCnt>0]#.sample(500)
-#data = data.head(5000)
-X = data['Arrivals'].values 
-dataTest = pd.read_excel('data/1hr/trn_test/test1.xlsx')
-T = dataTest['Arrivals'].values
+#data = pd.read_excel('data/1hr/trn_test/trn0.xlsx')
+#data = data.loc[data.DayCnt>0]#.sample(500)
+##data = data.head(5000)
+#X = data['Arrivals'].values 
+#dataTest = pd.read_excel('data/1hr/trn_test/test0.xlsx')
+#T = dataTest['Arrivals'].values
 
-# Convert categorical variables to integer
-hrs_idx = data['Hour'].values
-hrs = np.arange(24)
-n_hrs = len(hrs)
-
-# Setup Bayesian Hierarchical Model 
-with pm.Model() as countModel:
+def runModel(df_Train, df_Test, i, param, smpls, burns):
     
-    # Define Hyper-Parameters
-    hyper_mu_sd = pm.Uniform('hyper_mu_sd', lower=0, upper=np.round(np.mean(X) + 3*np.std(X)))
-    hyper_mu_mu = pm.Uniform('hyper_mu_mu', lower=0, upper=np.round(np.mean(X) + 3*np.std(X))) 
+    dataTrn = df_Train[i]
+    X = dataTrn[param].values 
     
-    # Prior Definition
-    mu = pm.Gamma('mu', mu=hyper_mu_mu, 
-                        sigma=hyper_mu_sd,
-                        shape=n_hrs)    
+    dataTest = df_Test[i]
+    T = dataTest[param].values
     
-    # Data Likelihood
-    y_like = pm.Poisson('y_like', 
-                       mu=mu[hrs_idx], 
-                       observed=X)   
+    # Convert categorical variables to integer
+    hrs_idx = dataTrn['Hour'].values
+    hrs = np.arange(24)
+    n_hrs = len(hrs)
     
-    # Data Prediction
-#    y_pred = pm.Poisson('y_pred', 
-#                        mu=mu[hrs_idx], 
-#                        shape=X.shape)
-    
-pm.model_to_graphviz(countModel)
-    
-#%% Hierarchical Model Inference
-
-# Setup vars
-smpls = 1000; burnin = 3000;
-
-# Print Header
-print('Poisson Likelihood')
-print('Params: samples = ', smpls, ' | tune = ', burnin, '\n')
+    # Setup Bayesian Hierarchical Model 
+    with pm.Model() as countModel:
         
-with countModel:
-    trace = pm.sample(smpls, chains=4, tune=burnin, cores=1)#, NUTS={"target_accept": targetAcc})
+        # Define Hyper-Parameters
+        hyper_mu_sd = pm.Uniform('hyper_mu_sd', lower=0, upper=np.round(np.mean(X) + 3*np.std(X)))
+        hyper_mu_mu = pm.Uniform('hyper_mu_mu', lower=0, upper=np.round(np.mean(X) + 3*np.std(X))) 
+        
+        # Prior Definition
+        mu = pm.Gamma('mu', mu=hyper_mu_mu, 
+                            sigma=hyper_mu_sd,
+                            shape=n_hrs)    
+        
+        # Data Likelihood
+        y_like = pm.Poisson('y_like', 
+                           mu=mu[hrs_idx], 
+                           observed=X)   
+        
+        # Data Prediction
+    #    y_pred = pm.Poisson('y_pred', 
+    #                        mu=mu[hrs_idx], 
+    #                        shape=X.shape)
+        
+    #pm.model_to_graphviz(countModel)
     
-    ppc = pm.sample_posterior_predictive(trace)
-    #pm.traceplot(trace[burnin:], var_names=['mu'])                  
+    #% Hierarchical Model Inference
+    
+    # Setup vars and print Header
+    print('Poisson Likelihood')
+    print('Params: samples = ', smpls, ' | tune = ', burns, '\n')
+            
+    with countModel:
+        trace = pm.sample(smpls, chains=4, tune=burns, cores=1)#, NUTS={"target_accept": targetAcc})
+        
+        ppc = pm.sample_posterior_predictive(trace)
+        #pm.traceplot(trace[burnin:], var_names=['mu'])                  
+    
+    out_smry = pd.DataFrame(pm.summary(trace))  
+    
+    return trace, ppc, out_smry
 
-out_smryPoi = pd.DataFrame(pm.summary(trace))  
+out_traces = {}; out_ppc = {}; out_smrys = {};
+
+for i in range(5):
+    out_traces[i], out_ppc[i], out_smrys[i] = runModel(df_Train, df_Test, i, 'Departures', 1000, 3000)
 
 #%% #% TracePlot
 
