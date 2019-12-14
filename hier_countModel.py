@@ -42,8 +42,10 @@ def runModel(df_Train, df_Test, i, param, smpls, burns):
     dataTrn = df_Train[i]
     X = dataTrn[param].values 
     
-    dataTest = df_Test[i]
-    T = dataTest[param].values
+    dataTest = df_Test[i]    
+    testVals = pd.DataFrame(np.transpose(np.array([dataTest.Hour, dataTest[param].values])), columns=['hr','y'])
+    testVals = testVals.groupby('hr').mean()
+    testVals['int'] = np.round(testVals.y.values)
     
     # Convert categorical variables to integer
     hrs_idx = dataTrn['Hour'].values
@@ -58,14 +60,10 @@ def runModel(df_Train, df_Test, i, param, smpls, burns):
         hyper_mu_mu = pm.Uniform('hyper_mu_mu', lower=0, upper=np.round(np.mean(X) + 3*np.std(X))) 
         
         # Prior Definition
-        mu = pm.Gamma('mu', mu=hyper_mu_mu, 
-                            sigma=hyper_mu_sd,
-                            shape=n_hrs)    
+        mu = pm.Gamma('mu', mu=hyper_mu_mu, sigma=hyper_mu_sd, shape=n_hrs)    
         
         # Data Likelihood
-        y_like = pm.Poisson('y_like', 
-                           mu=mu[hrs_idx], 
-                           observed=X)   
+        y_like = pm.Poisson('y_like', mu=mu[hrs_idx], observed=X)   
         
         # Data Prediction
     #    y_pred = pm.Poisson('y_pred', 
@@ -74,8 +72,7 @@ def runModel(df_Train, df_Test, i, param, smpls, burns):
         
     #pm.model_to_graphviz(countModel)
     
-    #% Hierarchical Model Inference
-    
+    #% Hierarchical Model Inference    
     # Setup vars and print Header
     print('Poisson Likelihood')
     print('Params: samples = ', smpls, ' | tune = ', burns, '\n')
@@ -86,14 +83,32 @@ def runModel(df_Train, df_Test, i, param, smpls, burns):
         ppc = pm.sample_posterior_predictive(trace)
         #pm.traceplot(trace[burnin:], var_names=['mu'])                  
     
-    out_smry = pd.DataFrame(pm.summary(trace))  
+    out_smry = pd.DataFrame(pm.summary(trace))   
     
-    return trace, ppc, out_smry
+    ppcMean = np.array((hrs_idx, np.mean(ppc['y_like'], axis=0)))
+    predVals = pd.DataFrame(np.transpose(ppcMean), columns=['hr', 'y'])
+    predVals = predVals.groupby('hr').mean()
+    predVals['int'] = np.round(predVals.y.values)
+        
+    err_y = np.round(SMAPE(testVals.y, predVals.y),4)
+    err_int = np.round(SMAPE(testVals.int, predVals.int),4)
+    print('\n Error: ', (err_y, err_int), '\n')
+    
+    return trace, ppc['y_like'], out_smry, (err_y, err_int)
 
-out_traces = {}; out_ppc = {}; out_smrys = {};
+def SMAPE(A, F):
+    return 100/len(A) * np.sum(2 * np.abs(F - A) / (np.abs(A) + np.abs(F)))
+
+out_traces = {}; out_ppc = {}; out_smrys = {}; err = {};
 
 for i in range(5):
-    out_traces[i], out_ppc[i], out_smrys[i] = runModel(df_Train, df_Test, i, 'Departures', 1000, 3000)
+    # training data, testing data, folds, parameter, smpls , burnin
+    out_traces[i], out_ppc[i], out_smrys[i], err[i] = runModel(df_Train, df_Test, i, 'Departures', 1000, 4000)
+
+#%%
+
+resultHolder = {}
+resultHolder['departures'] = (out_traces, out_ppc, out_smrys, err)
 
 #%% #% TracePlot
 

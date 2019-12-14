@@ -242,6 +242,7 @@ df_Test_naive.to_excel("data/1hr/trn_test/dfTest_Naive.xlsx")
 
 #%% Cross Validation Test/Train Data
 
+import pandas as pd
 from sklearn.model_selection import train_test_split, KFold
 
 file_aggData = 'data/1hr/dfSLC_aggData_2018-2019.xlsx';
