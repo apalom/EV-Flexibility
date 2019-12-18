@@ -118,7 +118,7 @@ def filterPrep(df, string, fltr, time):
     return df;
 
 # Salt Lake City Sessions
-dfSLC_sesh = filterPrep(loadData(), "Salt Lake City", True, 'hour')
+dfSLC_sesh = filterPrep(loadData(), "Salt Lake City", True, '15min')
 
 #%% Calculate per time period values
 
@@ -178,15 +178,15 @@ def intervalData(df, weekday, periodsPerDay):
 
     return dctDays
 
-dfSLC_dayData = intervalData(dfSLC_sesh, True, 24)
+dfSLC_dayData = intervalData(dfSLC_sesh, True, 96)
 
 #%% Save
 #dfSLC_dayData.to_excel("data/dfSLC_dayData_2018-2019.xlsx")
-dfSLC_dayData['Arrivals'].to_excel("data/1hr/dfArrivals_dayData_2018-2019.xlsx")
-dfSLC_dayData['EnergyAvg'].to_excel("data/1hr/dfEnergyAvg_dayData_2018-2019.xlsx")
-dfSLC_dayData['EnergyTot'].to_excel("data/1hr/dfEnergyTot_dayData_2018-2019.xlsx")
-dfSLC_dayData['Duration'].to_excel("data/1hr/dfDuration_dayData_2018-2019.xlsx")
-dfSLC_dayData['Charging'].to_excel("data/1hr/dfCharging_dayData_2018-2019.xlsx")
+dfSLC_dayData['Arrivals'].to_excel("data/15min/dfArrivals_dayData_2018-2019.xlsx")
+dfSLC_dayData['EnergyAvg'].to_excel("data/15min/dfEnergyAvg_dayData_2018-2019.xlsx")
+dfSLC_dayData['EnergyTot'].to_excel("data/15min/dfEnergyTot_dayData_2018-2019.xlsx")
+dfSLC_dayData['Duration'].to_excel("data/15min/dfDuration_dayData_2018-2019.xlsx")
+dfSLC_dayData['Charging'].to_excel("data/15min/dfCharging_dayData_2018-2019.xlsx")
 
 #%% Aggregate Data 
 
@@ -218,15 +218,15 @@ def aggData(dfDays, periodsPerDay):
         
     return dfDays_Val
 
-dfSLC_aggData = aggData(dfSLC_dayData, 24)
+dfSLC_aggData = aggData(dfSLC_dayData, 96)
 
 # Save
-dfSLC_aggData.to_excel("data/1hr/dfSLC_aggData_2018-2019.xlsx")
+dfSLC_aggData.to_excel("data/15min/dfSLC_aggData_2018-2019.xlsx")
 
 #%% Naive Test-Train Split
 
-file_aggData = 'data/1hr/dfSLC_aggData_2018-2019.xlsx';
-dfSLC_aggData = pd.read_excel(file_aggData)
+#file_aggData = 'data/1hr/dfSLC_aggData_2018-2019.xlsx';
+#dfSLC_aggData = pd.read_excel(file_aggData)
 
 # create training and testing vars
 def dataSplit(dfSLC_aggData, testPct):
@@ -237,16 +237,16 @@ def dataSplit(dfSLC_aggData, testPct):
 
 df_Train_naive, df_Test_naive = dataSplit(dfSLC_aggData, 0.2)
 
-df_Train_naive.to_excel("data/1hr/trn_test/dfTrn_Naive.xlsx")
-df_Test_naive.to_excel("data/1hr/trn_test/dfTest_Naive.xlsx")
+df_Train_naive.to_excel("data/15min/trn_test/dfTrn_Naive.xlsx")
+df_Test_naive.to_excel("data/15min/trn_test/dfTest_Naive.xlsx")
 
 #%% Cross Validation Test/Train Data
 
 import pandas as pd
 from sklearn.model_selection import train_test_split, KFold
 
-file_aggData = 'data/1hr/dfSLC_aggData_2018-2019.xlsx';
-dfSLC_aggData = pd.read_excel(file_aggData)
+#file_aggData = 'data/1hr/dfSLC_aggData_2018-2019.xlsx';
+#dfSLC_aggData = pd.read_excel(file_aggData)
 
 def dataCV(X, folds):
     
@@ -266,13 +266,13 @@ df_Train, df_Test = dataCV(dfSLC_aggData, 5)
 
 #%%
 
-df_Train[0].to_excel("data/1hr/trn_test/trn0.xlsx")
-df_Test[0].to_excel("data/1hr/trn_test/test0.xlsx")
-df_Train[1].to_excel("data/1hr/trn_test/trn1.xlsx")
-df_Test[1].to_excel("data/1hr/trn_test/test1.xlsx")
-df_Train[2].to_excel("data/1hr/trn_test/trn2.xlsx")
-df_Test[2].to_excel("data/1hr/trn_test/test2.xlsx")
-df_Train[3].to_excel("data/1hr/trn_test/trn3.xlsx")
-df_Test[3].to_excel("data/1hr/trn_test/test3.xlsx")
-df_Train[4].to_excel("data/1hr/trn_test/trn4.xlsx")
-df_Test[4].to_excel("data/1hr/trn_test/test4.xlsx")
+df_Train[0].to_excel("data/15min/trn_test/trn0.xlsx")
+df_Test[0].to_excel("data/15min/trn_test/test0.xlsx")
+df_Train[1].to_excel("data/15min/trn_test/trn1.xlsx")
+df_Test[1].to_excel("data/15min/trn_test/test1.xlsx")
+df_Train[2].to_excel("data/15min/trn_test/trn2.xlsx")
+df_Test[2].to_excel("data/15min/trn_test/test2.xlsx")
+df_Train[3].to_excel("data/15min/trn_test/trn3.xlsx")
+df_Test[3].to_excel("data/15min/trn_test/test3.xlsx")
+df_Train[4].to_excel("data/15min/trn_test/trn4.xlsx")
+df_Test[4].to_excel("data/15min/trn_test/test4.xlsx")

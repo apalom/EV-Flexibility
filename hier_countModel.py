@@ -48,8 +48,9 @@ def runModel(df_Train, df_Test, i, param, smpls, burns):
     testVals['int'] = np.round(testVals.y.values)
     
     # Convert categorical variables to integer
-    hrs_idx = dataTrn['Hour'].values
-    hrs = np.arange(24)
+    #hrs_idx = dataTrn['Hour'].values
+    hrs_idx = dataTrn['Hour'].astype(int).values
+    hrs = np.arange(96)
     n_hrs = len(hrs)
     
     # Setup Bayesian Hierarchical Model 
@@ -103,12 +104,21 @@ out_traces = {}; out_ppc = {}; out_smrys = {}; err = {};
 
 for i in range(5):
     # training data, testing data, folds, parameter, smpls , burnin
-    out_traces[i], out_ppc[i], out_smrys[i], err[i] = runModel(df_Train, df_Test, i, 'Departures', 1000, 4000)
+    out_traces[i], out_ppc[i], out_smrys[i], err[i] = runModel(df_Train, df_Test, i, 'Arrivals', 1000, 4000)
 
 #%%
 
 resultHolder = {}
 resultHolder['departures'] = (out_traces, out_ppc, out_smrys, err)
+#%%
+
+best = 1;
+hrs_idx = df_Train[0]['Hour'].values;
+df_ppc = pd.DataFrame(out_ppc[best][0::4]).T
+df_ppc.insert(loc=0, column='Hr', value=hrs_idx)
+df_ppc.to_csv("data/1hr/trn_test/hr1_arrival_ppc.csv")
+df_smry = out_smrys[best];
+df_smry.to_csv("data/1hr/trn_test/hr1_arrival_smry.csv")
 
 #%% #% TracePlot
 
