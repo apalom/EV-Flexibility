@@ -15,18 +15,12 @@ import pymc3 as pm
 
 #%% Read k-Fold Test-Train Data
 
-df_Train = {}; df_Test = {};
+df_Train = {}; df_Test = {}; k = 5;
 
-df_Train[0] = pd.read_excel("data/1hr/trn_test/trn0.xlsx")
-df_Test[0] = pd.read_excel("data/1hr/trn_test/test0.xlsx")
-df_Train[1] = pd.read_excel("data/1hr/trn_test/trn1.xlsx")
-df_Test[1] = pd.read_excel("data/1hr/trn_test/test1.xlsx")
-df_Train[2] = pd.read_excel("data/1hr/trn_test/trn2.xlsx")
-df_Test[2] = pd.read_excel("data/1hr/trn_test/test2.xlsx")
-df_Train[3] = pd.read_excel("data/1hr/trn_test/trn3.xlsx")
-df_Test[3] = pd.read_excel("data/1hr/trn_test/test3.xlsx")
-df_Train[4] = pd.read_excel("data/1hr/trn_test/trn4.xlsx")
-df_Test[4] = pd.read_excel("data/1hr/trn_test/test4.xlsx")
+for i in range(k):
+
+    df_Train[i] = pd.read_excel("data/1hr/trn_test/trn"+str(i)+".xlsx")    
+    df_Test[i] = pd.read_excel("data/1hr/trn_test/test"+str(i)+".xlsx")
 
 #%%  Import Data
 
@@ -37,7 +31,7 @@ df_Test[4] = pd.read_excel("data/1hr/trn_test/test4.xlsx")
 #dataTest = pd.read_excel('data/1hr/trn_test/test0.xlsx')
 #T = dataTest['Arrivals'].values
 
-def runModel(df_Train, df_Test, i, param, smpls, burns):
+def runModel(df_Train, df_Test, i, t, param, smpls, burns):
     
     dataTrn = df_Train[i]
     X = dataTrn[param].values 
@@ -50,7 +44,7 @@ def runModel(df_Train, df_Test, i, param, smpls, burns):
     # Convert categorical variables to integer
     #hrs_idx = dataTrn['Hour'].values
     hrs_idx = dataTrn['Hour'].astype(int).values
-    hrs = np.arange(96)
+    hrs = np.arange(t)
     n_hrs = len(hrs)
     
     # Setup Bayesian Hierarchical Model 
@@ -95,16 +89,16 @@ def runModel(df_Train, df_Test, i, param, smpls, burns):
     err_int = np.round(SMAPE(testVals.int, predVals.int),4)
     print('\n Error: ', (err_y, err_int), '\n')
     
-    return trace, ppc['y_like'], out_smry, (err_y, err_int)
+    return trace, ppc['y_like'], out_smry, [err_y, err_int]
 
 def SMAPE(A, F):
     return 100/len(A) * np.sum(2 * np.abs(F - A) / (np.abs(A) + np.abs(F)))
 
-out_traces = {}; out_ppc = {}; out_smrys = {}; err = {};
+out_traces = {}; out_ppc = {}; out_smrys = {}; err = np.empty((k,2))
 
 for i in range(5):
     # training data, testing data, folds, parameter, smpls , burnin
-    out_traces[i], out_ppc[i], out_smrys[i], err[i] = runModel(df_Train, df_Test, i, 'Arrivals', 1000, 4000)
+    out_traces[i], out_ppc[i], out_smrys[i], err[i] = runModel(df_Train, df_Test, i, 24, 'Arrivals', 100, 250)
 
 #%%
 
@@ -112,13 +106,15 @@ resultHolder = {}
 resultHolder['departures'] = (out_traces, out_ppc, out_smrys, err)
 #%%
 
-best = 1;
-hrs_idx = df_Train[0]['Hour'].values;
+#del df_ppc
+best = np.argmin(err[:,1]);
+
+hrs_idx = df_Train[best]['Hour'].astype(int).values
 df_ppc = pd.DataFrame(out_ppc[best][0::4]).T
 df_ppc.insert(loc=0, column='Hr', value=hrs_idx)
-df_ppc.to_csv("data/1hr/trn_test/hr1_arrival_ppc.csv")
+#df_ppc.to_csv("data/1hr/trn_test/hr1_arrival_ppc.csv")
 df_smry = out_smrys[best];
-df_smry.to_csv("data/1hr/trn_test/hr1_arrival_smry.csv")
+#df_smry.to_csv("data/1hr/trn_test/hr1_arrival_smry.csv")
 
 #%% #% TracePlot
 

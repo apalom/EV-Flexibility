@@ -148,13 +148,26 @@ def intervalData(df, weekday, periodsPerDay):
         print('Day: ', d)
         dfDays = df[df.dayCount == d]
         cnct = dfDays.StartHr.value_counts()
+        if periodsPerDay == 96:
+            cnct.index = (cnct.index.values*4).astype(int)
         cnct = cnct.sort_index()
 
         tot_energy = dfDays['Energy (kWh)'].groupby(dfDays.StartHr).sum()
+        if periodsPerDay == 96:
+            tot_energy.index = (tot_energy.index.values*4).astype(int)
+        
         sesh_energy = dfDays['Energy (kWh)'].groupby(dfDays.StartHr).mean()
+        if periodsPerDay == 96:
+            sesh_energy.index = (sesh_energy.index.values*4).astype(int)
+        
         duration = dfDays['Duration (h)'].groupby(dfDays.StartHr).mean()
+        if periodsPerDay == 96:
+            duration.index = (duration.index.values*4).astype(int)
+        
         charging = dfDays['Charging (h)'].groupby(dfDays.StartHr).mean()
-
+        if periodsPerDay == 96:
+            charging.index = (charging.index.values*4).astype(int)
+        
         dfArrivals.loc[:,d] = cnct
         dfArrivals.loc[:,d] = np.nan_to_num(dfArrivals.loc[:,d])
                 
@@ -190,6 +203,14 @@ dfSLC_dayData['Charging'].to_excel("data/15min/dfCharging_dayData_2018-2019.xlsx
 
 #%% Aggregate Data 
 
+dfSLC_dayData = {};
+dfSLC_dayData['Arrivals'] = pd.read_excel("data/1hr/dfArrivals_dayData_2018-2019.xlsx")
+dfSLC_dayData['EnergyAvg'] = pd.read_excel("data/1hr/dfEnergyAvg_dayData_2018-2019.xlsx")
+dfSLC_dayData['EnergyTot'] = pd.read_excel("data/1hr/dfEnergyTot_dayData_2018-2019.xlsx")
+dfSLC_dayData['Duration'] = pd.read_excel("data/1hr/dfDuration_dayData_2018-2019.xlsx")
+dfSLC_dayData['Charging'] = pd.read_excel("data/1hr/dfCharging_dayData_2018-2019.xlsx")
+
+#%%
 def aggData(dfDays, periodsPerDay):
     df = dfDays;
     daysIn = df['Arrivals'].shape[1]
@@ -266,13 +287,14 @@ df_Train, df_Test = dataCV(dfSLC_aggData, 5)
 
 #%%
 
-df_Train[0].to_excel("data/15min/trn_test/trn0.xlsx")
-df_Test[0].to_excel("data/15min/trn_test/test0.xlsx")
-df_Train[1].to_excel("data/15min/trn_test/trn1.xlsx")
-df_Test[1].to_excel("data/15min/trn_test/test1.xlsx")
-df_Train[2].to_excel("data/15min/trn_test/trn2.xlsx")
-df_Test[2].to_excel("data/15min/trn_test/test2.xlsx")
-df_Train[3].to_excel("data/15min/trn_test/trn3.xlsx")
-df_Test[3].to_excel("data/15min/trn_test/test3.xlsx")
-df_Train[4].to_excel("data/15min/trn_test/trn4.xlsx")
-df_Test[4].to_excel("data/15min/trn_test/test4.xlsx")
+timePer = '15min'
+df_Train[0].to_excel("data/"+timePer+"/trn_test/trn0.xlsx")
+df_Test[0].to_excel("data/"+timePer+"/trn_test/test0.xlsx")
+df_Train[1].to_excel("data/"+timePer+"/trn_test/trn1.xlsx")
+df_Test[1].to_excel("data/"+timePer+"/trn_test/test1.xlsx")
+df_Train[2].to_excel("data/"+timePer+"/trn_test/trn2.xlsx")
+df_Test[2].to_excel("data/"+timePer+"/trn_test/test2.xlsx")
+df_Train[3].to_excel("data/"+timePer+"/trn_test/trn3.xlsx")
+df_Test[3].to_excel("data/"+timePer+"/trn_test/test3.xlsx")
+df_Train[4].to_excel("data/"+timePer+"/trn_test/trn4.xlsx")
+df_Test[4].to_excel("data/"+timePer+"/trn_test/test4.xlsx")
