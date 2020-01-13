@@ -21,7 +21,7 @@ from sklearn.model_selection import train_test_split, KFold
 
 def loadData():
     # Import Data
-    filePath = 'data/Session-Details-Summary-20191203.csv';
+    filePath = 'data/Session-Details-Summary-20200113.csv';
     return pd.read_csv(filePath);
 
 #%% Dataframe Preparation
@@ -52,8 +52,8 @@ def filterPrep(df, string, fltr, time):
     #clean data
     df = df.loc[df['Energy (kWh)'] > 0]
     df = df.loc[~pd.isnull(df['End Date'])]
-    yr = 2017
-    df = df.loc[(df['Start Date'] > datetime.date(yr,12,1)) & (df['Start Date'] < datetime.date(yr+2,12,1))]
+    yr = 2018
+    df = df.loc[(df['Start Date'] > datetime.date(yr,1,1)) & (df['Start Date'] < datetime.date(yr+2,1,1))]
 
     #update data types
     df['Duration (h)'] = df['Total Duration (hh:mm:ss)'].apply(lambda x: x.seconds/3600)
@@ -74,7 +74,7 @@ def filterPrep(df, string, fltr, time):
     df['Year'] = df['Start Date'].apply(lambda x: x.year)
     df['StartHr'] = df['Start Date'].apply(lambda x: x.hour + x.minute/60)
     df['EndHr'] = df['End Date'].apply(lambda x: x.hour + x.minute/60)
-    if time == 'hour':
+    if time == '1hr':
         df['StartHr'] = df['StartHr'].apply(lambda x: np.floor(x));
         df['EndHr'] = df['EndHr'].apply(lambda x: np.floor(x));
     elif time == '15min':
@@ -118,7 +118,7 @@ def filterPrep(df, string, fltr, time):
     return df;
 
 # Salt Lake City Sessions
-dfSLC_sesh = filterPrep(loadData(), "Salt Lake City", True, '15min')
+dfSLC_sesh = filterPrep(loadData(), "Salt Lake City", True, '1hr')
 
 #%% Calculate per time period values
 
@@ -131,6 +131,9 @@ def intervalData(df, weekday, periodsPerDay):
 
     dfArrivals = pd.DataFrame(np.zeros((periodsPerDay,len(set(df.dayCount)))),
                           index=np.arange(0,periodsPerDay), columns=daysIn)
+    
+    dfDepartures = pd.DataFrame(np.zeros((periodsPerDay,len(set(df.dayCount)))),
+                      index=np.arange(0,periodsPerDay), columns=daysIn)
 
     dfEnergy = pd.DataFrame(np.zeros((periodsPerDay,len(set(df.dayCount)))),
                           index=np.arange(0,periodsPerDay), columns=daysIn)
@@ -147,10 +150,18 @@ def intervalData(df, weekday, periodsPerDay):
     for d in df.dayCount:
         print('Day: ', d)
         dfDays = df[df.dayCount == d]
-        cnct = dfDays.StartHr.value_counts()
+        
+        # Count Arrivals
+        arvl = dfDays.StartHr.value_counts()
         if periodsPerDay == 96:
-            cnct.index = (cnct.index.values*4).astype(int)
-        cnct = cnct.sort_index()
+            arvl.index = (arvl.index.values*4).astype(int)
+        arvl = arvl.sort_index()
+        
+        # Count Departures
+        dept = dfDays.EndHr.value_counts()
+        if periodsPerDay == 96:
+            dept.index = (dept.index.values*4).astype(int)
+        dept = dept.sort_index()
 
         tot_energy = dfDays['Energy (kWh)'].groupby(dfDays.StartHr).sum()
         if periodsPerDay == 96:
@@ -168,8 +179,11 @@ def intervalData(df, weekday, periodsPerDay):
         if periodsPerDay == 96:
             charging.index = (charging.index.values*4).astype(int)
         
-        dfArrivals.loc[:,d] = cnct
+        dfArrivals.loc[:,d] = arvl
         dfArrivals.loc[:,d] = np.nan_to_num(dfArrivals.loc[:,d])
+        
+        dfDepartures.loc[:,d] = dept
+        dfDepartures.loc[:,d] = np.nan_to_num(dfDepartures.loc[:,d])
                 
         dfEnergy.loc[:,d] = sesh_energy
         dfEnergy.loc[:,d] = np.nan_to_num(dfEnergy.loc[:,d])
@@ -184,6 +198,7 @@ def intervalData(df, weekday, periodsPerDay):
         dfCharging.loc[:,d] = np.nan_to_num(dfCharging.loc[:,d])
 
     dctDays['Arrivals'] = dfArrivals;
+    dctDays['Departures'] = dfDepartures;
     dctDays['EnergyAvg'] = dfEnergy;
     dctDays['EnergyTot'] = dfEnergyTot;
     dctDays['Duration'] = dfDuration;
@@ -191,31 +206,36 @@ def intervalData(df, weekday, periodsPerDay):
 
     return dctDays
 
-dfSLC_dayData = intervalData(dfSLC_sesh, True, 96)
+dfSLC_dayData = intervalData(dfSLC_sesh, True, 24)
 
 #%% Save
-#dfSLC_dayData.to_excel("data/dfSLC_dayData_2018-2019.xlsx")
-dfSLC_dayData['Arrivals'].to_excel("data/15min/dfArrivals_dayData_2018-2019.xlsx")
-dfSLC_dayData['EnergyAvg'].to_excel("data/15min/dfEnergyAvg_dayData_2018-2019.xlsx")
-dfSLC_dayData['EnergyTot'].to_excel("data/15min/dfEnergyTot_dayData_2018-2019.xlsx")
-dfSLC_dayData['Duration'].to_excel("data/15min/dfDuration_dayData_2018-2019.xlsx")
-dfSLC_dayData['Charging'].to_excel("data/15min/dfCharging_dayData_2018-2019.xlsx")
+per = '1hr'
 
-#%% Aggregate Data 
+#dfSLC_dayData.to_excel("data/dfSLC_dayData_2018-2019.xlsx")
+dfSLC_dayData['Arrivals'].to_excel("data/"+per+"/dfArrivals_dayData_2018-2019.xlsx")
+dfSLC_dayData['Departures'].to_excel("data/"+per+"/dfDepartures_dayData_2018-2019.xlsx")
+dfSLC_dayData['EnergyAvg'].to_excel("data/"+per+"/dfEnergyAvg_dayData_2018-2019.xlsx")
+dfSLC_dayData['EnergyTot'].to_excel("data/"+per+"/dfEnergyTot_dayData_2018-2019.xlsx")
+dfSLC_dayData['Duration'].to_excel("data/"+per+"/dfDuration_dayData_2018-2019.xlsx")
+dfSLC_dayData['Charging'].to_excel("data/"+per+"/dfCharging_dayData_2018-2019.xlsx")
+
+#%% Read Day Data 
+per = '1hr'
 
 dfSLC_dayData = {};
-dfSLC_dayData['Arrivals'] = pd.read_excel("data/1hr/dfArrivals_dayData_2018-2019.xlsx")
-dfSLC_dayData['EnergyAvg'] = pd.read_excel("data/1hr/dfEnergyAvg_dayData_2018-2019.xlsx")
-dfSLC_dayData['EnergyTot'] = pd.read_excel("data/1hr/dfEnergyTot_dayData_2018-2019.xlsx")
-dfSLC_dayData['Duration'] = pd.read_excel("data/1hr/dfDuration_dayData_2018-2019.xlsx")
-dfSLC_dayData['Charging'] = pd.read_excel("data/1hr/dfCharging_dayData_2018-2019.xlsx")
+dfSLC_dayData['Arrivals'] = pd.read_excel("data/"+per+"/dfArrivals_dayData_2018-2019.xlsx", index_col=[0])
+dfSLC_dayData['Departures'] = pd.read_excel("data/"+per+"/dfDepartures_dayData_2018-2019.xlsx", index_col=[0])
+dfSLC_dayData['EnergyAvg'] = pd.read_excel("data/"+per+"/dfEnergyAvg_dayData_2018-2019.xlsx", index_col=[0])
+dfSLC_dayData['EnergyTot'] = pd.read_excel("data/"+per+"/dfEnergyTot_dayData_2018-2019.xlsx", index_col=[0])
+dfSLC_dayData['Duration'] = pd.read_excel("data/"+per+"/dfDuration_dayData_2018-2019.xlsx", index_col=[0])
+dfSLC_dayData['Charging'] = pd.read_excel("data/"+per+"/dfCharging_dayData_2018-2019.xlsx", index_col=[0])
 
 #%%
 def aggData(dfDays, periodsPerDay):
     df = dfDays;
     daysIn = df['Arrivals'].shape[1]
-    dfDays_Val = pd.DataFrame(np.zeros((periodsPerDay*daysIn,9)),
-              columns=['Hour','DayCnt','DayYr','Arrivals','Departures','EnergyAvg','EnergyTot','Duration','Charging'])
+    dfDays_Val = pd.DataFrame(np.zeros((periodsPerDay*daysIn,10)),
+              columns=['Hour','DayCnt','DayYr','Arrivals','Departures','Connected','EnergyAvg','EnergyTot','Duration','Charging'])
 
     r = 0; d = 0; 
     for j in df['Arrivals'].columns:
@@ -225,6 +245,7 @@ def aggData(dfDays, periodsPerDay):
         dfDays_Val.DayYr.iloc[r:r+periodsPerDay] = j;
     
         dfDays_Val.Arrivals[r:r+periodsPerDay] = df['Arrivals'][j];        
+        dfDays_Val.Departures[r:r+periodsPerDay] = df['Departures'][j];  
         dfDays_Val.EnergyAvg[r:r+periodsPerDay] = df['EnergyAvg'][j];
         dfDays_Val.EnergyTot[r:r+periodsPerDay] = df['EnergyTot'][j];
         dfDays_Val.Duration[r:r+periodsPerDay] = df['Duration'][j];
@@ -232,17 +253,27 @@ def aggData(dfDays, periodsPerDay):
     
         d += 1;
         r += periodsPerDay;
-     
-    for i in range(1,len(dfDays_Val.Arrivals)-1):
-        dfDays_Val.Departures.at[i] = dfDays_Val.Arrivals.at[i-1] - dfDays_Val.Arrivals.at[i]
-        dfDays_Val.Departures[dfDays_Val.Departures.values < 0] = 0
-        
+    
+    cnctd = 0;
+    for i in range(0,len(dfDays_Val.Arrivals)):
+        #aggArvl += dfDays_Val.Arrivals.at[i];
+        #aggDept += dfDays_Val.Departures.at[i];
+        cnctd = cnctd + dfDays_Val.Arrivals.at[i] - dfDays_Val.Departures.at[i];
+        if cnctd < 0:
+            cnctd = 0;
+        dfDays_Val.Connected.at[i] = cnctd; 
+
     return dfDays_Val
 
-dfSLC_aggData = aggData(dfSLC_dayData, 96)
+if per == '1hr':
+    timeperiods = 24;
+elif per == '15min':
+    timeperiods = 96;
+
+dfSLC_aggData = aggData(dfSLC_dayData, timeperiods)
 
 # Save
-dfSLC_aggData.to_excel("data/15min/dfSLC_aggData_2018-2019.xlsx")
+#dfSLC_aggData.to_excel("data/"+per+"/dfSLC_aggData_2018-2019.xlsx")
 
 #%% Naive Test-Train Split
 
