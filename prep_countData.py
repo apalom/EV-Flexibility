@@ -118,7 +118,7 @@ def filterPrep(df, string, fltr, time):
     return df;
 
 # Salt Lake City Sessions
-dfSLC_sesh = filterPrep(loadData(), "Salt Lake City", True, '1hr')
+dfSLC_sesh = filterPrep(loadData(), "Salt Lake City", True, '15min')
 
 #%% Calculate per time period values
 
@@ -206,10 +206,10 @@ def intervalData(df, weekday, periodsPerDay):
 
     return dctDays
 
-dfSLC_dayData = intervalData(dfSLC_sesh, True, 24)
+dfSLC_dayData = intervalData(dfSLC_sesh, True, 96)
 
 #%% Save
-per = '1hr'
+per = '15min'
 
 #dfSLC_dayData.to_excel("data/dfSLC_dayData_2018-2019.xlsx")
 dfSLC_dayData['Arrivals'].to_excel("data/"+per+"/dfArrivals_dayData_2018-2019.xlsx")
@@ -220,7 +220,7 @@ dfSLC_dayData['Duration'].to_excel("data/"+per+"/dfDuration_dayData_2018-2019.xl
 dfSLC_dayData['Charging'].to_excel("data/"+per+"/dfCharging_dayData_2018-2019.xlsx")
 
 #%% Read Day Data 
-per = '1hr'
+per = '15min'
 
 dfSLC_dayData = {};
 dfSLC_dayData['Arrivals'] = pd.read_excel("data/"+per+"/dfArrivals_dayData_2018-2019.xlsx", index_col=[0])
@@ -254,10 +254,9 @@ def aggData(dfDays, periodsPerDay):
         d += 1;
         r += periodsPerDay;
     
+    # Count connected vehicles
     cnctd = 0;
     for i in range(0,len(dfDays_Val.Arrivals)):
-        #aggArvl += dfDays_Val.Arrivals.at[i];
-        #aggDept += dfDays_Val.Departures.at[i];
         cnctd = cnctd + dfDays_Val.Arrivals.at[i] - dfDays_Val.Departures.at[i];
         if cnctd < 0:
             cnctd = 0;
@@ -273,7 +272,7 @@ elif per == '15min':
 dfSLC_aggData = aggData(dfSLC_dayData, timeperiods)
 
 # Save
-#dfSLC_aggData.to_excel("data/"+per+"/dfSLC_aggData_2018-2019.xlsx")
+dfSLC_aggData.to_excel("data/"+per+"/dfSLC_aggData_2018-2019.xlsx")
 
 #%% Naive Test-Train Split
 
@@ -289,8 +288,8 @@ def dataSplit(dfSLC_aggData, testPct):
 
 df_Train_naive, df_Test_naive = dataSplit(dfSLC_aggData, 0.2)
 
-df_Train_naive.to_excel("data/15min/trn_test/dfTrn_Naive.xlsx")
-df_Test_naive.to_excel("data/15min/trn_test/dfTest_Naive.xlsx")
+df_Train_naive.to_excel("data/"+per+"/trn_test/dfTrn_Naive.xlsx")
+df_Test_naive.to_excel("data/"+per+"/trn_test/dfTest_Naive.xlsx")
 
 #%% Cross Validation Test/Train Data
 
@@ -318,14 +317,13 @@ df_Train, df_Test = dataCV(dfSLC_aggData, 5)
 
 #%%
 
-timePer = '15min'
-df_Train[0].to_excel("data/"+timePer+"/trn_test/trn0.xlsx")
-df_Test[0].to_excel("data/"+timePer+"/trn_test/test0.xlsx")
-df_Train[1].to_excel("data/"+timePer+"/trn_test/trn1.xlsx")
-df_Test[1].to_excel("data/"+timePer+"/trn_test/test1.xlsx")
-df_Train[2].to_excel("data/"+timePer+"/trn_test/trn2.xlsx")
-df_Test[2].to_excel("data/"+timePer+"/trn_test/test2.xlsx")
-df_Train[3].to_excel("data/"+timePer+"/trn_test/trn3.xlsx")
-df_Test[3].to_excel("data/"+timePer+"/trn_test/test3.xlsx")
-df_Train[4].to_excel("data/"+timePer+"/trn_test/trn4.xlsx")
-df_Test[4].to_excel("data/"+timePer+"/trn_test/test4.xlsx")
+df_Train[0].to_excel("data/"+per+"/trn_test/trn0.xlsx")
+df_Test[0].to_excel("data/"+per+"/trn_test/test0.xlsx")
+df_Train[1].to_excel("data/"+per+"/trn_test/trn1.xlsx")
+df_Test[1].to_excel("data/"+per+"/trn_test/test1.xlsx")
+df_Train[2].to_excel("data/"+per+"/trn_test/trn2.xlsx")
+df_Test[2].to_excel("data/"+per+"/trn_test/test2.xlsx")
+df_Train[3].to_excel("data/"+per+"/trn_test/trn3.xlsx")
+df_Test[3].to_excel("data/"+per+"/trn_test/test3.xlsx")
+df_Train[4].to_excel("data/"+per+"/trn_test/trn4.xlsx")
+df_Test[4].to_excel("data/"+per+"/trn_test/test4.xlsx")
