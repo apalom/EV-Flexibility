@@ -257,7 +257,11 @@ def aggData(dfDays, periodsPerDay):
     # Count connected vehicles
     cnctd = 0;
     for i in range(0,len(dfDays_Val.Arrivals)):
+        if dfDays_Val.Hour.at[i] == 0:
+            cnctd = 0;
+            
         cnctd = cnctd + dfDays_Val.Arrivals.at[i] - dfDays_Val.Departures.at[i];
+        
         if cnctd < 0:
             cnctd = 0;
         dfDays_Val.Connected.at[i] = cnctd; 
