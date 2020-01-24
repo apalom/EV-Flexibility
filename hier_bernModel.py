@@ -36,10 +36,10 @@ with pm.Model() as model:
     mu = pm.Beta('mu', 2, 2)
     kappa = pm.Gamma('kappa', 1, 0.1)
     # define the prior
-    theta = pm.Beta('theta', mu * kappa, (1 - mu) * kappa, shape=len(N))
+    theta = pm.Beta('theta', mu * kappa, (1 - mu) * kappa, shape=len(t_idx))
     # define the likelihood
-    y = pm.Bernoulli('y', p=theta[t_idx], observed=X)
+    y = pm.Bernoulli('like', p=theta[t_idx], observed=X)
 
 #   Generate a MCMC chain
-    trace = pm.sample(500, progressbar=True)
+    trace = pm.sample(500, cores=1)#progressbar=True)
         
