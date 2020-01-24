@@ -75,14 +75,14 @@ def filterPrep(df, string, fltr, time):
     df['StartHr'] = df['Start Date'].apply(lambda x: x.hour + x.minute/60)
     df['EndHr'] = df['End Date'].apply(lambda x: x.hour + x.minute/60)
     if time == '1hr':
-        df['StartHr'] = df['StartHr'].apply(lambda x: np.floor(x));
-        df['EndHr'] = df['EndHr'].apply(lambda x: np.floor(x));
+        df['StartHr'] = df['StartHr'].apply(lambda x: np.round(x));
+        df['EndHr'] = df['EndHr'].apply(lambda x: np.round(x));
     elif time == '15min':
         df['StartHr'] = df['StartHr'].apply(lambda x: round(x * 4) / 4)
         df['EndHr'] = df['EndHr'].apply(lambda x: round(x * 4) / 4)
     elif time == '5min':
-        df['StartHr'] = df['StartHr'].apply(lambda x: round(x * 4) / 12)
-        df['EndHr'] = df['EndHr'].apply(lambda x: round(x * 4) / 12)
+        df['StartHr'] = df['StartHr'].apply(lambda x: round(x * 12) / 12)
+        df['EndHr'] = df['EndHr'].apply(lambda x: round(x * 12) / 12)
     df['AvgPwr'] = df['Energy (kWh)']/df['Duration (h)']
     df['Date'] = df['Start Date'].apply(lambda x: str(x.year) + '-' + str(x.month) + '-' + str(x.day))
 
@@ -118,67 +118,72 @@ def filterPrep(df, string, fltr, time):
     return df;
 
 # Salt Lake City Sessions
-dfSLC_sesh = filterPrep(loadData(), "Salt Lake City", True, '15min')
+dfSLC_sesh = filterPrep(loadData(), "Salt Lake City", True, '5min')
+
+#%%
+dfSLC_sesh1chgr = dfSLC_sesh.loc[dfSLC_sesh['EVSE ID'] == 167437]
+dfSLC_sesh1port = dfSLC_sesh1chgr.loc[dfSLC_sesh1chgr['Port Number'] == str(1)]
 
 #%% Calculate per time period values
 
-def intervalData(df, weekday, periodsPerDay):
+def intervalData(df, weekday, ppD):
 
     dctDays = {};
 
     daysIn = list(set(df.dayCount))
     daysIn.sort()
 
-    dfArrivals = pd.DataFrame(np.zeros((periodsPerDay,len(set(df.dayCount)))),
-                          index=np.arange(0,periodsPerDay), columns=daysIn)
+    dfArrivals = pd.DataFrame(np.zeros((ppD,len(set(df.dayCount)))),
+                          index=np.arange(0,ppD), columns=daysIn)
     
-    dfDepartures = pd.DataFrame(np.zeros((periodsPerDay,len(set(df.dayCount)))),
-                      index=np.arange(0,periodsPerDay), columns=daysIn)
+    dfDepartures = pd.DataFrame(np.zeros((ppD,len(set(df.dayCount)))),
+                      index=np.arange(0,ppD), columns=daysIn)
 
-    dfEnergy = pd.DataFrame(np.zeros((periodsPerDay,len(set(df.dayCount)))),
-                          index=np.arange(0,periodsPerDay), columns=daysIn)
+    dfEnergy = pd.DataFrame(np.zeros((ppD,len(set(df.dayCount)))),
+                          index=np.arange(0,ppD), columns=daysIn)
     
-    dfEnergyTot = pd.DataFrame(np.zeros((periodsPerDay,len(set(df.dayCount)))),
-                      index=np.arange(0,periodsPerDay), columns=daysIn)
+    dfEnergyTot = pd.DataFrame(np.zeros((ppD,len(set(df.dayCount)))),
+                      index=np.arange(0,ppD), columns=daysIn)
 
-    dfDuration = pd.DataFrame(np.zeros((periodsPerDay,len(set(df.dayCount)))),
-                          index=np.arange(0,periodsPerDay), columns=daysIn)
+    dfDuration = pd.DataFrame(np.zeros((ppD,len(set(df.dayCount)))),
+                          index=np.arange(0,ppD), columns=daysIn)
 
-    dfCharging = pd.DataFrame(np.zeros((periodsPerDay,len(set(df.dayCount)))),
-                          index=np.arange(0,periodsPerDay), columns=daysIn)
+    dfCharging = pd.DataFrame(np.zeros((ppD,len(set(df.dayCount)))),
+                          index=np.arange(0,ppD), columns=daysIn)
 
     for d in df.dayCount:
         print('Day: ', d)
         dfDays = df[df.dayCount == d]
         
-        # Count Arrivals
-        arvl = dfDays.StartHr.value_counts()
-        if periodsPerDay == 96:
-            arvl.index = (arvl.index.values*4).astype(int)
+        # Count Arrivals/Departures
+        arvl = dfDays.StartHr.value_counts();
+        dept = dfDays.EndHr.value_counts();
+        if ppD == 96:
+            arvl.index = (arvl.index.values*4).astype(int);
+            dept.index = (dept.index.values*4).astype(int);
+        if ppD == 288:
+            arvl.index = (arvl.index.values*12).astype(int);
+            dept.index = (dept.index.values*12).astype(int);
         arvl = arvl.sort_index()
-        
-        # Count Departures
-        dept = dfDays.EndHr.value_counts()
-        if periodsPerDay == 96:
-            dept.index = (dept.index.values*4).astype(int)
         dept = dept.sort_index()
-
+       
+        # Setup data
         tot_energy = dfDays['Energy (kWh)'].groupby(dfDays.StartHr).sum()
-        if periodsPerDay == 96:
-            tot_energy.index = (tot_energy.index.values*4).astype(int)
-        
         sesh_energy = dfDays['Energy (kWh)'].groupby(dfDays.StartHr).mean()
-        if periodsPerDay == 96:
-            sesh_energy.index = (sesh_energy.index.values*4).astype(int)
-        
         duration = dfDays['Duration (h)'].groupby(dfDays.StartHr).mean()
-        if periodsPerDay == 96:
-            duration.index = (duration.index.values*4).astype(int)
-        
         charging = dfDays['Charging (h)'].groupby(dfDays.StartHr).mean()
-        if periodsPerDay == 96:
-            charging.index = (charging.index.values*4).astype(int)
         
+        if ppD == 96: # 15 min data
+            tot_energy.index = (tot_energy.index.values*4).astype(int);
+            sesh_energy.index = (sesh_energy.index.values*4).astype(int);
+            duration.index = (duration.index.values*4).astype(int);
+            charging.index = (charging.index.values*4).astype(int);
+        elif ppD == 288: # 5 min data
+            tot_energy.index = (tot_energy.index.values*12).astype(int);
+            sesh_energy.index = (sesh_energy.index.values*12).astype(int);
+            duration.index = (duration.index.values*12).astype(int);
+            charging.index = (charging.index.values*12).astype(int);
+                
         dfArrivals.loc[:,d] = arvl
         dfArrivals.loc[:,d] = np.nan_to_num(dfArrivals.loc[:,d])
         
@@ -206,10 +211,10 @@ def intervalData(df, weekday, periodsPerDay):
 
     return dctDays
 
-dfSLC_dayData = intervalData(dfSLC_sesh, True, 96)
+dfSLC_dayData = intervalData(dfSLC_sesh1chgr, True, 288)
 
 #%% Save
-per = '15min'
+per = '5min_1chgr'
 
 #dfSLC_dayData.to_excel("data/dfSLC_dayData_2018-2019.xlsx")
 dfSLC_dayData['Arrivals'].to_excel("data/"+per+"/dfArrivals_dayData_2018-2019.xlsx")
@@ -269,11 +274,14 @@ def aggData(dfDays, periodsPerDay):
     return dfDays_Val
 
 if per == '1hr':
-    timeperiods = 24;
+    ppD = 24;
 elif per == '15min':
-    timeperiods = 96;
+    ppD = 96;
+elif per == '5min_1chgr':
+    ppD = 288;
 
-dfSLC_aggData = aggData(dfSLC_dayData, timeperiods)
+
+dfSLC_aggData = aggData(dfSLC_dayData, ppD)
 
 # Save
 dfSLC_aggData.to_excel("data/"+per+"/dfSLC_aggData_2018-2019.xlsx")

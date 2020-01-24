@@ -5,6 +5,7 @@ Created on Tue Jan 14 10:01:18 2020
 @author: Alex
 """
 
+import random
 import pandas as pd
 import numpy as np
 import seaborn as sns
@@ -12,15 +13,17 @@ import matplotlib.pyplot as plt
 
 days = int(max(dfSLC_aggData.DayCnt)+1);
 
+per = '15min';
+
 if per == '15min':
-    periods = 96;
+    ppD = 96;
 elif per == '1hr':
-    periods = 24;
+    ppD = 24;
     
-cnctDays = pd.DataFrame(np.zeros((periods,days)))
+cnctDays = pd.DataFrame(np.zeros((ppD,days)))
 
 for j in range(days):
-    cnctDays[j] = dfSLC_aggData.Connected[j*periods:j*periods+periods].values
+    cnctDays[j] = dfSLC_aggData.Connected[j*ppD:j*ppD+ppD].values
 
 
 #%% Plot Each Day
@@ -119,7 +122,13 @@ for h in range(periods):
     
     paramFit.iloc[h] = [parameter, np.std(data), LSE]
     
-    
-    
+#%% Plot Single EV Connected
+
+check = np.max(dfSLC_aggData.DayCnt);
+numDays = 5; rday = check;
+while rday+numDays > check:    
+    rday = random.randint(0, np.max(dfSLC_aggData.DayCnt)); 
+plt.figure(figsize=(15, 3))
+plt.plot(dfSLC_aggData.Connected[rday*288:rday*288+numDays*288])
     
     

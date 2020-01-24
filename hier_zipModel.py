@@ -25,13 +25,6 @@ for i in range(k):
 
 #%%  Import Data
 
-#data = pd.read_excel('data/1hr/trn_test/trn0.xlsx')
-#data = data.loc[data.DayCnt>0]#.sample(500)
-##data = data.head(5000)
-#X = data['Arrivals'].values 
-#dataTest = pd.read_excel('data/1hr/trn_test/test0.xlsx')
-#T = dataTest['Arrivals'].values
-
 def runModel(df_Train, df_Test, i, t, param, smpls, burns):
     
     dataTrn = df_Train[i]
@@ -223,3 +216,55 @@ print('SMAPE: ', SMAPE(g_Data.Trn, g_Data.Test))
 #print('r2 Trn: ', az.r2_score(X, np.array(ppc_Smpl[0].sample(len(X))))[0])
 #print('r2 Test: ', az.r2_score(T, np.array(ppc_Smpl[0].sample(len(T))))[0])
 
+#%%
+
+y = np.repeat([0, 1], [3, 6])  # 3 tails 6 heads
+
+with pm.Model() as model:
+    # Hyperhyperprior:
+    model_index = pm.DiscreteUniform('model_index', lower=0, upper=1)
+    # Hyperprior:
+    kappa_theta = 12
+    mu_theta = pm.math.switch(pm.math.eq(model_index, 1), 0.25, 0.75)
+    # Prior distribution:
+    a_theta = mu_theta * kappa_theta
+    b_theta = (1 - mu_theta) * kappa_theta
+    theta = pm.Beta('theta', a_theta, b_theta) # theta distributed as beta density
+    #likelihood
+    y = pm.Bernoulli('y', theta, observed=y)
+    trace = pm.sample(500)
+    
+out_smry = pm.summary(trace)
+
+#%%# Get the posterior sample of model_index:
+model_idx_sample = trace['model_index']
+## Compute the proportion of model_index at each value:
+p_M1 = sum(model_idx_sample == 1) / len(model_idx_sample)
+p_M2 = 1 - p_M1
+
+#%%
+
+## Get the posterior sample of theta:
+theta_sample = trace['theta']
+## Extract theta values when model_index is 1:
+theta_sample_M1 = theta_sample[model_idx_sample == 1]
+## Extract theta values when model_index is 2:
+theta_sample_M2 = theta_sample[model_idx_sample == 0]
+
+## Plot histograms of sampled theta values for each model,
+plt.figure()
+plt.subplot(1, 2, 1)
+plt.hist(theta_sample_M1, label='p(M1|D) = {:.3f}'.format(p_M1))
+plt.xlabel(r'$\theta$')
+plt.ylabel(r'$p(\theta|\mu=0.25,D)$')
+plt.xlim(0, 1)
+plt.legend(loc='upper right', framealpha=0.5)
+
+plt.subplot(1, 2, 2)
+plt.hist(theta_sample_M2, label='p(M2|D) = {:.3f}'.format(p_M2))
+plt.xlabel(r'$\theta$')
+plt.ylabel(r'$p(\theta|\mu=0.75,D)$')
+plt.xlim(0, 1)
+plt.legend(loc='upper right', framealpha=0.5)
+
+plt.show()
