@@ -211,10 +211,10 @@ def intervalData(df, weekday, ppD):
 
     return dctDays
 
-dfSLC_dayData = intervalData(dfSLC_sesh1chgr, True, 288)
+dfSLC_dayData = intervalData(dfSLC_sesh1port, True, 288)
 
 #%% Save
-per = '5min_1chgr'
+per = '5min_1port'
 
 #dfSLC_dayData.to_excel("data/dfSLC_dayData_2018-2019.xlsx")
 dfSLC_dayData['Arrivals'].to_excel("data/"+per+"/dfArrivals_dayData_2018-2019.xlsx")
@@ -236,6 +236,8 @@ dfSLC_dayData['Duration'] = pd.read_excel("data/"+per+"/dfDuration_dayData_2018-
 dfSLC_dayData['Charging'] = pd.read_excel("data/"+per+"/dfCharging_dayData_2018-2019.xlsx", index_col=[0])
 
 #%%
+ppD = 288;
+
 def aggData(dfDays, periodsPerDay):
     df = dfDays;
     daysIn = df['Arrivals'].shape[1]
