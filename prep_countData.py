@@ -310,24 +310,36 @@ df_Test_naive.to_excel("data/"+per+"/trn_test/dfTest_Naive.xlsx")
 import pandas as pd
 from sklearn.model_selection import train_test_split, KFold
 
-#file_aggData = 'data/1hr/dfSLC_aggData_2018-2019.xlsx';
+#file_aggData = "data/"+per+"/dfSLC_aggData_2018-2019.xlsx";
 #dfSLC_aggData = pd.read_excel(file_aggData)
+#dfSLC_aggData = dfSLC_aggData.drop("Idx", axis=1) 
 
-def dataCV(X, folds):
+data_Train, data_Test = train_test_split(dfSLC_aggData, test_size=0.2)
+
+def dataCV(X, y, folds):
     
     kf = KFold(n_splits=folds) # Define the split - into 5 folds 
-    kf.get_n_splits(dfSLC_aggData) # returns the number of splitting iterations in the cross-validator
-    print(kf) 
-    f = 0; X_train={}; X_test={};
+    kf.get_n_splits(X) # returns the number of splitting iterations in the cross-validator
+    print("--- Training & Validation ---\n",kf) 
+    f = 0; X_train={}; X_test={}; 
     
     for train_index, test_index in kf.split(X):
-         print("TRAIN:", train_index, "TEST:", test_index)
-         X_train[f], X_test[f] = X.iloc[train_index], X.iloc[test_index]
+         print("TRAIN:", train_index, "\nTEST :", test_index)
+         X_train[f], X_test[f] = X.iloc[train_index], X.iloc[test_index]         
+         f += 1;
+    
+    kf = KFold(n_splits=folds) # Define the split - into 5 folds 
+    kf.get_n_splits(y) # returns the number of splitting iterations in the cross-validator
+    print("--- Testing ---\n",kf)    
+    f=0; y_train={}; y_test={};
+    for train_index, test_index in kf.split(y):
+         print("TRAIN:", train_index, "\nTEST :", test_index)
+         y_train[f], y_test[f] = y.iloc[train_index], y.iloc[test_index]         
          f += 1;
      
-    return X_train, X_test
+    return X_train, X_test, y_train, y_test
 
-df_Train, df_Test = dataCV(dfSLC_aggData, 5)
+X_train, X_test, y_Train, y_Test = dataCV(data_Train, data_Test, 5)
 
 #%%
 
