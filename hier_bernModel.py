@@ -65,8 +65,16 @@ def runModel(df_Train, df_Test, i, t, param, smpls, burns):
 def SMAPE(A, F):
     return 100/len(A) * np.sum(2 * np.abs(F - A) / (np.abs(A) + np.abs(F)))
 
-out_traces = {}; out_ppc = {}; out_smrys = {}; err = np.empty((k,2))
+k = 5;
+out_traces = {}; out_ppc = {}; out_smrys = {}; out_err = np.empty((k,2))
 
 for i in range(5):
     # training data, testing data, folds, parameter, smpls , burnin
-    out_traces[i], out_ppc[i], out_smrys[i], err[i] = runModel(df_Train, df_Test, i, 288, 'Connected', 500, 1000)
+    out_traces[i], out_ppc[i], out_smrys[i], out_err[i] = runModel(X_Train, X_Test, i, 24, 'Connected', 500, 1000)
+    
+#%% Output Results
+
+best = 3; 
+np.savetxt("data/"+per+"/results/out_err.csv", err, delimiter=",")
+np.savetxt("data/"+per+"/results/out_ppc.csv", out_ppc[best], delimiter=",")
+out_smrys[best].to_excel("data/"+per+"/results/out_smry.xlsx")

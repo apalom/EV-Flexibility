@@ -24,7 +24,7 @@ def loadData():
     filePath = 'data/Session-Details-Summary-20200113.csv';
     return pd.read_csv(filePath);
 
-#%% Dataframe Preparation
+#% Dataframe Preparation
 
 def filterPrep(df, string, fltr, time):
 
@@ -118,7 +118,7 @@ def filterPrep(df, string, fltr, time):
     return df;
 
 # Salt Lake City Sessions
-dfSLC_sesh = filterPrep(loadData(), "Salt Lake City", True, '5min')
+dfSLC_sesh = filterPrep(loadData(), "Salt Lake City", True, '1hr')
 
 #%%
 dfSLC_sesh1chgr = dfSLC_sesh.loc[dfSLC_sesh['EVSE ID'] == 167437]
@@ -211,10 +211,10 @@ def intervalData(df, weekday, ppD):
 
     return dctDays
 
-dfSLC_dayData = intervalData(dfSLC_sesh1port, True, 288)
+dfSLC_dayData = intervalData(dfSLC_sesh1port, True, 24)
 
 #%% Save
-per = '5min_1port'
+per = '1hr'
 
 #dfSLC_dayData.to_excel("data/dfSLC_dayData_2018-2019.xlsx")
 dfSLC_dayData['Arrivals'].to_excel("data/"+per+"/dfArrivals_dayData_2018-2019.xlsx")
@@ -225,7 +225,7 @@ dfSLC_dayData['Duration'].to_excel("data/"+per+"/dfDuration_dayData_2018-2019.xl
 dfSLC_dayData['Charging'].to_excel("data/"+per+"/dfCharging_dayData_2018-2019.xlsx")
 
 #%% Read Day Data 
-per = '15min'
+per = '1hr'
 
 dfSLC_dayData = {};
 dfSLC_dayData['Arrivals'] = pd.read_excel("data/"+per+"/dfArrivals_dayData_2018-2019.xlsx", index_col=[0])
@@ -236,7 +236,6 @@ dfSLC_dayData['Duration'] = pd.read_excel("data/"+per+"/dfDuration_dayData_2018-
 dfSLC_dayData['Charging'] = pd.read_excel("data/"+per+"/dfCharging_dayData_2018-2019.xlsx", index_col=[0])
 
 #%%
-ppD = 288;
 
 def aggData(dfDays, periodsPerDay):
     df = dfDays;
@@ -275,13 +274,13 @@ def aggData(dfDays, periodsPerDay):
 
     return dfDays_Val
 
+ppD = 24;
 if per == '1hr':
     ppD = 24;
 elif per == '15min':
     ppD = 96;
 elif per == '5min_1chgr':
     ppD = 288;
-
 
 dfSLC_aggData = aggData(dfSLC_dayData, ppD)
 
@@ -316,7 +315,7 @@ from sklearn.model_selection import train_test_split, KFold
 
 data_Train, data_Test = train_test_split(dfSLC_aggData, test_size=0.2)
 
-def dataCV(X, y, folds):
+def dataCV(X, folds):
     
     kf = KFold(n_splits=folds) # Define the split - into 5 folds 
     kf.get_n_splits(X) # returns the number of splitting iterations in the cross-validator
@@ -327,29 +326,15 @@ def dataCV(X, y, folds):
          print("TRAIN:", train_index, "\nTEST :", test_index)
          X_train[f], X_test[f] = X.iloc[train_index], X.iloc[test_index]         
          f += 1;
-    
-    kf = KFold(n_splits=folds) # Define the split - into 5 folds 
-    kf.get_n_splits(y) # returns the number of splitting iterations in the cross-validator
-    print("--- Testing ---\n",kf)    
-    f=0; y_train={}; y_test={};
-    for train_index, test_index in kf.split(y):
-         print("TRAIN:", train_index, "\nTEST :", test_index)
-         y_train[f], y_test[f] = y.iloc[train_index], y.iloc[test_index]         
-         f += 1;
      
-    return X_train, X_test, y_train, y_test
+    return X_train, X_test 
 
-X_train, X_test, y_Train, y_Test = dataCV(data_Train, data_Test, 5)
+X_Train, X_Test = dataCV(data_Train, 5)
 
-#%%
+#% Output Data
 
-df_Train[0].to_excel("data/"+per+"/trn_test/trn0.xlsx")
-df_Test[0].to_excel("data/"+per+"/trn_test/test0.xlsx")
-df_Train[1].to_excel("data/"+per+"/trn_test/trn1.xlsx")
-df_Test[1].to_excel("data/"+per+"/trn_test/test1.xlsx")
-df_Train[2].to_excel("data/"+per+"/trn_test/trn2.xlsx")
-df_Test[2].to_excel("data/"+per+"/trn_test/test2.xlsx")
-df_Train[3].to_excel("data/"+per+"/trn_test/trn3.xlsx")
-df_Test[3].to_excel("data/"+per+"/trn_test/test3.xlsx")
-df_Train[4].to_excel("data/"+per+"/trn_test/trn4.xlsx")
-df_Test[4].to_excel("data/"+per+"/trn_test/test4.xlsx")
+for i in range(5):
+    X_Train[i].to_excel("data/"+per+"/trn_test/x_trn"+str(i)+".xlsx")
+    X_Test[i].to_excel("data/"+per+"/trn_test/x_val"+str(i)+".xlsx")
+
+data_Test.to_excel("data/"+per+"/trn_test/y_test.xlsx")
