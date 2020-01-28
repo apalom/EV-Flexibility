@@ -19,15 +19,10 @@ per = "5min_1port";
 
 for i in range(k):
 
-    df_Train[i] = pd.read_excel("data/"+per+"/trn_test/trn"+str(i)+".xlsx").sample(k*288)    
-    df_Test[i] = pd.read_excel("data/"+per+"/trn_test/test"+str(i)+".xlsx").sample(k*288)
-    
+    df_Train[i] = pd.read_excel("data/"+per+"/trn_test/trn"+str(i)+".xlsx")#.sample(10*288)    
+    df_Test[i] = pd.read_excel("data/"+per+"/trn_test/test"+str(i)+".xlsx")#.sample(10*288)
+
 #%% Bernoulli Model
-
-X = df_Train[0].Connected
-y = df_Test[0].Connected
-
-#%%
 
 def runModel(df_Train, df_Test, i, t, param, smpls, burns):
 
@@ -46,7 +41,7 @@ def runModel(df_Train, df_Test, i, t, param, smpls, burns):
         mu = pm.Beta('mu', 2, 2)
         kappa = pm.Gamma('kappa', 1, 0.1)
         # define the prior
-        theta = pm.Beta('theta', mu * kappa, (1 - mu) * kappa, shape=len(t_idx))
+        theta = pm.Beta('theta', mu * kappa, (1 - mu) * kappa, shape=t)
         # define the likelihood
         y_lik = pm.Bernoulli('y_like', p=theta[t_idx], observed=X)
     
