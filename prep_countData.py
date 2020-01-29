@@ -313,7 +313,7 @@ from sklearn.model_selection import train_test_split, KFold
 #dfSLC_aggData = pd.read_excel(file_aggData)
 #dfSLC_aggData = dfSLC_aggData.drop("Idx", axis=1) 
 
-data_Train, data_Test = train_test_split(dfSLC_aggData, test_size=0.2)
+data_Train, data_Test = train_test_split(dfSLC_aggData, test_size=0.2, shuffle=False)
 
 def dataCV(X, folds):
     
