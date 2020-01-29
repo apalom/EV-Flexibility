@@ -331,7 +331,7 @@ def dataCV(X, folds):
 
 X_Train, X_Test = dataCV(data_Train, 5)
 
-#% Output Data
+#%% Output Data
 
 for i in range(5):
     X_Train[i].to_excel("data/"+per+"/trn_test/x_trn"+str(i)+".xlsx")

@@ -3,6 +3,8 @@
 Created on Thu Jan 23 19:47:56 2020
 
 @author: Alex Palomino
+ref: http://www.cs.utah.edu/~fletcher/cs6190/lectures/BetaBernoulli.html
+https://www.cs.ubc.ca/~schmidtm/Courses/540-W16/L19.pdf
 """
 
 import numpy as np
@@ -11,18 +13,20 @@ import scipy.stats as stats
 import pandas as pd
 from sklearn import preprocessing
 import pymc3 as pm
+from pymc3 import model_to_graphviz
 
 #%% Read k-Fold Test-Train Data
 
 df_Train = {}; df_Test = {}; k = 5;
-per = "5min_1port";
+per = "1hr_1port";
 
 for i in range(k):
 
-    df_Train[i] = pd.read_excel("data/"+per+"/trn_test/trn"+str(i)+".xlsx")#.sample(10*288)    
-    df_Test[i] = pd.read_excel("data/"+per+"/trn_test/test"+str(i)+".xlsx")#.sample(10*288)
+    df_Train[i] = pd.read_excel("data/"+per+"/trn_test/x_trn"+str(i)+".xlsx")#.sample(10*288)    
+    df_Test[i] = pd.read_excel("data/"+per+"/trn_test/x_val"+str(i)+".xlsx")#.sample(10*288)
+    print(i)
 
-#%% Bernoulli Model
+#%% Beta-Bernoulli Model
 
 def runModel(df_Train, df_Test, i, t, param, smpls, burns):
 
@@ -38,7 +42,8 @@ def runModel(df_Train, df_Test, i, t, param, smpls, burns):
     # define bernoulli hierarchical model
     with pm.Model() as model:
     # define the hyperparameters
-        mu = pm.Beta('mu', 2, 2)
+        #mu = pm.Beta('mu', 2, 2)
+        mu = pm.Beta('mu', 0.5, 0.5)
         kappa = pm.Gamma('kappa', 1, 0.1)
         # define the prior
         theta = pm.Beta('theta', mu * kappa, (1 - mu) * kappa, shape=t)
@@ -52,15 +57,17 @@ def runModel(df_Train, df_Test, i, t, param, smpls, burns):
     out_smry = pd.DataFrame(pm.summary(trace))   
     
     ppcMean = np.array((t_idx, np.mean(ppc['y_like'], axis=0)))
+    ppc_all = np.append(np.reshape(t_idx, (-1, 1)), ppc['y_like'].T, axis=1)
     predVals = pd.DataFrame(np.transpose(ppcMean), columns=['hr', 'y'])
     predVals = predVals.groupby('hr').mean()
     predVals['int'] = np.round(predVals.y.values)
-        
+                               
+    # Calculate SMAPE Error                       
     err_y = np.round(SMAPE(testVals.y, predVals.y),4)
     err_int = np.round(SMAPE(testVals.int, predVals.int),4)
     print('\n Error: ', (err_y, err_int), '\n')
     
-    return trace, ppc['y_like'], out_smry, [err_y, err_int]
+    return trace, ppc_all, out_smry, [err_y, err_int]
 
 def SMAPE(A, F):
     return 100/len(A) * np.sum(2 * np.abs(F - A) / (np.abs(A) + np.abs(F)))
@@ -70,11 +77,13 @@ out_traces = {}; out_ppc = {}; out_smrys = {}; out_err = np.empty((k,2))
 
 for i in range(5):
     # training data, testing data, folds, parameter, smpls , burnin
-    out_traces[i], out_ppc[i], out_smrys[i], out_err[i] = runModel(X_Train, X_Test, i, 24, 'Connected', 500, 1000)
+    out_traces[i], out_ppc[i], out_smrys[i], out_err[i] = runModel(X_Train, X_Test, i, 24, 'Connected', 250, 500)
     
 #%% Output Results
 
-best = 3; 
-np.savetxt("data/"+per+"/results/out_err.csv", err, delimiter=",")
-np.savetxt("data/"+per+"/results/out_ppc.csv", out_ppc[best], delimiter=",")
-out_smrys[best].to_excel("data/"+per+"/results/out_smry.xlsx")
+best = 2; 
+np.savetxt("data/"+per+"/result/out_err.csv", out_err, delimiter=",")
+np.savetxt("data/"+per+"/result/out_ppc.csv", out_ppc[best], delimiter=",")
+out_smrys[best].to_excel("data/"+per+"/result/out_smry.xlsx")
+
+#%% Test Values
