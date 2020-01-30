@@ -35,3 +35,22 @@ plt.xticks(bns1)
 plt.legend()
 
 #%% Energy Demand Per Time of Day 
+
+dataWSEV_EnergyTot = pd.read_excel("evolution\data_WSEV2019_EnergyTot.xlsx", index=['Idx'])
+
+q_WSEV = dataWSEV_EnergyTot.quantile(q=[0.001, 0.25, 0.50, 0.75, 0.999], axis=1).T
+#%%
+
+sns.set(style="whitegrid", font='Times New Roman')
+fig, ax = plt.subplots(figsize=(12,8))
+
+sns.lineplot(q_WSEV.index, q_WSEV.iloc[:,2], color='k', label='Med')
+sns.lineplot(q_WSEV.index, q_WSEV.iloc[:,4], color='b', label='Max')
+sns.lineplot(q_WSEV.index, q_WSEV.iloc[:,0], color='r', label='Min')
+
+plt.title('L2 Energy versus Time of Day')
+plt.ylabel('kWh')
+plt.xticks(np.arange(0,96+24,24))
+ax.set_xticklabels(np.arange(0,24+6,6))
+plt.legend()
+
