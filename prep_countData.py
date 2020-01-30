@@ -52,8 +52,8 @@ def filterPrep(df, string, fltr, time):
     #clean data
     df = df.loc[df['Energy (kWh)'] > 0]
     df = df.loc[~pd.isnull(df['End Date'])]
-    yr = 2018
-    df = df.loc[(df['Start Date'] > datetime.date(yr,1,1)) & (df['Start Date'] < datetime.date(yr+2,1,1))]
+    yr = 2019
+    df = df.loc[(df['Start Date'] > datetime.date(yr,1,1)) & (df['Start Date'] < datetime.date(yr+1,1,1))]
 
     #update data types
     df['Duration (h)'] = df['Total Duration (hh:mm:ss)'].apply(lambda x: x.seconds/3600)
@@ -118,8 +118,9 @@ def filterPrep(df, string, fltr, time):
     return df;
 
 # Salt Lake City Sessions
-dfSLC_sesh = filterPrep(loadData(), "Salt Lake City", True, '1hr')
+dfSLC_sesh = filterPrep(loadData(), "Salt Lake City", True, '15min')
 
+dfSLC_sesh.to_excel("evolution/data_WSEV2019.xlsx")
 #%%
 dfSLC_sesh1chgr = dfSLC_sesh.loc[dfSLC_sesh['EVSE ID'] == 167437]
 dfSLC_sesh1port = dfSLC_sesh1chgr.loc[dfSLC_sesh1chgr['Port Number'] == str(1)]
@@ -211,7 +212,17 @@ def intervalData(df, weekday, ppD):
 
     return dctDays
 
-dfSLC_dayData = intervalData(dfSLC_sesh1port, True, 24)
+dfSLC_dayData = intervalData(dfSLC_sesh, True, 96)
+
+#%%
+
+dfSLC_dayData['Arrivals'].to_excel("evolution/data_WSEV2019_Arrivals.xlsx")
+dfSLC_dayData['Departures'].to_excel("evolution/data_WSEV2019_Departures.xlsx")
+dfSLC_dayData['EnergyAvg'].to_excel("evolution/data_WSEV2019_EnergyAvg.xlsx")
+dfSLC_dayData['EnergyTot'].to_excel("evolution/data_WSEV2019_EnergyTot.xlsx")
+dfSLC_dayData['Duration'].to_excel("evolution/data_WSEV2019_Duration.xlsx")
+dfSLC_dayData['Charging'].to_excel("evolution/data_WSEV2019_Charging.xlsx")
+
 
 #%% Save
 per = '1hr'
