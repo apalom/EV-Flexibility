@@ -7,7 +7,6 @@ Created on Mon Dec  9 15:24:18 2019
 Prepare test/training data
 """
 
-
 # Import Libraries
 import numpy as np
 from scipy.stats import mstats
