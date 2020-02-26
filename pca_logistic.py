@@ -9,19 +9,45 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy.stats as stats
 import pandas as pd
+import sklearn
 from sklearn import preprocessing
-import pymc3 as pm
-from pymc3 import model_to_graphviz
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LogisticRegression
 
-#%% Read k-Fold Test-Train Data
+#%% Read-In Data
 
-df_Train = {}; df_Val = {}; k = 5;
-per = "5min_1port";
+dfSLC_aggData = pd.read_excel("data/"+per+"/dfSLC_aggData_2017-2019_1port.xlsx")    
+data_x = dfSLC_aggData[['Hour','DayWk']] 
+data_lbl = dfSLC_aggData[['Connected']] 
 
-for i in range(k):
+#%% Test/Train Split Data
 
-    df_Train[i] = pd.read_excel("data/"+per+"/trn_test/x_trn"+str(i)+".xlsx")#.sample(10*288)    
-    df_Val[i] = pd.read_excel("data/"+per+"/trn_test/x_val"+str(i)+".xlsx")#.sample(10*288)
-    print(i)
+train_data, test_data, train_lbl, test_lbl = train_test_split(data_x, data_lbl, test_size=0.2, shuffle=False)    
     
-#%% PCA 
+train_lbl = train_lbl.Connected
+test_lbl = test_lbl.Connected
+#%% Standardize the Data
+
+scaler = StandardScaler()
+# Fit on training set only.
+scaler.fit(train_data)
+# Apply transform to both the training set and the test set.
+train_data = scaler.transform(train_data)
+test_data = scaler.transform(test_data)
+
+#%% Apply Logistic Regression to the Transformed Data
+
+# all parameters not specified are set to their defaults
+# default solver is incredibly slow which is why it was changed to 'lbfgs'
+logisticRegr = LogisticRegression(max_iter=1000)
+
+# Training the model on the data, storing the information learned from the data
+logisticRegr.fit(train_data, train_lbl)
+
+# Predict for Multiple Observations (images)
+test_pred = logisticRegr.predict(test_data)
+
+#% Measure Model Performance
+score = logisticRegr.score(test_data, test_lbl)
+print(score)

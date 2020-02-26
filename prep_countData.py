@@ -51,8 +51,8 @@ def filterPrep(df, string, fltr, time):
     #clean data
     df = df.loc[df['Energy (kWh)'] > 0]
     df = df.loc[~pd.isnull(df['End Date'])]
-    yr = 2019
-    df = df.loc[(df['Start Date'] > datetime.date(yr,1,1)) & (df['Start Date'] < datetime.date(yr+1,1,1))]
+    yr = 2017
+    df = df.loc[(df['Start Date'] > datetime.date(yr,1,1)) & (df['Start Date'] < datetime.date(yr+3,1,1))]
 
     #update data types
     df['Duration (h)'] = df['Total Duration (hh:mm:ss)'].apply(lambda x: x.seconds/3600)
@@ -67,7 +67,7 @@ def filterPrep(df, string, fltr, time):
     # Monday is 0 and Sunday is 6
     df['DayofWk'] = df['Start Date'].apply(lambda x: x.weekday())
     # Filter for weekdays
-    df = df.loc[df['DayofWk'] <= 4]
+    #df = df.loc[df['DayofWk'] <= 4]
     #df['isWeekday'] = df['DayofWk'].apply(lambda x: 1 if x <=4 else 0)
     #df = df.loc[df['isWeekday'] == 1]
     df['Year'] = df['Start Date'].apply(lambda x: x.year)
@@ -119,7 +119,7 @@ def filterPrep(df, string, fltr, time):
 # Salt Lake City Sessions
 dfSLC_sesh = filterPrep(loadData(), "Salt Lake City", True, '15min')
 
-dfSLC_sesh.to_excel("evolution/data_WSEV2019.xlsx")
+#dfSLC_sesh.to_excel("evolution/data_WSEV2019.xlsx")
 #%%
 dfSLC_sesh1chgr = dfSLC_sesh.loc[dfSLC_sesh['EVSE ID'] == 167437]
 dfSLC_sesh1port = dfSLC_sesh1chgr.loc[dfSLC_sesh1chgr['Port Number'] == str(1)]
@@ -211,7 +211,15 @@ def intervalData(df, weekday, ppD):
 
     return dctDays
 
-dfSLC_dayData = intervalData(dfSLC_sesh, True, 96)
+per = '15min';
+if per == '1hr':
+    ppD = 24;
+elif per == '15min':
+    ppD = 96;
+elif per == '5min_1chgr':
+    ppD = 288;
+
+dfSLC_dayData = intervalData(dfSLC_sesh1port, True, ppD)
 
 #%%
 
@@ -250,8 +258,8 @@ dfSLC_dayData['Charging'] = pd.read_excel("data/"+per+"/dfCharging_dayData_2018-
 def aggData(dfDays, periodsPerDay):
     df = dfDays;
     daysIn = df['Arrivals'].shape[1]
-    dfDays_Val = pd.DataFrame(np.zeros((periodsPerDay*daysIn,10)),
-              columns=['Hour','DayCnt','DayYr','Arrivals','Departures','Connected','EnergyAvg','EnergyTot','Duration','Charging'])
+    dfDays_Val = pd.DataFrame(np.zeros((periodsPerDay*daysIn,11)),
+              columns=['Hour','DayCnt','DayYr','DayWk','Arrivals','Departures','Connected','EnergyAvg','EnergyTot','Duration','Charging'])
 
     r = 0; d = 0; 
     for j in df['Arrivals'].columns:
@@ -259,6 +267,7 @@ def aggData(dfDays, periodsPerDay):
         dfDays_Val.Hour.iloc[r:r+periodsPerDay] = np.arange(0, periodsPerDay);
         dfDays_Val.DayCnt.iloc[r:r+periodsPerDay] = np.repeat(d, periodsPerDay);
         dfDays_Val.DayYr.iloc[r:r+periodsPerDay] = j;
+        dfDays_Val.DayWk.iloc[r:r+periodsPerDay] = dfSLC_sesh1port.DayofWk.iloc[j];
     
         dfDays_Val.Arrivals[r:r+periodsPerDay] = df['Arrivals'][j];        
         dfDays_Val.Departures[r:r+periodsPerDay] = df['Departures'][j];  
@@ -284,7 +293,7 @@ def aggData(dfDays, periodsPerDay):
 
     return dfDays_Val
 
-ppD = 24;
+ppD = 96;
 if per == '1hr':
     ppD = 24;
 elif per == '15min':
@@ -295,7 +304,7 @@ elif per == '5min_1chgr':
 dfSLC_aggData = aggData(dfSLC_dayData, ppD)
 
 # Save
-dfSLC_aggData.to_excel("data/"+per+"/dfSLC_aggData_2018-2019.xlsx")
+#dfSLC_aggData.to_excel("data/"+per+"/dfSLC_aggData_2018-2019.xlsx")
 
 #%% Naive Test-Train Split
 

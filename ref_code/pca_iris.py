@@ -52,7 +52,7 @@ from sklearn.linear_model import LogisticRegression
 
 # all parameters not specified are set to their defaults
 # default solver is incredibly slow which is why it was changed to 'lbfgs'
-logisticRegr = LogisticRegression(max_iter=500)
+logisticRegr = LogisticRegression(max_iter=1000)
 
 # Training the model on the data, storing the information learned from the data
 logisticRegr.fit(train_img, train_lbl)
