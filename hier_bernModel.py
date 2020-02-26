@@ -88,6 +88,10 @@ np.savetxt("data/"+per+"/result/out_err.csv", out_err, delimiter=",")
 np.savetxt("data/"+per+"/result/out_ppc.csv", out_ppc[best], delimiter=",")
 out_smrys[best].to_excel("data/"+per+"/result/out_smry.xlsx")
 
+#%% Read Results
+
+pd.read_csv
+
 #%% Test Values
 
 #df_Test = pd.read_excel("data/"+per+"/trn_test/y_test.xlsx")#.sample(10*288)

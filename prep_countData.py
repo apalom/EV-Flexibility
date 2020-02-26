@@ -32,7 +32,7 @@ def filterPrep(df, string, fltr, time):
                 'Energy (kWh)', 'Ended By', 'Start SOC', 'End SOC'];
 
     df = pd.DataFrame(df, index=np.arange(len(df)), columns=colNames)
-    
+
     #filter for dfcf
     #df = df.loc[df['Port Type'] == 'DC Fast']
 
@@ -112,7 +112,7 @@ def filterPrep(df, string, fltr, time):
         dateTest = [df['Date'] == d]
         trueIdx = list(dateTest[0][dateTest[0]].index)
         df.at[trueIdx,'dayCount'] = c
-        c += 1;  
+        c += 1;
 
     return df;
 
@@ -120,9 +120,25 @@ def filterPrep(df, string, fltr, time):
 dfSLC_sesh = filterPrep(loadData(), "Salt Lake City", True, '15min')
 
 #dfSLC_sesh.to_excel("evolution/data_WSEV2019.xlsx")
-#%%
 dfSLC_sesh1chgr = dfSLC_sesh.loc[dfSLC_sesh['EVSE ID'] == 167437]
 dfSLC_sesh1port = dfSLC_sesh1chgr.loc[dfSLC_sesh1chgr['Port Number'] == str(1)]
+
+#%% Single Driver
+drivers = list(set(dfSLC_sesh['User ID']))
+dict_drvr = {}
+
+for i in range(len(drivers)):
+    dict_drvr[drivers[i]] = len(dfSLC_sesh.loc[dfSLC_sesh['User ID'] == drivers[i]])
+
+drvr_include = [k for k,v in dict_drvr.items() if v >= 100]
+
+dict_seshDrvr = {};
+for d in drvr_include:
+    print(d)
+    dict_seshDrvr[d] = dfSLC_sesh.loc[dfSLC_sesh['User ID'] == str(d)]
+
+#%% Basic Driver Metrics
+plt.scatter(dfTemp['Start Date'], dfTemp['Energy (kWh)'])
 
 #%% Calculate per time period values
 
@@ -135,13 +151,13 @@ def intervalData(df, weekday, ppD):
 
     dfArrivals = pd.DataFrame(np.zeros((ppD,len(set(df.dayCount)))),
                           index=np.arange(0,ppD), columns=daysIn)
-    
+
     dfDepartures = pd.DataFrame(np.zeros((ppD,len(set(df.dayCount)))),
                       index=np.arange(0,ppD), columns=daysIn)
 
     dfEnergy = pd.DataFrame(np.zeros((ppD,len(set(df.dayCount)))),
                           index=np.arange(0,ppD), columns=daysIn)
-    
+
     dfEnergyTot = pd.DataFrame(np.zeros((ppD,len(set(df.dayCount)))),
                       index=np.arange(0,ppD), columns=daysIn)
 
@@ -154,7 +170,7 @@ def intervalData(df, weekday, ppD):
     for d in df.dayCount:
         print('Day: ', d)
         dfDays = df[df.dayCount == d]
-        
+
         # Count Arrivals/Departures
         arvl = dfDays.StartHr.value_counts();
         dept = dfDays.EndHr.value_counts();
@@ -166,13 +182,13 @@ def intervalData(df, weekday, ppD):
             dept.index = (dept.index.values*12).astype(int);
         arvl = arvl.sort_index()
         dept = dept.sort_index()
-       
+
         # Setup data
         tot_energy = dfDays['Energy (kWh)'].groupby(dfDays.StartHr).sum()
         sesh_energy = dfDays['Energy (kWh)'].groupby(dfDays.StartHr).mean()
         duration = dfDays['Duration (h)'].groupby(dfDays.StartHr).mean()
         charging = dfDays['Charging (h)'].groupby(dfDays.StartHr).mean()
-        
+
         if ppD == 96: # 15 min data
             tot_energy.index = (tot_energy.index.values*4).astype(int);
             sesh_energy.index = (sesh_energy.index.values*4).astype(int);
@@ -183,16 +199,16 @@ def intervalData(df, weekday, ppD):
             sesh_energy.index = (sesh_energy.index.values*12).astype(int);
             duration.index = (duration.index.values*12).astype(int);
             charging.index = (charging.index.values*12).astype(int);
-                
+
         dfArrivals.loc[:,d] = arvl
         dfArrivals.loc[:,d] = np.nan_to_num(dfArrivals.loc[:,d])
-        
+
         dfDepartures.loc[:,d] = dept
         dfDepartures.loc[:,d] = np.nan_to_num(dfDepartures.loc[:,d])
-                
+
         dfEnergy.loc[:,d] = sesh_energy
         dfEnergy.loc[:,d] = np.nan_to_num(dfEnergy.loc[:,d])
-        
+
         dfEnergyTot.loc[:,d] = tot_energy
         dfEnergyTot.loc[:,d] = np.nan_to_num(dfEnergyTot.loc[:,d])
 
@@ -242,7 +258,7 @@ dfSLC_dayData['EnergyTot'].to_excel("data/"+per+"/dfEnergyTot_dayData_2018-2019.
 dfSLC_dayData['Duration'].to_excel("data/"+per+"/dfDuration_dayData_2018-2019.xlsx")
 dfSLC_dayData['Charging'].to_excel("data/"+per+"/dfCharging_dayData_2018-2019.xlsx")
 
-#%% Read Day Data 
+#%% Read Day Data
 per = '1hr'
 
 dfSLC_dayData = {};
@@ -261,35 +277,35 @@ def aggData(dfDays, periodsPerDay):
     dfDays_Val = pd.DataFrame(np.zeros((periodsPerDay*daysIn,11)),
               columns=['Hour','DayCnt','DayYr','DayWk','Arrivals','Departures','Connected','EnergyAvg','EnergyTot','Duration','Charging'])
 
-    r = 0; d = 0; 
+    r = 0; d = 0;
     for j in df['Arrivals'].columns:
         print(j)
         dfDays_Val.Hour.iloc[r:r+periodsPerDay] = np.arange(0, periodsPerDay);
         dfDays_Val.DayCnt.iloc[r:r+periodsPerDay] = np.repeat(d, periodsPerDay);
         dfDays_Val.DayYr.iloc[r:r+periodsPerDay] = j;
         dfDays_Val.DayWk.iloc[r:r+periodsPerDay] = dfSLC_sesh1port.DayofWk.iloc[j];
-    
-        dfDays_Val.Arrivals[r:r+periodsPerDay] = df['Arrivals'][j];        
-        dfDays_Val.Departures[r:r+periodsPerDay] = df['Departures'][j];  
+
+        dfDays_Val.Arrivals[r:r+periodsPerDay] = df['Arrivals'][j];
+        dfDays_Val.Departures[r:r+periodsPerDay] = df['Departures'][j];
         dfDays_Val.EnergyAvg[r:r+periodsPerDay] = df['EnergyAvg'][j];
         dfDays_Val.EnergyTot[r:r+periodsPerDay] = df['EnergyTot'][j];
         dfDays_Val.Duration[r:r+periodsPerDay] = df['Duration'][j];
         dfDays_Val.Charging[r:r+periodsPerDay] = df['Charging'][j];
-    
+
         d += 1;
         r += periodsPerDay;
-    
+
     # Count connected vehicles
     cnctd = 0;
     for i in range(0,len(dfDays_Val.Arrivals)):
         if dfDays_Val.Hour.at[i] == 0:
             cnctd = 0;
-            
+
         cnctd = cnctd + dfDays_Val.Arrivals.at[i] - dfDays_Val.Departures.at[i];
-        
+
         if cnctd < 0:
             cnctd = 0;
-        dfDays_Val.Connected.at[i] = cnctd; 
+        dfDays_Val.Connected.at[i] = cnctd;
 
     return dfDays_Val
 
@@ -330,23 +346,23 @@ from sklearn.model_selection import train_test_split, KFold
 
 #file_aggData = "data/"+per+"/dfSLC_aggData_2018-2019.xlsx";
 #dfSLC_aggData = pd.read_excel(file_aggData)
-#dfSLC_aggData = dfSLC_aggData.drop("Idx", axis=1) 
+#dfSLC_aggData = dfSLC_aggData.drop("Idx", axis=1)
 
 data_Train, data_Test = train_test_split(dfSLC_aggData, test_size=0.2, shuffle=False)
 
 def dataCV(X, folds):
-    
-    kf = KFold(n_splits=folds) # Define the split - into 5 folds 
+
+    kf = KFold(n_splits=folds) # Define the split - into 5 folds
     kf.get_n_splits(X) # returns the number of splitting iterations in the cross-validator
-    print("--- Training & Validation ---\n",kf) 
-    f = 0; X_train={}; X_test={}; 
-    
+    print("--- Training & Validation ---\n",kf)
+    f = 0; X_train={}; X_test={};
+
     for train_index, test_index in kf.split(X):
          print("TRAIN:", train_index, "\nTEST :", test_index)
-         X_train[f], X_test[f] = X.iloc[train_index], X.iloc[test_index]         
+         X_train[f], X_test[f] = X.iloc[train_index], X.iloc[test_index]
          f += 1;
-     
-    return X_train, X_test 
+
+    return X_train, X_test
 
 X_Train, X_Test = dataCV(data_Train, 5)
 
