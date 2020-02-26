@@ -18,7 +18,7 @@ from pymc3 import model_to_graphviz
 #%% Read k-Fold Test-Train Data
 
 df_Train = {}; df_Val = {}; k = 5;
-per = "1hr_1port";
+per = "5min_1port";
 
 for i in range(k):
 
