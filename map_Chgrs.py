@@ -41,6 +41,27 @@ for pair in latlons:
     loc2 = (df_Chgrs.Latitude.at[pair[1]], df_Chgrs.Longitude.at[pair[1]])
     dist_Dict[pair] = gmaps.distance_matrix(loc1,loc2)['rows'][0]['elements'][0]['distance']['text']
     print(pair, dist_Dict[pair])
+  
+df_dist = pd.DataFrame(np.empty((len(dist_Dict),2)), columns=['EVSE ID', 'Dist'])
+df_dist['EVSE ID'] = dist_Dict.keys()
+df_dist['Dist'] = dist_Dict.values()
+df_dist.to_excel("data/charger_distancs.xlsx")
+
+#%% Save Distances
+
+import csv
+
+csv_file = "data/distances.csv";
+csv_columns = ['EVSE ID', 'Distance']
+
+try:
+    with open(csv_file, 'w') as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=csv_columns)
+        writer.writeheader()
+        for data in dist_Dict:
+            writer.writerow(data)
+except IOError:
+    print("I/O error")
 
 #%% Geocoding Addresses
 for index, row in df_ChgrDist.iterrows():  # assumes mydata is a pandas df
