@@ -120,10 +120,29 @@ def filterPrep(df, string, fltr, time):
 # Salt Lake City Sessions
 dfSLC_sesh = filterPrep(loadData(), "Salt Lake City", True, '15min')
 
-dfSLC_sesh.to_excel("evolution/data_WSEV2019.xlsx")
-#%%
+#dfSLC_sesh.to_excel("evolution/data_WSEV2019.xlsx")
+#%% Single Port
 dfSLC_sesh1chgr = dfSLC_sesh.loc[dfSLC_sesh['EVSE ID'] == 167437]
 dfSLC_sesh1port = dfSLC_sesh1chgr.loc[dfSLC_sesh1chgr['Port Number'] == str(1)]
+
+#%% Single Driver
+drivers = list(set(dfSLC_sesh['User ID']))
+dict_drvr = {}
+
+for i in range(len(drivers)):    
+    dict_drvr[drivers[i]] = len(dfSLC_sesh.loc[dfSLC_sesh['User ID'] == drivers[i]])
+    
+drvr_include = [k for k,v in dict_drvr.items() if v >= 100]
+
+dict_seshDrvr = {};
+for d in drvr_include:
+    print(d)
+    dict_seshDrvr[d] = dfSLC_sesh.loc[dfSLC_sesh['User ID'] == str(d)]
+
+#%% Basic Driver Metrics
+
+plt.scatter(dfTemp['Start Date'], dfTemp['Energy (kWh)'])
+    
 
 #%% Calculate per time period values
 
