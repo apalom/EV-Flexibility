@@ -120,6 +120,8 @@ def filterPrep(df, string, fltr, time):
 dfSLC_sesh = filterPrep(loadData(), "Salt Lake City", True, '15min')
 
 #dfSLC_sesh.to_excel("evolution/data_WSEV2019.xlsx")
+
+#%%
 dfSLC_sesh1chgr = dfSLC_sesh.loc[dfSLC_sesh['EVSE ID'] == 167437]
 dfSLC_sesh1port = dfSLC_sesh1chgr.loc[dfSLC_sesh1chgr['Port Number'] == str(1)]
 
@@ -138,7 +140,22 @@ for d in drvr_include:
     dict_seshDrvr[d] = dfSLC_sesh.loc[dfSLC_sesh['User ID'] == str(d)]
 
 #%% Basic Driver Metrics
-plt.scatter(dfTemp['Start Date'], dfTemp['Energy (kWh)'])
+
+#dfTemp = dict_seshDrvr['3820891']
+#plt.scatter(dfTemp['Start Date'], dfTemp['Energy (kWh)'])# s=dfTemp['Energy (kWh)'])
+
+df_metrics = pd.DataFrame(np.empty((len(drvr_include),6)), 
+                          index=drvr_include, columns=['AvgEnergy','AvgDur','AvgChrg','Ratio','AvgStart','NumChgrs'])
+
+for d in drvr_include:
+    df_metrics.AvgEnergy.at[d] = dict_seshDrvr[d]['Energy (kWh)'].mean()
+    df_metrics.AvgDur.at[d] = dict_seshDrvr[d]['Duration (h)'].mean()
+    df_metrics.AvgChrg.at[d] = dict_seshDrvr[d]['Charging (h)'].mean()
+    df_metrics.Ratio.at[d] = df_metrics.AvgChrg.at[d]/df_metrics.AvgDur.at[d]
+    df_metrics.AvgStart.at[d] = dict_seshDrvr[d]['StartHr'].mean()
+    df_metrics.NumChgrs.at[d] = len(list(set(dict_seshDrvr[d]['EVSE ID'])))
+
+print('--- Summary ---\n',df_metrics.describe())
 
 #%% Calculate per time period values
 
