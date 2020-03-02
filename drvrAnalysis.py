@@ -63,4 +63,69 @@ print('--- Summary ---\n',df_metrics.describe())
 summary = df_metrics.describe()
 
 df_metrics.to_excel("data/driver_metrics.xlsx")      
+#%% Start Clustering
+
+# import libraries
+import pandas as pd
+from sklearn import preprocessing
+from sklearn.cluster import KMeans
+from sklearn.cluster import AffinityPropagation
+from scipy.spatial import distance
+from sklearn import metrics
+from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.pyplot as plt
+import numpy as np
+import timeit
+
+start_time = timeit.default_timer()
+
+clusters = 4
+colNames = ['AvgEnergy','AvgDur','AvgChrg','Ratio','AvgStart','NumChgrs','MaxDist']
+df = df_metrics.filter(colNames, axis=1)
+
+# Get column names first
+names = df.columns
+# Create the Scaler object
+scaler = preprocessing.StandardScaler()
+# Fit your data on the scaler object
+df_scaled = scaler.fit_transform(df)
+df_scaled = pd.DataFrame(df_scaled, columns=names)
+
+# Calculate k-Means
+kmeans = KMeans(n_clusters=clusters, init='k-means++', n_init=10, max_iter=300).fit(df_scaled)
+
+#phi_true = kmeans.labels_
+phi_predict = kmeans.predict(df_scaled)
+
+centers = kmeans.cluster_centers_
+score = kmeans.score(df_scaled)
+
+# Compute Clustering Metrics
+n_clusters_ = len(centers)
+
+print('Number of clusters: %d' % n_clusters_)
+#print("Homogeneity: %0.3f" % metrics.homogeneity_score(phi_true, phi_predict))
+#print("Completeness: %0.3f" % metrics.completeness_score(phi_true, phi_predict))
+#print("V-measure: %0.3f" % metrics.v_measure_score(phi_true, phi_predict))
+#print("Adjusted Rand Index: %0.3f"
+#      % metrics.adjusted_rand_score(phi_true, phi_predict))
+#print("Adjusted Mutual Information: %0.3f"
+#      % metrics.adjusted_mutual_info_score(phi_true, phi_predict))
+print("Silhouette Coefficient: %0.3f"
+      % metrics.silhouette_score(df_scaled, phi_predict, metric='sqeuclidean'))
+
+# timeit statement
+elapsed = timeit.default_timer() - start_time
+
 #%%
+
+import math
+
+df = df_metrics;
+plt.scatter(df.AvgStart,df.AvgEnergy)
+
+#%%
+def round10(x):
+    return int(math.ceil(x / 5.0)) * 5
+
+df.AvgEnergy = df.AvgEnergy.apply(lambda x: round10(x))
