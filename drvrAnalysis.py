@@ -16,16 +16,18 @@ chgrDistances = pd.read_excel('data/charger_distances.xlsx');
 #dfTemp = dict_seshDrvr['3820891']
 #plt.scatter(dfTemp['Start Date'], dfTemp['Energy (kWh)'])# s=dfTemp['Energy (kWh)'])
 
-df_metrics = pd.DataFrame(np.empty((len(drvr_include),6)), 
-                          index=drvr_include, columns=['AvgEnergy','AvgDur','AvgChrg','Ratio','AvgStart','NumChgrs'])
-
+df_metrics = pd.DataFrame(np.empty((len(drvr_include),8)), 
+                          index=drvr_include, columns=['DrvrZip','AvgEnergy','AvgDur','AvgChrg','Ratio','AvgStart','NumChgrs','MaxDist'])
+i = 0;
 for d in drvr_include:
-    df_metrics.AvgEnergy.at[d] = dict_seshDrvr[d]['Energy (kWh)'].mean()
-    df_metrics.AvgDur.at[d] = dict_seshDrvr[d]['Duration (h)'].mean()
-    df_metrics.AvgChrg.at[d] = dict_seshDrvr[d]['Charging (h)'].mean()
-    df_metrics.Ratio.at[d] = df_metrics.AvgChrg.at[d]/df_metrics.AvgDur.at[d]
-    df_metrics.AvgStart.at[d] = dict_seshDrvr[d]['StartHr'].mean()
-    df_metrics.NumChgrs.at[d] = len(list(set(dict_seshDrvr[d]['EVSE ID'])))
+    df_metrics.loc[d].DrvrZip = dict_seshDrvr[d].iloc[0]['Driver Postal Code'];
+    df_metrics.AvgEnergy.at[d] = dict_seshDrvr[d]['Energy (kWh)'].mean();
+    df_metrics.AvgDur.at[d] = dict_seshDrvr[d]['Duration (h)'].mean();
+    df_metrics.AvgChrg.at[d] = dict_seshDrvr[d]['Charging (h)'].mean();
+    df_metrics.Ratio.at[d] = df_metrics.AvgChrg.at[d]/df_metrics.AvgDur.at[d];
+    df_metrics.AvgStart.at[d] = dict_seshDrvr[d]['StartHr'].mean();
+    df_metrics.NumChgrs.at[d] = len(list(set(dict_seshDrvr[d]['EVSE ID']))); 
+    i+=1;
 
 print('--- Summary ---\n',df_metrics.describe())
 
@@ -36,22 +38,29 @@ for d in drvr_include:
     
     EVSE_pairs = list(combinations(list(set(dict_seshDrvr[d]['EVSE ID'])),2))
     
-    dist = {};
+    dist = {}; maxDist = 0;
     for p in EVSE_pairs:
-        try:
-            if len(chgrDistances.loc[chgrDistances['EVSE ID'] == str(p)]) == 1:
-                dist[p] = float(chgrDistances.loc[chgrDistances['EVSE ID'] == str(p)].Dist.values[0].split()[0])
-            else:
-                dist[p] = float(chgrDistances.loc[chgrDistances['EVSE ID'] == str(p[::-1])].Dist.values[0].split()[0])
-        
-            maxDist = max(dist.values())            
-            dict_maxDist[d] = maxDist
+
+        if len(chgrDistances.loc[chgrDistances['EVSE ID'] == str(p)]) == 1:
+            dist[p] = float(chgrDistances.loc[chgrDistances['EVSE ID'] == str(p)].Dist.values[0].split()[0]);
             
-        except ValueError:
-            dict_maxDist[d] = 'EVSE pair not found.'
+        else:
+            dist[p] = float(chgrDistances.loc[chgrDistances['EVSE ID'] == str(p[::-1])].Dist.values[0].split()[0]);
     
+    if len(dist) > 0:
+        maxDist = max(dist.values());
+        df_metrics.MaxDist.at[d] = maxDist;
+        
+    else:
+        maxDist = ' not found.';
+        df_metrics.MaxDist.at[d] = 0;
+        
+    dict_maxDist[d] = maxDist;
+                
     print('Driver :', d, ' | ', dict_maxDist[d])
-
     
+print('--- Summary ---\n',df_metrics.describe())
+summary = df_metrics.describe()
 
+df_metrics.to_excel("data/driver_metrics.xlsx")      
 #%%
