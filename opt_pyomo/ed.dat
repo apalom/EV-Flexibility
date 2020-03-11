@@ -1,0 +1,31 @@
+set Units := G1 G2 G3 ;
+
+param a:=
+G1	200
+G2	100
+G3	300
+;
+
+param b:=
+G1	8.3
+G2	8.5	
+G3	8.9
+;
+
+param c:=
+G1	0.0040	
+G2	0.0025	
+G3	0.0050
+;
+
+param pMin :=
+G1	200
+G2	150
+G3	200
+;
+
+param pMax :=
+G1	600
+G2	300
+G3	400
+;

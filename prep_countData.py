@@ -34,7 +34,7 @@ def filterPrep(df, string, fltr, time):
     df = pd.DataFrame(df, index=np.arange(len(df)), columns=colNames)
 
     #filter for dfcf
-    #df = df.loc[df['Port Type'] == 'DC Fast']
+    df = df.loc[df['Port Type'] == 'DC Fast']
 
     df['Start Date'] = pd.to_datetime(df['Start Date']);
     df['End Date'] = pd.to_datetime(df['End Date']);
@@ -47,7 +47,7 @@ def filterPrep(df, string, fltr, time):
         print("Filter for: ", string)
     else:
         print("No Filter")
-
+        
     #clean data
     df = df.loc[df['Energy (kWh)'] > 0]
     df = df.loc[~pd.isnull(df['End Date'])]
@@ -120,6 +120,14 @@ def filterPrep(df, string, fltr, time):
 dfSLC_sesh = filterPrep(loadData(), "Salt Lake City", True, '15min')
 
 #dfSLC_sesh.to_excel("evolution/data_WSEV2019.xlsx")
+
+#%% dcfc SOC
+
+dfSLC_seshDCFC = dfSLC_sesh[dfSLC_sesh[['Start SOC','End SOC']].notnull().all(1)]
+#%%
+print('           Mean | Variance')
+print('Start SOC: ', np.round(dfSLC_seshDCFC['Start SOC'].mean(),2), np.round(dfSLC_seshDCFC['Start SOC'].var(),2))
+print('End SOC:   ', np.round(dfSLC_seshDCFC['End SOC'].mean(),2), np.round(dfSLC_seshDCFC['End SOC'].var(),2))
 
 #%%
 dfSLC_sesh1chgr = dfSLC_sesh.loc[dfSLC_sesh['EVSE ID'] == 167437]
