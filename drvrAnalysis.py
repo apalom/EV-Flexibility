@@ -44,8 +44,10 @@ for d in drvr_include:
             else:
                 dist[p] = float(chgrDistances.loc[chgrDistances['EVSE ID'] == str(p[::-1])].Dist.values[0].split()[0])
         
-            maxDist = max(dist.values())            
-            dict_maxDist[d] = maxDist
+            if len(dist) > 0:
+                dict_maxDist[d] = max(dist.values())     
+            else: 
+                dict_maxDist[d] = 'EVSE pair not found.'
             
         except ValueError:
             dict_maxDist[d] = 'EVSE pair not found.'
