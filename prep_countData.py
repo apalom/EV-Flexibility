@@ -34,7 +34,7 @@ def filterPrep(df, string, fltr, time):
     df = pd.DataFrame(df, index=np.arange(len(df)), columns=colNames)
 
     #filter for dfcf
-    df = df.loc[df['Port Type'] == 'DC Fast']
+    #df = df.loc[df['Port Type'] == 'DC Fast']
 
     df['Start Date'] = pd.to_datetime(df['Start Date']);
     df['End Date'] = pd.to_datetime(df['End Date']);
@@ -117,7 +117,7 @@ def filterPrep(df, string, fltr, time):
     return df;
 
 # Salt Lake City Sessions
-dfSLC_sesh = filterPrep(loadData(), "Salt Lake City", True, '15min')
+dfSLC_sesh = filterPrep(loadData(), "Salt Lake City", False, '15min')
 
 #dfSLC_sesh.to_excel("evolution/data_WSEV2019.xlsx")
 

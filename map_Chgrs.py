@@ -11,6 +11,8 @@ import numpy as np
 import googlemaps
 import time
 from itertools import combinations 
+from prep_countData import loadData
+from prep_countData import filterPrep
 
 #%% Import Data
 def loadData():
@@ -18,10 +20,24 @@ def loadData():
     filePath = 'data/Session-Details-Summary-20200113.csv';
     return pd.read_csv(filePath);
 
-#%%
-df_Chgrs = loadData()[['EVSE ID','Port Number','Port Type','Station Name','Latitude','Longitude']].drop_duplicates() 
+dfSLC_sesh = filterPrep(loadData(), "Salt Lake City", False, '15min')
+
+#%% Charger Summary Data
+
+dfChgr_Data = dfSLC_sesh.groupby('EVSE ID').mean()
+dfChgr_Data = dfChgr_Data.sort_index()
+
+dfChgr_Data.to_excel("data/charger_data.xlsx")
+
+#%% Create DF Chgrs
+#df_Chgrs = loadData()[['EVSE ID','Port Number','Port Type','Station Name','Latitude','Longitude']].drop_duplicates() 
+
+df_Chgrs = dfSLC_sesh[['EVSE ID','Port Number','Port Type','Station Name','Latitude','Longitude','City']].drop_duplicates() 
 df_Chgrs = df_Chgrs.set_index(df_Chgrs['EVSE ID'],drop=True).drop(['EVSE ID'], axis=1)
 df_Chgrs = df_Chgrs.loc[~df_Chgrs.index.duplicated(keep='first')]
+df_Chgrs = df_Chgrs.sort_index()
+
+df_Chgrs.to_excel("data/charger_names.xlsx")
 
 # Create distance matrix
 df_ChgrDist = pd.DataFrame((np.empty((len(df_Chgrs),len(df_Chgrs)))), columns=df_Chgrs.index, index=df_Chgrs.index)
